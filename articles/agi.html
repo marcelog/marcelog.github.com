@@ -127,26 +127,36 @@ exten =&gt; 1,1,AGI(/tmp/agi.sh,arg1,arg2,arg3)<br/>
 <hr/>
 #!/bin/bash<br/>
 <br/>
-echo "------------ call start ------------" &gt;&gt; /tmp/dump.txt<br/>
-echo "config dir: " ${AST_CONFIG_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "configfile: " ${AST_CONFIG_FILE} &gt;&gt; /tmp/dump.txt<br/>
-echo "module dir: " ${AST_MODULE_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "spool dir: " ${AST_SPOOL_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "monitor dir: " ${AST_MONITOR_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "var dir: " ${AST_VAR_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "data dir: " ${AST_DATA_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "log dir: " ${AST_LOG_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "agi dir: " ${AST_AGI_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "key dir: " ${AST_KEY_DIR} &gt;&gt; /tmp/dump.txt<br/>
-echo "run dir: " ${AST_RUN_DIR} &gt;&gt; /tmp/dump.txt<br/>
-
-line="init"<br/>
-while [ "${#init}" -gt "2" ]; do<br/>
-        read line<br/>
-        echo ${line} &gt;&gt; /tmp/dump.txt<br/>
-done<br/>
-echo "------------ call done ------------" &gt;&gt; /tmp/dump.txt<br/>
+filedump=/tmp/dump.txt<br/>
 <br/>
+function log() {<br/>
+    echo ${@} &gt;&gt; ${filedump}<br/>
+}<br/>
+<br/>
+function dumpvar() {<br/>
+    log "channel variable: ${1} = ${2}"<br/>
+}<br/>
+<br/>
+log "------------ call start ------------"<br/>
+dumpvar "config dir" ${AST_CONFIG_DIR}<br/>
+dumpvar "configfile" ${AST_CONFIG_FILE}<br/>
+dumpvar "module dir" ${AST_MODULE_DIR}<br/>
+dumpvar "spool dir" ${AST_SPOOL_DIR}<br/>
+dumpvar "monitor dir" ${AST_MONITOR_DIR}<br/>
+dumpvar "var dir" ${AST_VAR_DIR}<br/>
+dumpvar "data dir" ${AST_DATA_DIR}<br/>
+dumpvar "log dir" ${AST_LOG_DIR}<br/>
+dumpvar "agi dir" ${AST_AGI_DIR}<br/>
+dumpvar "key dir" ${AST_KEY_DIR}<br/>
+dumpvar "run dir" ${AST_RUN_DIR}<br/>
+<br/>
+line='init'<br/>
+while [ "${#line}" -gt "2" ]; do<br/>
+        read line<br/>
+        log ${line}<br/>
+done<br/>
+log "------------ call done ------------"<br/>
+exit 0<br/>
 <hr/>
 <H2>Run the application</H2>
 <p>
@@ -155,26 +165,26 @@ file /tmp/dump.txt with the output from the channel variables. This application 
 nothing at all. It will end when asterisk sends an empty line, which marks the end of
 the channel variables block.
 </p>
-<hr/>
 <p>
 Example of the file /tmp/dump.txt generated:<br/>
+<hr/>
 ------------ call start ------------<br/>
-config dir:  /export/users/marcelog/config/asterisk<br/>
-configfile:  /export/users/marcelog/config/asterisk/asterisk.conf<br/>
-module dir:  /usr/lib/asterisk/modules<br/>
-spool dir:  /tmp/marcelog/asterisk/spool<br/>
-monitor dir:  /tmp/marcelog/asterisk/spool/monitor<br/>
-var dir:  /tmp/marcelog/asterisk<br/>
-data dir:  /tmp/marcelog/asterisk<br/>
-log dir:  /tmp/marcelog/asterisk/logs<br/>
-agi dir:  /tmp/marcelog/asterisk/agi-bin<br/>
-key dir:  /tmp/marcelog/asterisk/keys<br/>
-run dir:  /tmp/marcelog/asterisk<br/>
+channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
+channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
+channel variable: module dir = /usr/lib/asterisk/modules<br/>
+channel variable: spool dir = /tmp/marcelog/asterisk/spool<br/>
+channel variable: monitor dir = /tmp/marcelog/asterisk/spool/monitor<br/>
+channel variable: var dir = /tmp/marcelog/asterisk<br/>
+channel variable: data dir = /tmp/marcelog/asterisk<br/>
+channel variable: log dir = /tmp/marcelog/asterisk/logs<br/>
+channel variable: agi dir = /tmp/marcelog/asterisk/agi-bin<br/>
+channel variable: key dir = /tmp/marcelog/asterisk/keys<br/>
+channel variable: run dir = /tmp/marcelog/asterisk<br/>
 agi_request: /tmp/agi.sh<br/>
-agi_channel: SIP/marcelog-1c0f0500<br/>
+agi_channel: SIP/marcelog-e00d2760<br/>
 agi_language: ar<br/>
 agi_type: SIP<br/>
-agi_uniqueid: 1297541034.2<br/>
+agi_uniqueid: 1297542965.8<br/>
 agi_version: 1.6.0.9<br/>
 agi_callerid: marcelog<br/>
 agi_calleridname: marcelog@mg<br/>
@@ -189,17 +199,17 @@ agi_extension: 667<br/>
 agi_priority: 2<br/>
 agi_enhanced: 0.0<br/>
 agi_accountcode:<br/>
-agi_threadid: 1095752016<br/>
+agi_threadid: 1104922960<br/>
 agi_arg_1: arg1<br/>
 agi_arg_2: arg2<br/>
 agi_arg_3: arg3<br/>
 ------------ call done ------------<br/>
+<hr/>
 </p>
 <p>
 Notice how asterisk passes the variables from the dialplan to your application (i.e:
 the "special" channel variables <b>agi_arg_x</b> where x is the argument index).
 </p>
-<hr/>
   <center>
   <script type="text/javascript"><!--
 google_ad_client = "ca-pub-6947936742546167";
@@ -245,10 +255,6 @@ The error code can be one of:
 </ul>
 </p>
 <p>
-That's about it, you can find the complete list of commands <a href="https://wiki.asterisk.org/wiki/display/AST/AGI+Commands">here.</a><br/>
-</p>
-<H1><u>Quick shell example: Part 2</u></H1>
-<p>
 As an AGI script, you should always set the AGI variable <b>AGISTATUS</b> to one of: 
 <ul>
 <li>SUCCESS</li>
@@ -256,5 +262,151 @@ As an AGI script, you should always set the AGI variable <b>AGISTATUS</b> to one
 <li>HANGUP</li>
 </ul>
 </p>
+<p>
+That's about it, you can find the complete list of commands <a href="https://wiki.asterisk.org/wiki/display/AST/AGI+Commands">here.</a><br/>
+</p>
+<H1><u>Quick shell example: Part 2</u></H1>
+Now let's modify the example, like this:<br/>
+<hr/>
+#!/bin/bash<br/>
+<br/>
+filedump=/tmp/dump.txt<br/>
+<br/>
+function log() {<br/>
+    echo ${@} >> ${filedump}<br/>
+}<br/>
+<br/>
+function dumpvar() {<br/>
+    log "channel variable: ${1} = ${2}"<br/>
+}<br/>
+<br/>
+function send() {<br/>
+    log Sending: ${@}<br/>
+    echo ${@}<br/>
+    read line<br/>
+    log "Got: ${line}"<br/>
+}<br/>
+<br/>
+function answer() {<br/>
+    send "ANSWER"<br/>
+}<br/>
+<br/>
+function agilog() {<br/>
+    send "VERBOSE" \"${@}\"<br/>
+}<br/>
+<br/>
+function play() {<br/>
+    send STREAM FILE ${1} "#"<br/>
+}<br/>
+<br/>
+function setvariable() {<br/>
+    send SET VARIABLE ${1} ${2}<br/>
+}<br/>
+<br/>
+function hangup() {<br/>
+    setvariable AGISTATUS SUCCESS<br/>
+    send "HANGUP 16"<br/>
+}<br/>
+<br/>
+callStatus=1<br/>
+function callEnded() {<br/>
+    if [ "${callStatus}" -eq "0" ]; then<br/>
+        return<br/>
+    fi<br/>
+    callStatus=0<br/>
+    agilog "Call ended abruptly"<br/>
+    hangup<br/>
+    exit 0<br/>
+}<br/>
+<br/>
+<br/>
+# Asterisk will send a SIGHUP signal when the user hangups the channel. In this<br/>
+# example you can try it by waiting for the welcome audio message to finish or<br/>
+# hangup before it finishes playing.<br/>
+trap callEnded SIGHUP<br/>
+log "------------ call start ------------"<br/>
+dumpvar "config dir" ${AST_CONFIG_DIR}<br/>
+dumpvar "configfile" ${AST_CONFIG_FILE}<br/>
+dumpvar "module dir" ${AST_MODULE_DIR}<br/>
+dumpvar "spool dir" ${AST_SPOOL_DIR}<br/>
+dumpvar "monitor dir" ${AST_MONITOR_DIR}<br/>
+dumpvar "var dir" ${AST_VAR_DIR}<br/>
+dumpvar "data dir" ${AST_DATA_DIR}<br/>
+dumpvar "log dir" ${AST_LOG_DIR}<br/>
+dumpvar "agi dir" ${AST_AGI_DIR}<br/>
+dumpvar "key dir" ${AST_KEY_DIR}<br/>
+dumpvar "run dir" ${AST_RUN_DIR}<br/>
+<br/>
+line='init'<br/>
+while [ "${#line}" -gt "2" ]; do<br/>
+        read line<br/>
+        log ${line}<br/>
+done<br/>
+answer<br/>
+agilog Hello There<br/>
+play welcome<br/>
+hangup<br/>
+log "------------ call done ------------"<br/>
+exit 0<br/>
+<hr/>
+<p>
+Example of the file /tmp/dump.txt generated:<br/>
+------------ call start ------------<br/>
+channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
+channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
+channel variable: module dir = /usr/lib/asterisk/modules<br/>
+channel variable: spool dir = /tmp/marcelog/asterisk/spool<br/>
+channel variable: monitor dir = /tmp/marcelog/asterisk/spool/monitor<br/>
+channel variable: var dir = /tmp/marcelog/asterisk<br/>
+channel variable: data dir = /tmp/marcelog/asterisk<br/>
+channel variable: log dir = /tmp/marcelog/asterisk/logs<br/>
+channel variable: agi dir = /tmp/marcelog/asterisk/agi-bin<br/>
+channel variable: key dir = /tmp/marcelog/asterisk/keys<br/>
+channel variable: run dir = /tmp/marcelog/asterisk<br/>
+agi_request: /tmp/agi.sh<br/>
+agi_channel: SIP/marcelog-e00d2760<br/>
+agi_language: ar<br/>
+agi_type: SIP<br/>
+agi_uniqueid: 1297542965.8<br/>
+agi_version: 1.6.0.9<br/>
+agi_callerid: marcelog<br/>
+agi_calleridname: marcelog@mg<br/>
+agi_callingpres: 0<br/>
+agi_callingani2: 0<br/>
+agi_callington: 0<br/>
+agi_callingtns: 0<br/>
+agi_dnid: 667<br/>
+agi_rdnis: unknown<br/>
+agi_context: default<br/>
+agi_extension: 667<br/>
+agi_priority: 2<br/>
+agi_enhanced: 0.0<br/>
+agi_accountcode:<br/>
+agi_threadid: 1104922960<br/>
+agi_arg_1: arg1<br/>
+agi_arg_2: arg2<br/>
+agi_arg_3: arg3<br/>
+<br/>
+Sending: ANSWER<br/>
+Got: 200 result=0<br/>
+Sending: VERBOSE "Hello There"<br/>
+Got: 200 result=1<br/>
+Sending: STREAM FILE welcome #<br/>
+Sending: VERBOSE "Call ended abruptly"<br/>
+Got: 00 result=-1 endpos=3840<br/>
+Sending: SET VARIABLE AGISTATUS SUCCESS<br/>
+Got: 200 result=1<br/>
+Sending: HANGUP 16<br/>
+Got: 200 result=1<br/>
+------------ call done ------------<br/>
+</p>
+<H1><u>Conclusions</u></H1>
+As you can see, its fairly easy to implement almost *any* ivr application very quickly and easy
+via agi. One of the most important keys to the success of asterisk as a telephony software and
+product. I hope this tutorial helps you out in making agi applications in your language of choice.<br/>
+<br/>
+
+<H1><u>Author</u></H1>
+Marcelo Gornstein &lt;marcelog@gmail.com&gt;<br/>
 </body>
 </html>
