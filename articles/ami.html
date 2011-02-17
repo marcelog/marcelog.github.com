@@ -116,6 +116,13 @@ Variable: &lt;name&gt;=&lt;value&gt;<br/>
 Different actions require different <b>keys</b> and/or <b>variables</b>. You can find the complete list
 of actions <a href="https://wiki.asterisk.org/wiki/display/AST/AMI+Actions">here</a>.
 </p>
+<p>
+A response that contains a:<br/>
+<hr/>
+Response: Error<br/>
+<hr/>
+Is considered a failed action. Otherwise, should be a successfull one.
+</p>
 <H2><u>Asynchronous events</u></H2>
 <p>
 This kind of events are the ones that asterisk sends you at any given time without the need of you sending
@@ -150,6 +157,10 @@ any of the following conditions:<br/>
 Message: Result will follow
 <hr/>
 Message: Result follows
+<hr/>
+Response: Follows
+<hr/>
+Response: Result will follow
 <hr/>
 EventList: Start
 <hr/>
