@@ -1,5 +1,7 @@
 <html>
   <head>
+  <!-- Añade esta etiqueta en la cabecera o delante de la etiqueta body. -->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
   	<meta name="description" content="This article is a tutorial about the Asterisk Manager Interface (AMI) protocol."/>
   
   <script type="text/javascript">
@@ -57,6 +59,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 </center>	
   <H1><u>Overview of the AMI Protocol</u></H1>
   <p>
+  <g:plusone></g:plusone>
 AMI is a plain text protocol, and it works by sending and receiving packets. Each packet consists in a series
 of text lines delimited by <b>\r\n</b>. And each packet is delimited by <b>\r\n\r\n</b>. 
 AMI uses a tcp port configured in <b>manager.conf</b>. As soon as the connection is established, asterisk salutes you with something like:<br/>
