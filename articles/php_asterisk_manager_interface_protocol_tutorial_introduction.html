@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>The Asterisk Manager Interface (AMI) Protocol</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="The Asterisk Manager Interface (AMI) Protocol"/>
+<meta name="description" content="This article is a tutorial about the Asterisk Manager Interface (AMI) protocol."/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <!-- 
+      <div class="social-network">
+      	<a href="#" class="icon-fb" title="Facebook">Facebook</a>
+        <a href="#" class="icon-twitter" title="Twitter">Twitter</a>
+        <a href="#" class="icon-email" title="Email">Email</a>
+      </div>
+       -->
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  The Asterisk Manager Interface (AMI) Protocol</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>The Asterisk Manager Interface (AMI) Protocol</h2>
+                <div class="hr-1"><hr /></div>
+  <H3><u>Introduction</u></H3>
+<p>
+The <b>Asterisk Manager Interface</b> (<b>AMI</b>) protocol is a very simple protocol that allows you to 
+communicate and manage your asterisk server, almost completely. It has support to edit/create asterisk configuration
+files and also manage the calls, clients, agents, dialplan, etc.
+</p>
+<p>
+You might also be interested in <a href="http://marcelog.github.com/PAMI">PAMI</a>. An AMI client/framework that allows you to
+quickly develop ami clients in an oop/event-driven fashion.
+</p>
+  <H3><u>Overview of the AMI Protocol</u></H3>
+  <p>
+AMI is a plain text protocol, and it works by sending and receiving packets. Each packet consists in a series
+of text lines delimited by <b>\r\n</b>. And each packet is delimited by <b>\r\n\r\n</b>. 
+AMI uses a tcp port configured in <b>manager.conf</b>. As soon as the connection is established, asterisk salutes you with something like:<br/>
+</p>
+<hr/>
+<p>
+Asterisk Call Manager/1.1
+</p>
+<hr/>
+<p>
+This message indicates that the communication can begin. Packets may be transmitted in either direction at any time after authentication.
+</p>
+<H3><u>AMI Packets (Actions, Responses, Events)</u></H3>
+  <p>
+  AMI defines 3 kind of possible packets:<br/>
+  <ul>
+  <li><u>Actions</u>: This kind of packet is what the client sends. Only the client can generate Actions.</li>
+  <li><u>Responses</u>: Actions have at least one Response, indicating the result of the executed (or requested) action.</li>
+  <li><u>Events</u>: There are two kind of events. The ones attached to a particular response for a particular action, and
+  the ones that asterisk generate to inform the connected client about things that are happening in the server (like
+  call events, changes in variables values, agents and other clients that connect/disconnect to/from the server, etc).</li>
+  </ul>
+  </p>
+  <p>
+  The first line of a packet will have a key of "Action" when sent from the client to Asterisk, but "Event" or "Response" when sent from Asterisk to the client.
+  </p>
+<p>
+A typical action is the <b>Login</b> action, which looks like this:<br/>
+</p>
+<hr/>
+<p>
+Action: Login\r\n<br/>
+Username: admin\r\n<br/>
+Secret: mysecret\r\n<br/>
+ActionId: 1a2b\r\n<br/>
+\r\n<br/>
+</p>
+<hr/>
+<p>
+And its response is something like:<br/>
+</p>
+<hr/>
+<p>
+Response: Success\r\n<br/>
+ActionID: 1a2b\r\n<br/>
+Message: Authentication accepted\r\n<br/>
+\r\n
+</p>
+<hr/>
+<p>
+Notice the <b>ActionId</b> field in the action and response packet. This field is optional, but highly recommended to send, because it tells asterisk to respond with this same actionid value
+so the client can easily associate the response with the action sent. If any events are attached to this response, they
+will also contain the same actionid value.
+</p>
+<p>
+So the general format for an action packet is something like this:<br/>
+</p>
+<hr/>
+<p>
+Action: &lt;action&gt;\r\n<br/>
+&lt;Key1&gt;: &lt;value&gt;\r\n<br/>
+&lt;Key2&gt;: &lt;value&gt;\r\n<br/>
+...<br/>
+&lt;KeyN&gt;: &lt;value&gt;\r\n<br/>
+Variable: &lt;name&gt;=&lt;value&gt;<br/>
+Variable: &lt;name&gt;=&lt;value&gt;<br/>
+...<br/>
+Variable: &lt;name&gt;=&lt;value&gt;<br/>
+</p>
+<hr/>
+<p>
+Different actions require different <b>keys</b> and/or <b>variables</b>. You can find the complete list
+of actions <a href="https://wiki.asterisk.org/wiki/display/AST/AMI+Actions">here</a>.
+</p>
+<p>
+A response that contains a:<br/>
+</p>
+<hr/>
+<p>
+Response: Error<br/>
+</p>
+<hr/>
+<p>
+Is considered a failed action. Otherwise, should be a successfull one.
+</p>
+<H4><u>Asynchronous events</u></H4>
+<p>
+This kind of events are the ones that asterisk sends you at any given time without the need of you sending
+any action. This events can be disabled via the <b>Event</b> action.<br/>
+An example:<br/>
+</p>
+<hr/>
+<p> 
+Event: PeerStatus\r\n<br/>
+Privilege: system,all\r\n<br/>
+ChannelType: SIP\r\n<br/>
+Peer: SIP/marcelog\r\n<br/>
+PeerStatus: Registered\r\n<br/>
+\r\n<br/>
+</p>
+<hr/>
+<H4><u>Synchronous events</u></H4>
+<p>
+These events are used by asterisk whenever a response has a long payload to send. For example, when you 
+ask for the dialplan lines, or the connected clients, or the status of all channels, etc.
+</p>
+<p>
+Asterisk will return a Response packet indicating that the response actually has more data that will be sent
+in Events packets. A little note here. AMI is kind of broken and inconsistent (at least in asterisk 1.6). This
+means that there exists a couple of ways (depending on the action issued) for asterisk to report a Response with
+events attached.
+</p>
+<p>
+To actually know if a given response contains events attached, you should check for
+any of the following conditions:<br/>
+</p>
+<hr/>
+<p>
+Message: Result will follow
+</p>
+<hr/>
+<p>
+Message: Result follows
+</p>
+<hr/>
+<p>
+Response: Follows
+</p>
+<hr/>
+<p>
+Response: Result will follow
+</p>
+<hr/>
+<p>
+EventList: Start
+</p>
+<hr/>
+<p>
+The same happens when you're trying to know when to consider a response as completed (all events received). You 
+should check for:
+</p>
+<hr/>
+<p>
+Event: EventNameHereComplete
+</p>
+<hr/>
+<p>
+EventList: Complete
+</p>
+<hr/>
+<H3><u>Conclusions</u></H3>
+<p>
+AMI is a pretty straightforward protocol. You can even try to create a client using netcat via a shell script
+or whatever programming language you like, allowing you to make console operators or manage the asterisk queues, calls,
+agents, etc from a single controlled point of your architecture.
+</p>
+<br/>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Older Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+<!-- 
+                  <li><a href="#">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="#">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="#">Using DIME With SOAP And PHP</a></li>
+ -->
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+</body>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</html>
