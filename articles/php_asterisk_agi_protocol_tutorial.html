@@ -65,8 +65,13 @@ You might also be interested in <a href="http://marcelog.github.com/PAGI">PAGI</
 quickly develop agi applications in an oop fashion.
 </p>
 <H3><u>Asterisk configuration for AGI applications</u></H3>
+<p>
 To start your agi application you will use the AGI() dialplan application from you own dialplan. For example, in <b>extensions.conf:</b><br/>
+<hr/>
+<p>
 exten =&gt; 1,1,AGI(myApplication.php)<br/>
+</p>
+<hr/>
   <p>
 This will tell asterisk to start an agi application when a call is made to the '1' extension. That's it ;)
   </p>
@@ -141,9 +146,12 @@ Let's try a very basic example to see in action what we've covered so far:
 Let's configure a demo application, adding 3 (optional, of course) arguments to it:
 </p>
 <hr/>
+<p>
 exten =&gt; 1,1,AGI(/tmp/agi.sh,arg1,arg2,arg3)<br/>
+</p>
 <hr/>
 <H4>Create the agi application</H4>
+<p>
 <pre name="code" class="php">
 #!/bin/bash
 
@@ -178,6 +186,7 @@ done
 log "------------ call done ------------"
 exit 0
 </pre>
+</p>
 <H4>Run the application</H4>
 <p>
 Make a call to the '1' extension. Your agi application should run and create the
@@ -187,7 +196,6 @@ the channel variables block.
 </p>
 <p>
 Example of the file /tmp/dump.txt generated:<br/>
-<hr/>
 ------------ call start ------------<br/>
 channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
 channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
@@ -224,7 +232,6 @@ agi_arg_1: arg1<br/>
 agi_arg_2: arg2<br/>
 agi_arg_3: arg3<br/>
 ------------ call done ------------<br/>
-<hr/>
 </p>
 <p>
 Notice how asterisk passes the variables from the dialplan to your application (i.e:
