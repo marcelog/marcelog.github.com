@@ -1,0 +1,277 @@
+<html>
+  <head>
+  <!-- Añade esta etiqueta en la cabecera o delante de la etiqueta body. -->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+  	<meta name="description" content="This article is a tutorial about making a gcc cross compile freebsd applications under linux."/>
+  
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  <title>How to make a cross compiler (gcc) for freebsd under linux. A small tutorial.</title>
+  
+  </head>
+  <body>
+  <H1><u>Introduction</u></H1>
+<p>
+I manage a Hudson CI Server that runs on a linux system where I work, and one of our projects is written in 
+plain C code that should be able to run on linux and also freebsd 7. Up to now we were using a freebsd (hudson) slave
+node in order to build the freebsd binaries. So I decided to get rid of it and try to build the code in the main
+hudson server, for both linux and freebsd. The solution: to build a full cross toolchain that can generate
+freebsd 7 binaries in a linux box.
+</p>
+<H1><u>First things, first</u></H1>
+<p>
+<g:plusone></g:plusone>
+What exactly is a toolchain? Generically speaking, a toolchain is a set of tools (other software) that is run to generate
+other software, in a certain specific sequence. In this case, we are talking about a C/C++ preprocessor, a C/C++ compiler,
+an assembler, a linker, etc.
+</p>
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+<H1><u>Understanding the task</u></H1>
+<p>
+We are going to use our current toolchain (installed in a linux box) to generate a new toolchain that builds freebsd 7
+binaries for either 32 or 64 bits cpu's. This new toolchain will be installed in parallel to our current toolchain, so we can still
+generate binaries for linux also. This is a halfway to the infamous <b>canadian cross.</b> 
+</p>
+<H1><u>The canadian cross</u></H1>
+<p>
+The canadian cross can be used to generate a full working application (or operating system) for a certain architecture from scratch.
+Suppose you have 3 machines, named A, B, and C. The idea is to use machine A to build a cross compiler that runs on machine B, to create executables for machine C.
+It envolves the following steps:
+<ul>
+<li>The native compiler (1) of a machine (A) is used to generate the native GCC (2) for machine A.</li>
+<li>The compiler 2, is used to generate the GCC cross compiler (3) that runs on A, but generates binaries for a machine B.</li>
+<li>The compiler 3 is used in B to generate a GCC cross compiler (4) that can generate binaries for machine C.</li>  
+</ul>
+</p>
+<p>
+In our particular case, we already have compilers 1 and 2 because linux systems will mostly have a preshipped version of GCC fully
+functional. In order to simplify things a little, we're gonna stop at making the compiler 3, that is the cross compiler from
+machine A (the linux box) to the machine B (the freebsd box).
+</p>
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+<H1><u>About GNU targets</u></H1>
+<p>
+When compiling software, the GNU toolchain needs to know 2 <b>targets</b>:
+<ul>
+<li>Host target, which describes where the software is being built (hardware architecture and operating system).
+<li>Build target, which is the hardware architecture and operating system where the executable is intended to be run.
+</ul>
+</p>
+<p>
+In my own case, I had a host target <b>x86_64-pc-linux-gnu</b> and I wanted to build software for a <b>x86_64-pc-freebsd7</b> target.
+</p>
+<p>
+A list of available targets is <a href="http://gcc.gnu.org/install/specific.html">here</a>.
+</p>
+<p>
+By convention, the GNU toolchain will store all its data in ${prefix}/${target} where the prefix is the
+installation prefix for the toolchain (i.e: /usr) and target is the name of the target for which this toolchain
+generates binaries (i.e: /usr/x86_64-pc-freebsd7, /usr/x86_64-pc-linux-gnu, etc). Also, the names for the linker, 
+compiler, etc, will be named in the form ${target}-gcc, ${target}-ar, ${target}-ld, etc. So you can have multiple
+toolchains for multiple targets residing in the same prefix installation directory. Inside each target directory,
+you would find /include, /lib, and /bin which helps to keep things clear, since each target has its own specific
+libraries, includes, stubs for executables, etc.
+</p>
+<H1><u>The requirements</u></H1>
+<ul>
+<li>The linux box, of course, with a full and working GNU toolchain (or any other propietary toolchain) to build the cross toolchain that will generate the freebsd binaries.</li>
+<li>FreeBSD 7 include files (the whole /usr/include)</li>
+<li>FreeBSD 7 stubs: (/usr/lib/crt1.o, /usr/lib/crti.o, /usr/lib/crtn.o)</li>
+<li>Freebsd 7 libc: (/usr/lib/libc.a, /usr/lib/libc.so, /usr/lib/libm.a, /usr/lib/libm.so)</li>
+</ul>
+
+<H1><u>Software involved</u></H1>
+<ul>
+<li>GNU binutils (I used 2.21)</li>
+<li>GCC (I used 4.5.2)</li>
+</ul>
+
+If you decide to use GCC >= 4.1.x (like I did), you will also need:
+<ul>
+<li>MPC (I used 0.8.1)</li>
+<li>MPFR (I used 2.4.2)</li>
+<li>GMP (I used 4.3.2)</li>
+</ul>
+
+I'm going to use <b>/usr/cross-freebsd</b> as the prefix for the installation.<br/><br/>
+<H1><u>Step 1: Build binutils</u></H1>
+<p>
+GNU Binutils has some low level utilities that can manipulate executables. You can get it directly from <a href="http://www.gnu.org/software/binutils/">GNU</a>
+</p>
+<p>
+Uncompress the distribution: <b>tar jxf binutils-2.21.tar.bz2</b><br/>
+Configure the software: <b>cd binutils-2.21; ./configure --enable-libssp --enable-gold --enable-ld --target=x86_64-pc-freebsd7 --prefix=/usr/cross-freebsd</b><br/>
+Build and install: <b>gmake; gmake install</b><br/>
+</p>
+<H1><u>Step 2: Install freebsd specific files</u></H1>
+Remember that I told you to go get some files from a freebsd distribution? It's time to use them.<br/><br/>
+Following the GNU toolchain convention, create the following directories:<br/><br/>
+mkdir -p /usr/cross-freebsd/x86_64-pc-freebsd7/include<br/>
+mkdir -p /usr/cross-freebsd/x86_64-pc-freebsd7/lib<br/><br/>
+Deploy the contents of <b>/usr/include</b> in <b>/usr/cross-freebsd/x86_64-pc-freebsd7/include</b><br/>
+The files you got from <b>/usr/lib</b> in <b>/usr/cross-freebsd/x86_64-pc-freebsd7/lib</b>.
+
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+<H1><u>Step 3: Build the tools needed by GCC</u></H1>
+Skip this if you're using a gcc &lt; 4.1.
+<H2><u>GMP</u></H2>
+Uncompress the distribution: <b>tar jxf gmp-4.3.2.tar.bz2</b><br/>
+Configure the software: <b>cd gmp-4.3.2; --prefix=/usr/cross-freebsd --enable-shared --enable-static --enable-mpbsd --enable-fft --enable-cxx --host=x86_64-pc-freebsd7</b><br/>
+Build and install: <b>gmake; gmake install</b><br/>
+
+<H2><u>MPFR</u></H2>
+Uncompress the distribution: <b>tar jxf mpfr-2.4.2.tar.bz2</b><br/>
+Configure the software: <b>cd mpfr-2.4.2; --prefix=/usr/cross-freebsd --with-gnu-ld --with-gmp=/usr/cross-freebsd --enable-static --enable-shared --host=x86_64-pc-freebsd7</b><br/>
+Build and install: <b>gmake; gmake install</b><br/>
+
+<H2><u>MPC</u></H2>
+Uncompress the distribution: <b>tar jxf mpc-0.8.1.tar.bz2</b><br/>
+Configure the software: <b>cd mpc-0.8.1; --prefix=/usr/cross-freebsd --with-gnu-ld --with-gmp=/usr/cross-freebsd --with-mpfr=/usr/cross-freebsd --enable-static --enable-shared --host=x86_64-pc-freebsd7</b><br/>
+Build and install: <b>gmake; gmake install</b><br/>
+
+<H1><u>Step 4: Build the cross compiler</u></H1>
+<p>
+<b>NOTE</b>: GCC requires to be built in a directory that is not the source dir, that's why we are creating an <b>objdir</b>. See below:<br/>
+</p>
+Uncompress the distribution: <b>tar jxf gcc-4.5.2.tar.bz2</b><br/>
+Configure the software: <b>cd gcc-4.5.2; mkdir objdir; cd objdir; ../configure --without-headers --with-gnu-as --with-gnu-ld --enable-languages=c,c++ --disable-nls --enable-libssp --enable-gold --enable-ld --target=x86_64-pc-freebsd7 --prefix=/usr/cross-freebsd --with-gmp=/usr/cross-freebsd --with-mpc=/usr/cross-freebsd --with-mpfr=/usr/cross-freebsd --disable-libgomp</b><br/>
+Build and install: <b>gmake; gmake install</b><br/>
+
+<H1><u>Step 5: Test the installation with a simple program</u></H1>
+<p>
+Write a simple "hello world" code in C to test the native and cross compilers:<br/>
+</p>
+<p>
+#include&lt;stdio.h&gt;<br/><br/>
+int<br/>
+main(int argc, char *argv[])<br/>
+{<br/>
+&nbsp;&nbsp;&nbsp;fprintf(stdout, "Hello world\n");<br/>
+}<br/>
+</p>
+<p>
+$ gcc helloworld.c -o helloworld <br/>
+$ file helloworld<br/>
+helloworld: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), for GNU/Linux 2.6.9, dynamically linked (uses shared libs), not stripped<br/>
+</p>
+<p>
+$ LD_LIBRARY_PATH=/usr/cross-freebsd/lib<br/>
+$ /usr/cross-freebsd/bin/x86_64-pc-freebsd7-gcc helloworld.c -o helloworld<br/>
+$ file helloworld<br/>
+helloworld: ELF 64-bit LSB executable, x86-64, version 1 (FreeBSD), for FreeBSD 7.2, dynamically linked (uses shared libs), FreeBSD-style, not stripped<br/>
+</p>
+<H1><u>Step 6: Test the installation with a gnu software</u></H1>
+<p>
+We will now try to build a full gnu program with our brand new cross compiler. i.e: libxml2
+</p>
+<p>
+Get and unpack libxml2. Enter the source directory:
+</p>
+<p>
+export PATH=${PATH}:/usr/cross-freebsd/bin<br/>
+export LD_LIBRARY_PATH=/usr/cross-freebsd/lib<br/>
+./configure --prefix=/usr/cross-freebsd --host=x86_64-pc-freebsd7<br/>
+gmake<br/>
+gmake install<br/>
+</p>
+Now, if you copy (for instance.. ) xmllint to a freebsd box, you should be able to run it ;) You're all set.
+<H1><u>Conclusions</u></H1>
+<p>
+As you can see there is some complexity in effectively building a cross compiler, however it IS a pretty straightforward process
+when you know the steps involved. It's also very easy to break things when you start playing with different options for binutils
+and gcc. Anyway, following these steps will (generically speaking) help you setup a cross compiler for whatever
+target you need (the details may vary, but the steps should be almost the same).<br/>
+You may also try to compile and install other stuff, like m4, autoconf, autoheader, libtool, libiconv, libxml2, etc to a directory and the move
+the whole directory to the target box, it should work like a charm ;)
+</p>
+<H1><u>Author</u></H1>
+Marcelo Gornstein &lt;marcelog@gmail.com&gt;<br/>
+</body>
+
+</html>

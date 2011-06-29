@@ -1,0 +1,201 @@
+<html>
+  <head>
+  <!-- Añade esta etiqueta en la cabecera o delante de la etiqueta body. -->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+
+  	<meta name="description" content="This article is a tutorial about how to transfer files as attachments with soap messages using dime with pear NET_Dime"/>
+  
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  <title>How to attach files to soap envelopes using DIME and PHP</title>
+  
+  </head>
+  <body>
+  <H1><u>Introduction</u></H1>
+  <p>
+As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
+<b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
+support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
+make it work (at least, I couldn't from the client side ;))
+</p>
+<p>
+In this article I'll show you my own solution, which is a little dirty but does the job. What I did is
+to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
+refined a lot, but it may help you in dire, time-lacking situations ;)
+</p>
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+<H1><u>Example</u></H1>
+<p>
+<g:plusone></g:plusone>
+So let's say you want to send a soap request with cero or more attachments, using DIME as
+the transport (I had this requirement when dealing with WoodWing(tm)). You will first need to
+get the text of the soap envelope request, like:
+<pre>
+$req = "&lt;?xml version='1.0' encoding='UTF-8' ?&gt;
+
+&lt;SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'
+xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+xmlns:SOAP-ENC='http://schemas.xmlsoap.org/soap/encoding/'
+xmlns:ns1='urn:Something'&gt;
+&lt;SOAP-ENV:Body&gt;
+&lt;ns1:SomeMethodRequiringAnAttachment&gt;
+&lt;/ns1:SomeMethodRequiringAnAttachment&gt;
+&lt;/SOAP-ENV:Body&gt;
+&lt;/SOAP-ENV:Envelope&gt;";
+</pre>
+</p>
+<p>
+The plan, is to send this message using curl, with the following code:
+<pre>
+/**
+ * Send a POST requst using cURL
+ * @param string $url to request
+ * @param array $post values to send
+ * @param array $options for cURL
+ * @return string
+ */
+function curl_post($url, $post = NULL)
+{
+    $defaults = array(
+        CURLOPT_POST => 1,
+        CURLOPT_HEADER => 0,
+        CURLOPT_URL => $url,
+        CURLOPT_HTTPHEADER => array(
+'Content-Disposition: form-data; name=\"soap\"; filename=\"123\"',
+'Content-Type: application/dime'
+        ),
+        CURLOPT_FRESH_CONNECT => 1,
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_FORBID_REUSE => 1,
+        CURLOPT_TIMEOUT => 400,
+        CURLOPT_POSTFIELDS => $post,
+        CURLOPT_BINARYTRANSFER => true
+    );
+
+    $ch = curl_init();
+    curl_setopt_array($ch, $defaults);
+    $result = curl_exec($ch);
+    if(!$result)
+    {
+        trigger_error(curl_error($ch));
+    }
+    curl_close($ch);
+    return $result;
+}
+
+</pre>
+</p>
+<p>
+And this is the code that put the pieces together and actually sends the message
+with the attachments:
+</p>
+<pre>
+function send($url, $msg, $attachments = array())
+{
+        $tempFile = tmpfile();
+        if ($tempFile === false) {
+                throw new \Exception('Could not create temp file');
+        }
+        $dime = new Net_DIME_Message($tempFile);
+        $dime->sendData($msg, 'http://schemas.xmlsoap.org/soap/envelope/');
+        foreach ($attachments as $id => $attachment) {
+                $dime->sendData($attachment, 'application/octet-stream', $id);
+        }
+        rewind($tempFile);
+        $msg = stream_get_contents($tempFile);
+        fclose($tempFile);
+        $ret = curl_post($url, strlen($msg), '', $msg);
+        return new SimpleXMLElement($ret);
+}
+
+</pre>
+</p>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>   
+<H1><u>Using it</u></H1>
+<p>
+Now, how to use it:
+</p>
+<pre>
+$file = './a.jpg';
+$fileContents = file_get_contents($file);
+// This is computed so the attachment id is the md5 sum of the file in question.
+$fileMD5 = md5($fileContents);
+$result = send($req, array($fileMD5 => $fileContents));
+</pre>
+<p>
+After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
+the soap response. The request consists of a DIME message with the first attachment being the
+soap request itself, and the following are the attachment themselves.
+</p>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>   
+
+<H1><u>Conclusions</u></H1>
+Quick, dirty, a little low-level, but effective. Lot to improve, but that's the subject
+of another article ;) This will let you quickly implement and/or test your dime client. Let's hope
+that php gets a little better soap support sometime.
+
+<H1><u>Author</u></H1>
+Marcelo Gornstein &lt;marcelog@gmail.com&gt;<br/>
+</body>
+</html>

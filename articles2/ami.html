@@ -1,0 +1,254 @@
+<html>
+  <head>
+  <!-- Añade esta etiqueta en la cabecera o delante de la etiqueta body. -->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+  	<meta name="description" content="This article is a tutorial about the Asterisk Manager Interface (AMI) protocol."/>
+  
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  <title>The Asterisk Manager Interface (AMI) Protocol</title>
+  
+  </head>
+  <body>
+  <H1><u>Introduction</u></H1>
+<p>
+The <b>Asterisk Manager Interface</b> (<b>AMI</b>) protocol is a very simple protocol that allows you to 
+communicate and manage your asterisk server, almost completely. It has support to edit/create asterisk configuration
+files and also manage the calls, clients, agents, dialplan, etc.
+</p>
+<p>
+You might also be interested in <a href="http://marcelog.github.com/PAMI">PAMI</a>. An AMI client/framework that allows you to
+quickly develop ami clients in an oop/event-driven fashion.
+</p>
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+  <H1><u>Overview of the AMI Protocol</u></H1>
+  <p>
+  <g:plusone></g:plusone>
+AMI is a plain text protocol, and it works by sending and receiving packets. Each packet consists in a series
+of text lines delimited by <b>\r\n</b>. And each packet is delimited by <b>\r\n\r\n</b>. 
+AMI uses a tcp port configured in <b>manager.conf</b>. As soon as the connection is established, asterisk salutes you with something like:<br/>
+<hr/>
+Asterisk Call Manager/1.1
+<hr/>
+This message indicates that the communication can begin. Packets may be transmitted in either direction at any time after authentication.
+</p>
+<H1><u>AMI Packets (Actions, Responses, Events)</u></H1>
+  <p>
+  AMI defines 3 kind of possible packets:<br/>
+  <ul>
+  <li><u>Actions</u>: This kind of packet is what the client sends. Only the client can generate Actions.</li>
+  <li><u>Responses</u>: Actions have at least one Response, indicating the result of the executed (or requested) action.</li>
+  <li><u>Events</u>: There are two kind of events. The ones attached to a particular response for a particular action, and
+  the ones that asterisk generate to inform the connected client about things that are happening in the server (like
+  call events, changes in variables values, agents and other clients that connect/disconnect to/from the server, etc).</li>
+  </ul>
+  </p>
+  <p>
+  The first line of a packet will have a key of "Action" when sent from the client to Asterisk, but "Event" or "Response" when sent from Asterisk to the client.
+  </p>
+<p>
+A typical action is the <b>Login</b> action, which looks like this:<br/>
+<hr/>
+Action: Login\r\n<br/>
+Username: admin\r\n<br/>
+Secret: mysecret\r\n<br/>
+ActionId: 1a2b\r\n<br/>
+\r\n<br/>
+<hr/>
+And its response is something like:<br/>
+<hr/>
+Response: Success\r\n<br/>
+ActionID: 1a2b\r\n<br/>
+Message: Authentication accepted\r\n<br/>
+\r\n
+<hr/>
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+<p>
+Notice the <b>ActionId</b> field in the action and response packet. This field is optional, but highly recommended to send, because it tells asterisk to respond with this same actionid value
+so the client can easily associate the response with the action sent. If any events are attached to this response, they
+will also contain the same actionid value.
+</p>
+<p>
+So the general format for an action packet is something like this:<br/>
+<hr/>
+Action: &lt;action&gt;\r\n<br/>
+&lt;Key1&gt;: &lt;value&gt;\r\n<br/>
+&lt;Key2&gt;: &lt;value&gt;\r\n<br/>
+...<br/>
+&lt;KeyN&gt;: &lt;value&gt;\r\n<br/>
+Variable: &lt;name&gt;=&lt;value&gt;<br/>
+Variable: &lt;name&gt;=&lt;value&gt;<br/>
+...<br/>
+Variable: &lt;name&gt;=&lt;value&gt;<br/>
+<hr/>
+Different actions require different <b>keys</b> and/or <b>variables</b>. You can find the complete list
+of actions <a href="https://wiki.asterisk.org/wiki/display/AST/AMI+Actions">here</a>.
+</p>
+<p>
+A response that contains a:<br/>
+<hr/>
+Response: Error<br/>
+<hr/>
+Is considered a failed action. Otherwise, should be a successfull one.
+</p>
+<H2><u>Asynchronous events</u></H2>
+<p>
+This kind of events are the ones that asterisk sends you at any given time without the need of you sending
+any action. This events can be disabled via the <b>Event</b> action.<br/>
+An example:<br/>
+</p> 
+<hr/>
+Event: PeerStatus\r\n<br/>
+Privilege: system,all\r\n<br/>
+ChannelType: SIP\r\n<br/>
+Peer: SIP/marcelog\r\n<br/>
+PeerStatus: Registered\r\n<br/>
+\r\n<br/>
+<hr/>
+</p>
+<H2><u>Synchronous events</u></H2>
+<p>
+These events are used by asterisk whenever a response has a long payload to send. For example, when you 
+ask for the dialplan lines, or the connected clients, or the status of all channels, etc.
+</p>
+<p>
+Asterisk will return a Response packet indicating that the response actually has more data that will be sent
+in Events packets. A little note here. AMI is kind of broken and inconsistent (at least in asterisk 1.6). This
+means that there exists a couple of ways (depending on the action issued) for asterisk to report a Response with
+events attached.
+</p>
+<p>
+To actually know if a given response contains events attached, you should check for
+any of the following conditions:<br/>
+</p>
+<hr/>
+Message: Result will follow
+<hr/>
+Message: Result follows
+<hr/>
+Response: Follows
+<hr/>
+Response: Result will follow
+<hr/>
+EventList: Start
+<hr/>
+  <center>
+  <script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 6 */
+google_ad_slot = "1974587443";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* links1 */
+google_ad_slot = "7432160740";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>	
+<p>
+The same happens when you're trying to know when to consider a response as completed (all events received). You 
+should check for:
+</p>
+<hr/>
+Event: EventNameHereComplete
+<hr/>
+EventList: Complete
+<hr/>
+
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "ca-pub-6947936742546167";
+/* 1 */
+google_ad_slot = "9799557604";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></center>
+<H1><u>Conclusions</u></H1>
+AMI is a pretty straightforward protocol. You can even try to create a client using netcat via a shell script
+or whatever programming language you like, allowing you to make console operators or manage the asterisk queues, calls,
+agents, etc from a single controlled point of your architecture.
+<br/>
+
+<H1><u>Author</u></H1>
+Marcelo Gornstein &lt;marcelog@gmail.com&gt;<br/>
+</body>
+
+</html>

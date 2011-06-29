@@ -1,0 +1,491 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>The Asterisk Gateway Protocol: A practical introduction and tutorial to agi applications</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="PHP Asterisk AGI Protocol Tutorial Introduction"/>
+<meta name="description" content="This article is about the Asterisk Gateway Interface protocol. It aims to be a practical approach, tutorial, and how-to about AGI, helpful to learn how to make asterisk agi applications."/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="/css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="/js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <!-- 
+      <div class="social-network">
+      	<a href="#" class="icon-fb" title="Facebook">Facebook</a>
+        <a href="#" class="icon-twitter" title="Twitter">Twitter</a>
+        <a href="#" class="icon-email" title="Email">Email</a>
+      </div>
+       -->
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  The Asterisk Gateway Protocol: A practical introduction and tutorial to agi applications</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>The Asterisk Gateway Protocol: A practical introduction and tutorial to agi applications</h2>
+                <div class="hr-1"><hr /></div>
+<H3><u>Introduction</u></H3>
+  <p>
+The <b>Asterisk Gateway Protocol</b> (AGI from now on) is the protocol used by the Asterisk server as its interface for telephony applications.<br/><br/>
+AGI is just a way that allows you (as a software developer) to easily make telephony applications that asterisk will run someway along
+the dialplan. Through <b>AGI</b>, you can read input from the user, play sound files, control the call and its flow, and pretty much everything
+needed to make a successfull <u>IVR</u> (<b>Interactive Voice Response</b>) in virtually any programming language.
+</p>
+<p>
+You might also be interested in <a href="http://marcelog.github.com/PAGI">PAGI</a>. An AGI client/framework that allows you to
+quickly develop agi applications in an oop fashion.
+</p>
+<H3><u>Asterisk configuration for AGI applications</u></H3>
+To start your agi application you will use the AGI() dialplan application from you own dialplan. For example, in <b>extensions.conf:</b><br/>
+exten =&gt; 1,1,AGI(myApplication.php)<br/>
+  <p>
+This will tell asterisk to start an agi application when a call is made to the '1' extension. That's it ;)
+  </p>
+  <H3><u>Overview of the AGI Protocol</u></H3>
+  <p>
+AGI is a very simple protocol. Asterisk communicate with the applications through their standard input
+(stdin) and standard output (stdout). So you can send commands to asterisk via your stdout and receive
+asterisk responses through your stdin. This makes AGI very easy to deal with from any programming language.
+</p>
+<p>
+When a call is received by asterisk, it will start to execute the dial plan in the configured
+context. This context will depend on various reasons that escape the scope of this article, so I wont
+get into any details. <br/>
+When the AGI() application is called from the dialplan, asterisk will fork() a new process
+and execute that application, communicating (as stated above) with it through its standard
+input and standard output (normally file descriptors 0 -zero- and 1 respectively).
+</p>
+<p>
+Before forking and executing the new agi process, asterisk will set the following
+environment variables:<br/>
+<ul>
+<li><u>AST_CONFIG_DIR</u>: astetcdir key from asterisk.conf.</li>
+<li><u>AST_CONFIG_FILE</u>: absolute path to the asterisk.conf file used.</li>
+<li><u>AST_MODULE_DIR</u>: astmoddir key from asterisk.conf.</li>
+<li><u>AST_SPOOL_DIR</u>: astspooldir key from asterisk.conf.</li>
+<li><u>AST_MONITOR_DIR</u>: usually AST_SPOOL_DIR/monitor</li>
+<li><u>AST_VAR_DIR</u>: astvarlibdir key from asterisk.conf.</li>
+<li><u>AST_DATA_DIR</u>: astdbdir key from asterisk.conf.</li>
+<li><u>AST_LOG_DIR</u>: astlogdir key from asterisk.conf.</li>
+<li><u>AST_AGI_DIR</u>: astagidir key from asterisk.conf.</li>
+<li><u>AST_KEY_DIR</u>: astkeydir key from asterisk.conf.</li>
+<li><u>AST_RUN_DIR</u>: astrundir key from asterisk.conf.</li>
+</ul>
+</p>
+<p>
+As soon as your application is fork()ed from asterisk, it starts to receive the channel
+variables via its standard input, which are:
+<ul>
+<li><u>agi_request</u>: The filename of your script.</li>
+<li><u>agi_channel</u>: The originating channel.</li>
+<li><u>agi_language</u>: The language code.</li>
+<li><u>agi_type</u>: The originating channel type.</li>
+<li><u>agi_uniqueid</u>: A unique ID for the call.</li>
+<li><u>agi_version</u>: The version of Asterisk (since Asterisk 1.6).</li>
+<li><u>agi_calleridv</u>: The caller ID number (or "unknown").</li>
+<li><u>agi_calleridname</u>: The caller ID name (or "unknown").</li>
+<li><u>agi_callingpres</u>: The presentation for the callerid.</li>
+<li><u>agi_callingani2</u>: PRI Channels ani2 variable.</li>
+<li><u>agi_callington</u>: The type of number used in PRI Channels.</li>
+<li><u>agi_callingtns</u>: An optional 4 digit number (Transit Network Selector).</li>
+<li><u>agi_dnid</u>: The dialed number id (or "unknown").</li>
+<li><u>agi_rdnis</u>: The referring DNIS number (or "unknown").</li>
+<li><u>agi_context</u>: Origin context in extensions.conf.</li>
+<li><u>agi_extension</u>: The called number (dnis).</li>
+<li><u>agi_priority</u>: The priority it was executed as in the dial plan.</li>
+<li><u>agi_enhanced</u>: The flag value is 1.0 if started as an EAGI script, 0.0 otherwise.</li>
+<li><u>agi_accountcode</u>: Account code of the origin channel.</li>
+<li><u>agi_threadid</u>: Thread ID of the AGI script.</li>
+</ul>
+</p>
+<p>
+The variables come in the following format:<br/>
+&lt;variable_name&gt;:&lt;space&gt;&lt;variable_value&gt;<br/>
+Example:<br/>
+agi_context: default<br/>
+</p>
+<H3><u>Quick shell example</u></H3>
+Let's try a very basic example to see in action what we've covered so far:
+
+<H4>Configure asterisk to run an example</H4>
+<p>
+Let's configure a demo application, adding 3 (optional, of course) arguments to it:
+</p>
+<hr/>
+exten =&gt; 1,1,AGI(/tmp/agi.sh,arg1,arg2,arg3)<br/>
+<hr/>
+<H4>Create the agi application</H4>
+<pre name="code" class="php">
+#!/bin/bash
+
+filedump=/tmp/dump.txt
+
+function log() {
+    echo ${@} &gt;&gt; ${filedump}
+}
+
+function dumpvar() {
+    log "channel variable: ${1} = ${2}"
+}
+
+log "------------ call start ------------"
+dumpvar "config dir" ${AST_CONFIG_DIR}
+dumpvar "configfile" ${AST_CONFIG_FILE}
+dumpvar "module dir" ${AST_MODULE_DIR}
+dumpvar "spool dir" ${AST_SPOOL_DIR}
+dumpvar "monitor dir" ${AST_MONITOR_DIR}
+dumpvar "var dir" ${AST_VAR_DIR}
+dumpvar "data dir" ${AST_DATA_DIR}
+dumpvar "log dir" ${AST_LOG_DIR}
+dumpvar "agi dir" ${AST_AGI_DIR}
+dumpvar "key dir" ${AST_KEY_DIR}
+dumpvar "run dir" ${AST_RUN_DIR}
+
+line='init'
+while [ "${#line}" -gt "2" ]; do
+        read line
+        log ${line}
+done
+log "------------ call done ------------"
+exit 0
+</pre>
+<H4>Run the application</H4>
+<p>
+Make a call to the '1' extension. Your agi application should run and create the
+file /tmp/dump.txt with the output from the channel variables. This application does
+nothing at all. It will end when asterisk sends an empty line, which marks the end of
+the channel variables block.
+</p>
+<p>
+Example of the file /tmp/dump.txt generated:<br/>
+<hr/>
+------------ call start ------------<br/>
+channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
+channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
+channel variable: module dir = /usr/lib/asterisk/modules<br/>
+channel variable: spool dir = /tmp/marcelog/asterisk/spool<br/>
+channel variable: monitor dir = /tmp/marcelog/asterisk/spool/monitor<br/>
+channel variable: var dir = /tmp/marcelog/asterisk<br/>
+channel variable: data dir = /tmp/marcelog/asterisk<br/>
+channel variable: log dir = /tmp/marcelog/asterisk/logs<br/>
+channel variable: agi dir = /tmp/marcelog/asterisk/agi-bin<br/>
+channel variable: key dir = /tmp/marcelog/asterisk/keys<br/>
+channel variable: run dir = /tmp/marcelog/asterisk<br/>
+agi_request: /tmp/agi.sh<br/>
+agi_channel: SIP/marcelog-e00d2760<br/>
+agi_language: ar<br/>
+agi_type: SIP<br/>
+agi_uniqueid: 1297542965.8<br/>
+agi_version: 1.6.0.9<br/>
+agi_callerid: marcelog<br/>
+agi_calleridname: marcelog@mg<br/>
+agi_callingpres: 0<br/>
+agi_callingani2: 0<br/>
+agi_callington: 0<br/>
+agi_callingtns: 0<br/>
+agi_dnid: 667<br/>
+agi_rdnis: unknown<br/>
+agi_context: default<br/>
+agi_extension: 667<br/>
+agi_priority: 2<br/>
+agi_enhanced: 0.0<br/>
+agi_accountcode:<br/>
+agi_threadid: 1104922960<br/>
+agi_arg_1: arg1<br/>
+agi_arg_2: arg2<br/>
+agi_arg_3: arg3<br/>
+------------ call done ------------<br/>
+<hr/>
+</p>
+<p>
+Notice how asterisk passes the variables from the dialplan to your application (i.e:
+the "special" channel variables <b>agi_arg_x</b> where x is the argument index).
+</p>
+<H3><u>Sending AGI commands and receiving responses</u></H3>
+<p>
+An example agi command that logs to the console is:<br/>
+VERBOSE "message" 3
+</p>
+<p>
+In this case, the command is "verbose", which accepts 2 arguments: the message to log, and the log level
+needed in order to log the message. Asterisk can respond with something like:<br/>
+200 result=1
+</p>
+<p>
+So asterisk responses have a format. The format is:<br/>
+&lt;error_code&gt;&lt;space&gt;result=&lt;result_data&gt;&lt;space&gt;[additional_data]
+</p>
+<p>
+Meaning:<br/>
+<ul>
+  <li><u>error_code</u>: An integer number that indicates the result of the operation (see below).</li>
+  <li><u>result_data</u>: The result value for the command executed.</li>
+  <li><u>additional_data</u>: Optional additional data returned along with the result_data.</li>
+</ul>
+</p>
+<p>
+The error code can be one of:
+<ul>
+  <li><u>200</u>: Operation was completed successfully.</li>
+  <li><u>510</u>: Invalid or unknown command.</li>
+  <li><u>511</u>: The command cant be executed on a dead (closed, terminated, hung up) channel.</li>
+  <li><u>520</u>: End of proper usage, when the command returns its syntax.</li>
+</ul>
+</p>
+<p>
+As an AGI script, you should always set the AGI variable <b>AGISTATUS</b> to one of: 
+<ul>
+<li>SUCCESS</li>
+<li>FAILURE</li>
+<li>HANGUP</li>
+</ul>
+</p>
+<p>
+That's about it, you can find the complete list of commands <a href="https://wiki.asterisk.org/wiki/display/AST/AGI+Commands">here.</a><br/>
+</p>
+<H3><u>Quick shell example: Part 2</u></H3>
+Now let's modify the example, like this:
+<pre name="code" class="php">
+#!/bin/bash
+
+filedump=/tmp/dump.txt
+
+function log() {
+    echo ${@} >> ${filedump}
+}
+
+function dumpvar() {
+    log "channel variable: ${1} = ${2}"
+}
+
+function send() {
+    log Sending: ${@}
+    echo ${@}
+    read line
+    log "Got: ${line}"
+}
+
+function answer() {
+    send "ANSWER"
+}
+
+function agilog() {
+    send "VERBOSE" \"${@}\"
+}
+
+function play() {
+    send STREAM FILE ${1} "#"
+}
+
+function setvariable() {
+    send SET VARIABLE ${1} ${2}
+}
+
+function hangup() {
+    setvariable AGISTATUS SUCCESS
+    send "HANGUP 16"
+}
+
+callStatus=1
+function callEnded() {
+    if [ "${callStatus}" -eq "0" ]; then
+        return
+    fi
+    callStatus=0
+    agilog "Call ended abruptly"
+    hangup
+    exit 0
+}
+# Asterisk will send a SIGHUP signal when the user hangups the channel. In this
+# example you can try it by waiting for the welcome audio message to finish or
+# hangup before it finishes playing.
+trap callEnded SIGHUP
+log "------------ call start ------------"
+dumpvar "config dir" ${AST_CONFIG_DIR}
+dumpvar "configfile" ${AST_CONFIG_FILE}
+dumpvar "module dir" ${AST_MODULE_DIR}
+dumpvar "spool dir" ${AST_SPOOL_DIR}
+dumpvar "monitor dir" ${AST_MONITOR_DIR}
+dumpvar "var dir" ${AST_VAR_DIR}
+dumpvar "data dir" ${AST_DATA_DIR}
+dumpvar "log dir" ${AST_LOG_DIR}
+dumpvar "agi dir" ${AST_AGI_DIR}
+dumpvar "key dir" ${AST_KEY_DIR}
+dumpvar "run dir" ${AST_RUN_DIR}
+
+line='init'
+while [ "${#line}" -gt "2" ]; do
+        read line
+        log ${line}
+done
+answer
+agilog Hello There
+play welcome
+hangup
+log "------------ call done ------------"
+exit 0
+</pre>
+
+<p>
+Example of the file /tmp/dump.txt generated:<br/>
+------------ call start ------------<br/>
+channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
+channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
+channel variable: module dir = /usr/lib/asterisk/modules<br/>
+channel variable: spool dir = /tmp/marcelog/asterisk/spool<br/>
+channel variable: monitor dir = /tmp/marcelog/asterisk/spool/monitor<br/>
+channel variable: var dir = /tmp/marcelog/asterisk<br/>
+channel variable: data dir = /tmp/marcelog/asterisk<br/>
+channel variable: log dir = /tmp/marcelog/asterisk/logs<br/>
+channel variable: agi dir = /tmp/marcelog/asterisk/agi-bin<br/>
+channel variable: key dir = /tmp/marcelog/asterisk/keys<br/>
+channel variable: run dir = /tmp/marcelog/asterisk<br/>
+agi_request: /tmp/agi.sh<br/>
+agi_channel: SIP/marcelog-e00d2760<br/>
+agi_language: ar<br/>
+agi_type: SIP<br/>
+agi_uniqueid: 1297542965.8<br/>
+agi_version: 1.6.0.9<br/>
+agi_callerid: marcelog<br/>
+agi_calleridname: marcelog@mg<br/>
+agi_callingpres: 0<br/>
+agi_callingani2: 0<br/>
+agi_callington: 0<br/>
+agi_callingtns: 0<br/>
+agi_dnid: 667<br/>
+agi_rdnis: unknown<br/>
+agi_context: default<br/>
+agi_extension: 667<br/>
+agi_priority: 2<br/>
+agi_enhanced: 0.0<br/>
+agi_accountcode:<br/>
+agi_threadid: 1104922960<br/>
+agi_arg_1: arg1<br/>
+agi_arg_2: arg2<br/>
+agi_arg_3: arg3<br/>
+<br/>
+Sending: ANSWER<br/>
+Got: 200 result=0<br/>
+Sending: VERBOSE "Hello There"<br/>
+Got: 200 result=1<br/>
+Sending: STREAM FILE welcome #<br/>
+Sending: VERBOSE "Call ended abruptly"<br/>
+Got: 00 result=-1 endpos=3840<br/>
+Sending: SET VARIABLE AGISTATUS SUCCESS<br/>
+Got: 200 result=1<br/>
+Sending: HANGUP 16<br/>
+Got: 200 result=1<br/>
+------------ call done ------------<br/>
+</p>
+<H3><u>Conclusions</u></H3>
+As you can see, its fairly easy to implement almost *any* ivr application very quickly and easy
+via agi. One of the most important keys to the success of asterisk as a telephony software and
+product. I hope this tutorial helps you out in making agi applications in your language of choice.<br/>
+<br/>
+
+                <p>Marcelo Gornstein &lt;marcelog@gmail.com&gt;</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Older Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                <li><a href="#">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                <!-- 
+                  <li><a href="#">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="#">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="#">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="#">Using DIME With SOAP And PHP</a></li>
+                   -->
+                </ul>
+                <div class="google-ads">
+					<script type="text/javascript">
+					google_ad_client = "ca-pub-6947936742546167";
+					/* 9 */
+					google_ad_slot = "8617829895";
+					google_ad_width = 250;
+					google_ad_height = 250;
+					//-->
+					</script>
+					<script type="text/javascript"
+					src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+					</script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+</body>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</html>

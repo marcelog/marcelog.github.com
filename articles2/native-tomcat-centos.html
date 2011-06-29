@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+download from: http://tomcat.apache.org/download-native.cgi
+
+install apr and apr-devel
+yum install apr
+yum install apr-devel
+
+download jsdk: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+./configure --with-java-home=/usr/java --prefix=/usr --with-apr=/usr
+export JAVA_HOME=/usr/java
+ln -s /usr/jdk1.6.0_24 /usr/java
+export PATH=${PATH}:${JAVA_HOME}/bin
+
+conf/tomcat-users.xml
+conf/server.xml 8080 8009 address="127.0.0.1"
+</body>
+</html>
