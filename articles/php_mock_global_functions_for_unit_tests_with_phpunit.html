@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>How to attach files to soap envelopes using DIME and PHP</title>
+<title>Mocking global php functions for unit testing</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="How to attach files to soap envelopes using DIME and PHP"/>
-<meta name="description" content="This article is a tutorial about how to transfer files as attachments with soap messages using dime with pear NET_Dime"/>
+<meta name="Keywords" content="This article is a tutorial about how to mock php global functions for unit testing with phpunit."/>
+<meta name="description" content="This article is a tutorial about how to mock php global functions for unit testing with phpunit."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -35,11 +35,11 @@
   	<div class="line">
       <h1>Articles</h1>
       <div class="social-network">
-       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
+<!--        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>  -->
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to attach files to soap envelopes using DIME and PHP</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Mocking global php functions for unit testing</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,131 +49,132 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>How to attach files to soap envelopes using DIME and PHP</h2>
+                <h2>Mocking Global Php 5.3 Functions Using Namespaces</h2>
                 <div class="hr-1"><hr /></div>
   <H3><u>Introduction</u></H3>
   <p>
-As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
-<b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
-support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
-make it work (at least, I couldn't from the client side ;))
-</p>
-<p>
-In this article I'll show you my own solution, which is a little dirty but does the job. What I did is
-to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
-refined a lot, but it may help you in dire, time-lacking situations ;)
+Let's say you'd like to achieve a 100% <b>coverage</b> of your code in your <b>php</b> application (you obsessive geek..). It's almost
+certain you'll need to start mock'ing things around. So far so good.. but sooner or later you will need to deal with the test cases
+for the code that use <b>global</b> php <b>functions</b>. How can you mock them? In this article I'll show you a small
+technique to allow you to <b>mock global php functions</b>. This will
+require your code to use <b>namespaces</b>, available since <b>PHP 5.3</b>.
 </p>
   
-<H3><u>Example</u></H3>
+<H3><u>Classical example</u></H3>
 <p>
-So let's say you want to send a soap request with cero or more attachments, using DIME as
-the transport (I had this requirement when dealing with WoodWing(tm)). You will first need to
-get the text of the soap envelope request, like:
+Suppose this is the code you'd like to test, a file called SomeClass.php:
 <pre name="code" class="php">
-$req = "&lt;?xml version='1.0' encoding='UTF-8' ?&gt;
+namespace My\Nice\Namezpace;
 
-&lt;SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'
-xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-xmlns:SOAP-ENC='http://schemas.xmlsoap.org/soap/encoding/'
-xmlns:ns1='urn:Something'&gt;
-&lt;SOAP-ENV:Body&gt;
-&lt;ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/SOAP-ENV:Body&gt;
-&lt;/SOAP-ENV:Envelope&gt;";
-</pre>
-</p>
-<p>
-The plan, is to send this message using curl, with the following code:
-<pre name="code" class="php">
-/**
- * Send a POST requst using cURL
- * @param string $url to request
- * @param array $post values to send
- * @param array $options for cURL
- * @return string
- */
-function curl_post($url, $post = NULL)
+class SomeClass
 {
-    $defaults = array(
-        CURLOPT_POST => 1,
-        CURLOPT_HEADER => 0,
-        CURLOPT_URL => $url,
-        CURLOPT_HTTPHEADER => array(
-'Content-Disposition: form-data; name=\"soap\"; filename=\"123\"',
-'Content-Type: application/dime'
-        ),
-        CURLOPT_FRESH_CONNECT => 1,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_FORBID_REUSE => 1,
-        CURLOPT_TIMEOUT => 400,
-        CURLOPT_POSTFIELDS => $post,
-        CURLOPT_BINARYTRANSFER => true
-    );
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $defaults);
-    $result = curl_exec($ch);
-    if(!$result)
+    public function doSomething()
     {
-        trigger_error(curl_error($ch));
+        // Notice how the global function "socket_create" is called without
+        // the leading backslash (relative instead of absolute call in a 
+        // namespaced environment). This will let us later mock the call 
+        // by taking advantage of the relative-to-the-namespace call.
+        $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+        if ($socket === false) {
+            throw new \Exception('Ooops!');
+        }
+        socket_close($socket);
+        return true;
     }
-    curl_close($ch);
-    return $result;
-}
 
+    public function __construct()
+    {
+    }
+}
 </pre>
 </p>
 <p>
-And this is the code that put the pieces together and actually sends the message
-with the attachments:
+It's fairly easy to have a unit test for the "success case" by just asserting
+the result value. What happens with the other use case, where the exception is
+thrown? <br/>
+This is an extreme simple example, but what happens if something complicated
+has to be done when the call to <b>socket_create</b> fails for whatever reason? How can
+you be sure that the code is behaving like it should be?<br/>
 </p>
+
+<H1><u>The tests</u></H1>
+<p>
+This is our Test_SomeClass.php file:
+
 <pre name="code" class="php">
-function send($url, $msg, $attachments = array())
+namespace {
+    // This allow us to configure the behavior of the "global mock"
+    $mockSocketCreate = false;
+}
+
+namespace My\Nice\Namezpace {
+    // And this here, does the trick: it will override the socket_create()
+    // function in your code *just for the namespace* where you are defining it.
+    // This relies on the code above calling the socket_create function without
+    // the leading backslash, so we trick SomeClass into calling our own function
+    // inside that namespace instead of the global socket_create function.
+    function socket_create() {
+        global $mockSocketCreate;
+        if (isset($mockSocketCreate) && $mockSocketCreate === true) {
+            return false;
+        } else {
+            return call_user_func_array('\socket_create', func_get_args());
+        }
+    }
+
+include_once './SomeClass.php';
+
+class Test_SomeClass extends \PHPUnit_Framework_TestCase
 {
-        $tempFile = tmpfile();
-        if ($tempFile === false) {
-                throw new \Exception('Could not create temp file');
-        }
-        $dime = new Net_DIME_Message($tempFile);
-        $dime->sendData($msg, 'http://schemas.xmlsoap.org/soap/envelope/');
-        foreach ($attachments as $id => $attachment) {
-                $dime->sendData($attachment, 'application/octet-stream', $id);
-        }
-        rewind($tempFile);
-        $msg = stream_get_contents($tempFile);
-        fclose($tempFile);
-        $ret = curl_post($url, strlen($msg), '', $msg);
-        return new SimpleXMLElement($ret);
-}
+    public function setUp()
+    {
+        global $mockSocketCreate;
+        $mockSocketCreate = false;
+    }
 
+    /**
+     * This will test the success case.
+     * @test
+     */
+    public function can_success_case()
+    {
+        $dummy = new \My\Nice\Namezpace\SomeClass;
+        $this->assertTrue($dummy->doSomething());
+    }
+
+    /**
+     * This will enable the mock and call the code. socket_create will now
+     * return false instead the call of the original socket_create, our work
+     * here is done.
+     * @test
+     * @expectedException \Exception
+     */
+    public function cannot_error_case()
+    {
+        global $mockSocketCreate;
+        $mockSocketCreate = true;
+        $dummy = new \My\Nice\Namezpace\SomeClass;
+        $dummy->doSomething();
+        $this->fail('Should not here');
+    }
+}
+}
 </pre>
 </p>
-  
-<H3><u>Using it</u></H3>
 <p>
-Now, how to use it:
+Running phpunit will give you the 100% coverage :)
 </p>
 <pre name="code" class="php">
-$file = './a.jpg';
-$fileContents = file_get_contents($file);
-// This is computed so the attachment id is the md5 sum of the file in question.
-$fileMD5 = md5($fileContents);
-$result = send($req, array($fileMD5 => $fileContents));
+phpunit --debug --process-isolation --verbose --stop-on-incomplete --stop-on-skipped --stop-on-failure --stop-on-error --colors --coverage-html html Test_SomeClass.php
 </pre>
-<p>
-After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
-the soap response. The request consists of a DIME message with the first attachment being the
-soap request itself, and the following are the attachment themselves.
-</p>
-
 <H3><u>Conclusions</u></H3>
 <p>
-Quick, dirty, a little low-level, but effective. Lot to improve, but that's the subject
-of another article ;) This will let you quickly implement and/or test your dime client. Let's hope
-that php gets a little better soap support sometime.
+With this little trick we can increase the testing level of the code. Most "normal" php code lacks good error
+handling (differences between cero, false, and null are among the #1's). Now everything can be tested at the highest
+levels possible, which is a novelty in the php language :) now go get that 100%!
 </p>
+<br/>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -192,7 +193,7 @@ that php gets a little better soap support sometime.
                 <ul class="quick-list">
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
-                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                 </ul>
                 <div class="google-ads">
                     <script type="text/javascript">
