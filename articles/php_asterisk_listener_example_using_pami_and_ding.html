@@ -108,6 +108,7 @@ src/mg/AsterTrace         ==> Main source directory
     VarSetListener.php
     NewChannelListener.php
     NewStateListener.php
+    NewExtenListener.php
   Handlers
     ErrorHandler.php      ==> Application error handler.
     PamiHandler.php       ==> Our pami handler (will receive all events issued by the PamiHelper).
@@ -136,6 +137,8 @@ src/mg/AsterTrace         ==> Main source directory
         newchannel.xml                       ==> Newchannel listener.
         newstate-pdo-mysql-statements.xml  ==> Prepared statements for newstate listener.
         newstate.xml                       ==> Newstate listener.
+        newexten-pdo-mysql-statements.xml  ==> Prepared statements for newexten listener.
+        newexten.xml                       ==> Newexten listener.
       event-handlers.xml                     ==> Where to include the actual listeners to be run.
       handlers
         error-handler.xml                
@@ -250,6 +253,16 @@ following way: If the uniqueid does not exist, the uniqueid and the dtmf digit w
 <li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newstate-pdo-mysql-statements.xml">conf/support/event-listeners/newstate-pdo-mysql-statements.xml</a></li>
 <li>Behaviour: Will capture all newstate events. You can see when a channel is ringing, up, down, etc.</li>
 <li>Event handler method: onNewstate</li>
+</ul>
+<p><u>Newexten Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/NewExtenListener.php">src/mg/AsterTrace/EventHandlers/NewExtenListener.php</a></li>
+<li>Bean: newExtenListener</li>
+<li>Listens-on: newexten</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newexten.xml">conf/support/event-listeners/newexten.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newexten-pdo-mysql-statements.xml">conf/support/event-listeners/newexten-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Will capture all newexten events, so you can see how channels go through the dialplan, step by step.
+<li>Event handler method: onNewexten</li>
 </ul>
 <H3><u>Extending the application</u></H3>
 <p>
