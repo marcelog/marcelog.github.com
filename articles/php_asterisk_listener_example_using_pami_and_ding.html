@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="This article is an example about how to mix different technologies (asterisk, php, pami, and ding) to have some fun and maybe monitor/debug your own asterisk installation inversion of control and dependecy injection in telephony applications"/>
+<meta name="description" content="This article is an example about how to mix different technologies (asterisk, php, pami, and ding) to have some fun and maybe monitor/debug your own asterisk installation inversion of control and dependecy injection in telephony applications"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li>  -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding</h2>
+                <div class="hr-1"><hr /></div>
+  <H3><u>Introduction</u></H3>
+<p>
+Here, I'll write about AsterTrace (<a href="https://github.com/marcelog/AsterTrace">https://github.com/marcelog/AsterTrace</a>), a
+simple project that will help you get started using the asterisk manager interface.<br/>
+</p>
+<p>
+The goal for AsterTrace is to log into ami and capture every event sent by asterisk, process some (or not) and
+maybe log every one of them to some database.
+</p>
+<p>
+AsterTrace uses Ding and PAMI. The first one as the container, and latter to communicate with AMI, so
+I'll talk about how AsterTrace uses them both, and how this will help you here and in other applications
+to get a more decoupled code, very easy to mantain and scale.
+</p>
+<H3><u>Installing AsterTrace</u></H3>
+<p>
+You can get AsterTrace directly from github:
+    <ul>
+    <li><a href="http://github.com/marcelog/Ding/zipball/master">ZIP</a></li>
+    <li><a href="http://github.com/marcelog/Ding/tarball/master">TAR</a></li>
+    <li>SVN: http://svn.github.com/marcelog/Ding.git</li>
+    <li>GIT: git://github.com/marcelog/Ding.git</li>
+    </ul>
+</p>
+<p>
+That's it :) Now read on to see how it works.
+</p>
+<H3><u>What is what and how it works</u></H3>
+<p>
+To sum up, this is the general idea:
+</p>
+<ul>
+<li>Use <a href="https://marcelog.github.com/Ding">Ding</a> as Inversion of Control and Dependency Injection container.</li>
+<li>Use <a href="https://marcelog.github.com/PAMI">PAMI</a> as the framework to handle the connection to the Asterisk Manager Interface.</li>
+<li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-pami">PamiHelper</a> so we dont need to deal with pami use details. Our main program will be just a bean.</li>
+<li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#config">PropertiesHolder</a> so we can configure mysql, ami, php, etc, from properties file (aka php INI files).</li>
+<li>Our main program (called from PamiHelper) will use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#events">events</a> to dispatch events coming in from AMI, to our "event listeners".</li>
+<li>Every event listener will be just a bean, that will get called by the container whenever an event is dispatched from our main program.</li>
+<li>We are going to log events to a database. I chose to use mysql, via pdo. This PDO object is a bean.</li>
+<li>To actually write to the database, we'll use prepared statements.</li>
+<li>Each prepared statement will be a "bean", and will get injected to our event listeners. These beans are instantiated by ding using the factory-method and factory-bean options.</li>
+<li>We need to log to files the normal application stuff, like debug info, errors, etc. We'll use ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">ILoggerAware interface</a> in our beans, giving them direct access to the logger of the container.</li>
+<li>Handle errors through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-error">Ding error handler helper</a></li>
+<li>Handle signals through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-signal">Ding signal handler helper</a></li>
+<li>Handle shutdown through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-shutdown">Ding shutdown handler helper</a></li>
+</ul>
+<p><u>Application tree layout overview. What's where.</u></p>
+<pre name="code" class="php">
+src/mg/AsterTrace         ==> Main source directory
+  EventHandlers           ==> Event Handlers reside here. These are our listening beans.
+    DialListener.php     
+    DtmfListener.php
+    EventListener.php
+    PDOListener.php
+    VarSetListener.php
+  Handlers
+    ErrorHandler.php      ==> Application error handler.
+    PamiHandler.php       ==> Our pami handler (will receive all events issued by the PamiHelper).
+    ShutdownHandler.php   ==> Application shutdown handler.
+    SignalHandler.php     ==> Application signal handler (so you may shutdown everything with kill or ^C).
+  bin
+    astertrace.php        ==> Main entry point for the application (see below).
+    bootstrap.php         ==> Bootstrap code (see below).
+  conf/
+    astertrace.properties.example ==> AMI connection information. Rename to astertrace.properties and edit.
+    log4php.properties.example    ==> log4php configuration to log errors, debug, etc. Rename to log4php.properties and edit.
+    mysql.properties.example      ==> mysql configuration (host, tables, database, etc). Rename to mysql.properties and edit.
+    php.properties.example        ==> php properties, like display_errors, error_reporting, etc. Rename to php.properties and edit.
+    support                       ==> Bean definitions are here.
+      beans.xml                   ==> Main bean definitions
+      event-handlers
+        dial-pdo-mysql-statements.xml    ==> Prepared statements for dial listener.
+        dial.xml                         ==> dial listener.
+        dtmf-pdo-mysql-statements.xml    ==> Prepared statements for dtmf listener.
+        dtmf.xml                         ==> dtmf listener.
+        event-pdo-mysql-statements.xml   ==> Prepared statements for generic events listener.
+        event.xml                        ==> Generic events listener.
+        varset-pdo-mysql-statements.xml  ==> Prepared statements for varset listener.
+        varset.xml                       ==> Varset listener.
+      event-handlers.xml                 ==> Where to include the actual listeners to be run.
+      handlers
+        error-handler.xml                
+        pami-handler.xml
+        shutdown-handler.xml
+        signal-handler.xml
+      handlers.xml
+        pdo-mysql.xml
+</pre>
+
+<p><u>Main entry point</u></p>
+<p>
+The main entry point for AsterTrace is <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/bin/astertrace.php">astertrace.php</a>.
+So you can start it by running it:
+<pre name="code" class="php">
+php src/mg/AsterTrace/bin/astertrace.php ./conf
+</pre>
+</p>
+<p>
+This script will call the <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/bin/bootstrap.php">bootstrap.php</a> file that resides in the same directory. Boostrap.php will:
+</p>
+<ul>
+<li>Setup the include path needed</li>
+<li>Check the invoking arguments (remember, this is a command line application, and you need one arguments which is the config directory where all configuration files reside, typically, ./conf)</li>
+<li>Setup the ding's container configuration</li>
+</ul>
+<p>
+After this, astertrace.php will continue execution:
+</p>
+<ul>
+<li>The ding container will be instantiated using the configuration that bootstrap.php prepared.</li>
+<li>The container will use the <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/beans.xml">beans.xml</a> file as its configuration.</li>
+<li>The beans.xml file uses the PropertiesHolder to make ding load properties from php.properties, mysql.properties, astertrace.properties. So the correct values are injected in any beans that need them.</li>
+<li>The beans.xml file includes other bean configurations, for PDO, event listeners, error handler, signal handler, and shutdown handler, so all of them are available in the application.</li>
+<li>The bean <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/handlers/pami-handler.xml">pamiHelper</a> is requested to the container. This bean is actually the PamiHelper that comes from ding. The container will also create the bean <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/Handlers/PamiHandler.php">pami</a> which is our own event handler.</li>
+<li>An infinite loop is started, calling the process() method of the PamiHelper. This method will read messages incoming from AMI.</li>
+</ul>
+<p>
+And that is pretty much what we have to do :) the container takes care of the rest:
+</p>
+<ul>
+<li>Whenever an event is received by PAMI, it will call the PamiHelper.</li>
+<li>The PamiHelper will call our own handler.</li>
+<li>Our handler will dispatch an event through the container, named "anyEvent", so any beans listening for this event will execute.</li>
+<li>Based on the name of the event, the handler dispatches another event through the container. For example, if the event was Dial, then the "dial" event is dispatched, and the method onDial() of every listening bean (for that event) is executed.</li>
+</ul>
+
+<H3><u>Currenly available listeners</u></H3>
+<p><u>Event Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/EventListener.php">src/mg/AsterTrace/EventHandlers/EventListener.php</a></li>
+<li>Bean: eventListener</li>
+<li>Listens-on: anyEvent</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/event.xml">conf/support/event-listeners/event.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/event-pdo-mysql-statements.xml">conf/support/event-listeners/event-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Log all events to the mysql. The events are saved by serializing the event object that pami delivers, which is a subclass of <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Message/Event/EventMessage.php">EventMessage</a>. This will serialize everything about the incoming event.</li>
+<li>Event handler method: onAnyEvent</li>
+</ul>
+<p><u>VarSet Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/VarSetListener.php">src/mg/AsterTrace/EventHandlers/VarSetListener.php</a></li>
+<li>Bean: varSetListener</li>
+<li>Listens-on: varSet</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/varset.xml">conf/support/event-listeners/varset.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/varset-pdo-mysql-statements.xml">conf/support/varset-listeners/varset-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Log all variables that are set to database. Each row will contain the uniqueid, the variable name, and the value set.</li>
+<li>Event handler method: onVarSet</li>
+</ul>
+
+<p><u>Dial Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/DialListener.php">src/mg/AsterTrace/EventHandlers/DialListener.php</a></li>
+<li>Bean: dialListener</li>
+<li>Listens-on: dial</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/dial.xml">conf/support/event-listeners/dial.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/dial-pdo-mysql-statements.xml">conf/support/event-listeners/dial-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Will capture Dial (SubEvent Begin), Dial (SubEvent End), Hangup, and VarSet (for the variables ANSWEREDTIME and DIALEDTIME). This will save the new call on DialBegin, and save the status of the call on Hangup. The VarSets then will update the answered and dialed times. This will effectively give you a working CDR :)</li> 
+<li>Event handler method: onDial, onHangup, onVarSet</li>
+</ul>
+
+<p><u>DTMF Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/DtmfListener.php">src/mg/AsterTrace/EventHandlers/DtmfListener.php</a></li>
+<li>Bean: dtmfListener</li>
+<li>Listens-on: dTMF</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/dtmf.xml">conf/support/event-listeners/dtmf.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/dtmf-pdo-mysql-statements.xml">conf/support/event-listeners/dtmf-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Will capture all dtmf events and execute an insert or update operation in its table in the
+following way: If the uniqueid does not exist, the uniqueid and the dtmf digit will be saved. Otherwise, the uniqueid row is updated, concatenating the new dtmf digit after the last one. This will effectively give you all the dtmf's digits pressed by every uniqueid channel.</li>
+<li>Event handler method: onDTMF</li>
+</ul>
+<H3><u>Conclusions</u></H3>
+<p>
+As you see, having Ding and PAMI work together is a pretty smooth task, and will benefit your code by making it
+cleaner and less coupled. You will be able to focus on the task you really want to do. Ding will take care of the
+inversion of control and dependeny injection, while PAMI will take care of the managing the AMI protocol. In this
+way, your application is truly event driven, and everything will get called without you having to worry about how or
+when. Even configuring the application is trivial due to the use of the PropertiesHolder.
+</p>
+<br/>
+
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
