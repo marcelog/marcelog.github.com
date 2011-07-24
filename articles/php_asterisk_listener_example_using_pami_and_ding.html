@@ -130,7 +130,9 @@ src/mg/AsterTrace         ==> Main source directory
         event.xml                        ==> Generic events listener.
         varset-pdo-mysql-statements.xml  ==> Prepared statements for varset listener.
         varset.xml                       ==> Varset listener.
-      event-handlers.xml                 ==> Where to include the actual listeners to be run.
+        newchannel-pdo-mysql-statements.xml  ==> Prepared statements for newchannel listener.
+        newchannel.xml                       ==> Newchannel listener.
+      event-handlers.xml                     ==> Where to include the actual listeners to be run.
       handlers
         error-handler.xml                
         pami-handler.xml
@@ -223,6 +225,17 @@ And that is pretty much all we have to do :) the container takes care of the res
 <li>Behaviour: Will capture all dtmf events and execute an insert or update operation in its table in the
 following way: If the uniqueid does not exist, the uniqueid and the dtmf digit will be saved. Otherwise, the uniqueid row is updated, concatenating the new dtmf digit after the last one. This will effectively give you all the dtmf's digits pressed by every uniqueid channel.</li>
 <li>Event handler method: onDTMF</li>
+</ul>
+
+<p><u>Newchannel Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/NewChannelListener.php">src/mg/AsterTrace/EventHandlers/NewChannelListener.php</a></li>
+<li>Bean: newChannelListener</li>
+<li>Listens-on: newchannel</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newchannel.xml">conf/support/event-listeners/newchannel.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newchannel-pdo-mysql-statements.xml">conf/support/event-listeners/newchannel-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Will capture all newchannel events. You can see when a channel is ringing, or reserved, etc.</li>
+<li>Event handler method: onNewchannel</li>
 </ul>
 <H3><u>Extending the application</u></H3>
 <p>
