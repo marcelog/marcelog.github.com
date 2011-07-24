@@ -92,7 +92,7 @@ To sum up, this is the general idea:
 <li>We are going to log events to a database. I chose to use mysql, via pdo. This PDO object is a bean.</li>
 <li>To actually write to the database, we'll use prepared statements.</li>
 <li>Each prepared statement will be a "bean", and will get injected to our event listeners. These beans are instantiated by ding using the factory-method and factory-bean options.</li>
-<li>We need to log to files the normal application stuff, like debug info, errors, etc. We'll use ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">ILoggerAware interface</a> in our beans, giving them direct access to the logger of the container.</li>
+<li>We need to log to files the normal application stuff, like debug info, errors, etc. We'll use ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">ILoggerAware interface</a> in our beans, giving them direct access to the logger of the container (this needs log4php, so may want to install it before proceeding).</li>
 <li>Handle errors through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-error">Ding error handler helper</a></li>
 <li>Handle signals through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-signal">Ding signal handler helper</a></li>
 <li>Handle shutdown through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-shutdown">Ding shutdown handler helper</a></li>
