@@ -237,6 +237,16 @@ following way: If the uniqueid does not exist, the uniqueid and the dtmf digit w
 <li>Behaviour: Will capture all newchannel events. You can see when a channel is ringing, or reserved, etc.</li>
 <li>Event handler method: onNewchannel</li>
 </ul>
+<p><u>Newstate Listener</u></p>
+<ul>
+<li>Code: <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/EventHandlers/NewStateListener.php">src/mg/AsterTrace/EventHandlers/NewStateListener.php</a></li>
+<li>Bean: newStateListener</li>
+<li>Listens-on: newstate</li>
+<li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newstate.xml">conf/support/event-listeners/newstate.xml</a></li>
+<li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/newstate-pdo-mysql-statements.xml">conf/support/event-listeners/newstate-pdo-mysql-statements.xml</a></li>
+<li>Behaviour: Will capture all newstate events. You can see when a channel is ringing, up, down, etc.</li>
+<li>Event handler method: onNewstate</li>
+</ul>
 <H3><u>Extending the application</u></H3>
 <p>
 We can add more beans to extend this functionality. Adding beans is trivial, we could use annotations, yaml, or xml configurations.
