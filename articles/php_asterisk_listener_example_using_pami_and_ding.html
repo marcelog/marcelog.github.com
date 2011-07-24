@@ -176,7 +176,6 @@ And that is pretty much what we have to do :) the container takes care of the re
 <li>Our handler will dispatch an event through the container, named "anyEvent", so any beans listening for this event will execute.</li>
 <li>Based on the name of the event, the handler dispatches another event through the container. For example, if the event was Dial, then the "dial" event is dispatched, and the method onDial() of every listening bean (for that event) is executed.</li>
 </ul>
-
 <H3><u>Currenly available listeners</u></H3>
 <p><u>Event Listener</u></p>
 <ul>
@@ -221,6 +220,14 @@ And that is pretty much what we have to do :) the container takes care of the re
 following way: If the uniqueid does not exist, the uniqueid and the dtmf digit will be saved. Otherwise, the uniqueid row is updated, concatenating the new dtmf digit after the last one. This will effectively give you all the dtmf's digits pressed by every uniqueid channel.</li>
 <li>Event handler method: onDTMF</li>
 </ul>
+<H3><u>Extending the application</u></H3>
+<p>
+We can add more beans to extend this functionality. Adding beans is trivial, we could use annotations, yaml, or xml configurations.
+</p>
+<p>
+Whenever we want to get a specific event, we just need to define a listens-on directive in the bean configuration, and the container will automagically
+call the method onEventName() with the event received :) So we can propagate events via radius, or activemq, or rabbitmq, etc.
+</p>
 <H3><u>Conclusions</u></H3>
 <p>
 As you see, having Ding and PAMI work together is a pretty smooth task, and will benefit your code by making it
