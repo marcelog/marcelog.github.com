@@ -106,6 +106,8 @@ src/mg/AsterTrace         ==> Main source directory
     EventListener.php
     PDOListener.php
     VarSetListener.php
+    NewChannelListener.php
+    NewStateListener.php
   Handlers
     ErrorHandler.php      ==> Application error handler.
     PamiHandler.php       ==> Our pami handler (will receive all events issued by the PamiHelper).
@@ -132,6 +134,8 @@ src/mg/AsterTrace         ==> Main source directory
         varset.xml                       ==> Varset listener.
         newchannel-pdo-mysql-statements.xml  ==> Prepared statements for newchannel listener.
         newchannel.xml                       ==> Newchannel listener.
+        newstate-pdo-mysql-statements.xml  ==> Prepared statements for newstate listener.
+        newstate.xml                       ==> Newstate listener.
       event-handlers.xml                     ==> Where to include the actual listeners to be run.
       handlers
         error-handler.xml                
