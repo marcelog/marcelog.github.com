@@ -54,11 +54,11 @@
   <H3><u>Introduction</u></H3>
 <p>
 Here, I'll write about AsterTrace (<a href="https://github.com/marcelog/AsterTrace">https://github.com/marcelog/AsterTrace</a>), a
-simple project that will help you get started using the asterisk manager interface.<br/>
+simple project that will help you get started using the asterisk manager interface in extremely few lines of code :)<br/>
 </p>
 <p>
 The goal for AsterTrace is to log into ami and capture every event sent by asterisk, process some (or not) and
-maybe log every one of them to some database. All of this in extremely few lines of code :)
+maybe log every one of them to some database. 
 </p>
 <p>
 AsterTrace uses Ding and PAMI. The first one as the container, and latter to communicate with AMI, so
@@ -83,7 +83,7 @@ That's it :) Now read on to see how it works.
 To sum up, this is the general idea:
 </p>
 <ul>
-<li>Use <a href="https://marcelog.github.com/Ding">Ding</a> as Inversion of Control and Dependency Injection container.</li>
+<li>Use <a href="https://marcelog.github.com/Ding">Ding</a> as Inversion of Control and Dependency Injection container. All we're going to do are just beans, plain old php objects.</li>
 <li>Use <a href="https://marcelog.github.com/PAMI">PAMI</a> as the framework to handle the connection to the Asterisk Manager Interface.</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-pami">PamiHelper</a> so we dont need to deal with pami use details. Our main program will be just a bean.</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#config">PropertiesHolder</a> so we can configure mysql, ami, php, etc, from properties file (aka php INI files).</li>
@@ -139,7 +139,11 @@ src/mg/AsterTrace         ==> Main source directory
       handlers.xml
         pdo-mysql.xml
 </pre>
-
+<p>
+The key here, are the xml files, which are the container configuration. This is where all the beans
+are defined and related to each other. Because of this configuration, our beans will be injected with
+everything they need to work (even a logger :))
+</p>
 <p><u>Main entry point</u></p>
 <p>
 The main entry point for AsterTrace is <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/bin/astertrace.php">astertrace.php</a>.
