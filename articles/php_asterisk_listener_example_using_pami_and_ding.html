@@ -58,7 +58,7 @@ simple project that will help you get started using the asterisk manager interfa
 </p>
 <p>
 The goal for AsterTrace is to log into ami and capture every event sent by asterisk, process some (or not) and
-maybe log every one of them to some database.
+maybe log every one of them to some database. All of this in extremely few lines of code :)
 </p>
 <p>
 AsterTrace uses Ding and PAMI. The first one as the container, and latter to communicate with AMI, so
@@ -235,6 +235,11 @@ cleaner and less coupled. You will be able to focus on the task you really want 
 inversion of control and dependeny injection, while PAMI will take care of the managing the AMI protocol. In this
 way, your application is truly event driven, and everything will get called without you having to worry about how or
 when. Even configuring the application is trivial due to the use of the PropertiesHolder.
+</p>
+<p>
+Everything is a bean. The PDO object, the PDO statements, and error/shutdown/signal handlers, our own
+event handlers, etc. This allows the application to be easily extended (just write new beans that "listens-on" different
+events, or event the same). Everything can be done within extremely few lines of code :)
 </p>
 <br/>
 
