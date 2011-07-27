@@ -87,7 +87,9 @@ To sum up, this is the general idea:
 <li>Use <a href="https://marcelog.github.com/PAMI">PAMI</a> as the framework to handle the connection to the Asterisk Manager Interface.</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-pami">PamiHelper</a> so we dont need to deal with pami use details. Our main program will be just a bean.</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#config">PropertiesHolder</a> so we can configure mysql, ami, php, etc, from properties file (aka php INI files).</li>
+<li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-tcpserver">TCPServerHelper</a> to open a tcp server where you can connect via telnet or via the language of your choice, to listen for events serialized using json. You can also send commands and get the responses in json format.</li>
 <li>Our main program (called from PamiHelper) will use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#events">events</a> to dispatch events coming in from AMI, to our "event listeners".</li>
+<li>A REST interface is also provided, so this software can be used from a web environment.</li>
 <li>Every event listener will be just a bean, that will get called by the container whenever an event is dispatched from our main program.</li>
 <li>We are going to log events to a database. I chose to use mysql, via pdo. This PDO object is a bean.</li>
 <li>To actually write to the database, we'll use prepared statements.</li>
@@ -98,8 +100,12 @@ To sum up, this is the general idea:
 <li>Handle shutdown through <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-shutdown">Ding shutdown handler helper</a></li>
 </ul>
 <p><u>Application tree layout overview. What's where.</u></p>
-<pre name="code" class="php">
+<pre>
 src/mg/AsterTrace         ==> Main source directory
+  ServerHandlers          ==> Server Handlers reside here. These will listen for events triggered from the tcp server.
+    ServerHandler.php     ==> A base class for all tcp command listeners.
+    ServerCommandDTO.php  ==> DTO to be used when dispatching events from the TCP server. The handlers will get this as the argument of the event.
+    CoreShowChannels.php  ==> Event handler when a tcp client issues CoreShowChannels
   EventHandlers           ==> Event Handlers reside here. These are our listening beans.
     DialListener.php     
     DtmfListener.php
@@ -114,16 +120,25 @@ src/mg/AsterTrace         ==> Main source directory
     PamiHandler.php       ==> Our pami handler (will receive all events issued by the PamiHelper).
     ShutdownHandler.php   ==> Application shutdown handler.
     SignalHandler.php     ==> Application signal handler (so you may shutdown everything with kill or ^C).
+    TCPServerHandler.php  ==> The TCP Server. This will get called from the TCPServerHelper from ding. In turn, this will dispatch events according to what each client sent as a command.
   bin
     astertrace.php        ==> Main entry point for the application (see below).
     bootstrap.php         ==> Bootstrap code (see below).
-  conf/
+    rest.php              ==> REST interface. Use it as a webservice (see below).
+conf/
     astertrace.properties.example ==> AMI connection information. Rename to astertrace.properties and edit.
-    log4php.properties.example    ==> log4php configuration to log errors, debug, etc. Rename to log4php.properties and edit.
+    log4php.properties.example    ==> log4php configuration to log errors, debug, etc. Rename to log4php.properties (and log4php-rest.properties to use it with the rest interface)and edit.
     mysql.properties.example      ==> mysql configuration (host, tables, database, etc). Rename to mysql.properties and edit.
     php.properties.example        ==> php properties, like display_errors, error_reporting, etc. Rename to php.properties and edit.
+    server.properties.example     ==> TCP Server properties. Rename to server.properties and edit.
     support                       ==> Bean definitions are here.
-      beans.xml                   ==> Main bean definitions
+      pdo-mysql.xml               ==> PDO related beans.
+      cli.xml                     ==> Main bean definitions for the CLI interface.
+      handlers.xml                ==> Beans for error handler, signal handler, shutdown handler, pami, etc.
+      server-handlers.xml         ==> Each bean defined here will handle a command (action) from a TCP Client.
+      rest.xml                    ==> Main bean definitions for the REST interface.
+      event-handlers.xml          ==> Where to include the actual listeners to be run (CLI).
+      event-handlers-rest.xml     ==> Where to include the actual listeners to be run (REST).
       event-handlers
         dial-pdo-mysql-statements.xml    ==> Prepared statements for dial listener.
         dial.xml                         ==> dial listener.
@@ -131,6 +146,7 @@ src/mg/AsterTrace         ==> Main source directory
         dtmf.xml                         ==> dtmf listener.
         event-pdo-mysql-statements.xml   ==> Prepared statements for generic events listener.
         event.xml                        ==> Generic events listener.
+        rest-event.xml                   ==> Generic events listener (REST).
         varset-pdo-mysql-statements.xml  ==> Prepared statements for varset listener.
         varset.xml                       ==> Varset listener.
         newchannel-pdo-mysql-statements.xml  ==> Prepared statements for newchannel listener.
@@ -139,14 +155,14 @@ src/mg/AsterTrace         ==> Main source directory
         newstate.xml                       ==> Newstate listener.
         newexten-pdo-mysql-statements.xml  ==> Prepared statements for newexten listener.
         newexten.xml                       ==> Newexten listener.
-      event-handlers.xml                     ==> Where to include the actual listeners to be run.
-      handlers
+      server-handlers                      ==> Beans that handle TCPClient actions.
+        coreShowChannels.xml               ==> Handler for a TCP Client issuing a CoreShowChannels.
+      handlers                             ==> Several "handlers" beans (error, signal, etc).
         error-handler.xml                
         pami-handler.xml
         shutdown-handler.xml
         signal-handler.xml
-      handlers.xml
-        pdo-mysql.xml
+        server.xml
 </pre>
 <p>
 The key here, are the xml files, which are the container configuration. This is where all the beans
@@ -166,7 +182,8 @@ This script will call the <a href="https://github.com/marcelog/AsterTrace/blob/m
 </p>
 <ul>
 <li>Setup the include path needed</li>
-<li>Check the invoking arguments (remember, this is a command line application, and you need one arguments which is the config directory where all configuration files reside, typically, ./conf)</li>
+<li>Check the invoking arguments (remember, if this is a command line application, you need one argument which is the config directory where all configuration files reside, typically, ./conf)</li>
+<li>If on a web environment, check the environment variable "CONFIG_DIR" to get the application's config directory.</li>
 <li>Setup the ding's container configuration</li>
 </ul>
 <p>
@@ -174,9 +191,9 @@ After this, astertrace.php will continue execution:
 </p>
 <ul>
 <li>The ding container will be instantiated using the configuration that bootstrap.php prepared.</li>
-<li>The container will use the <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/beans.xml">beans.xml</a> file as its configuration.</li>
-<li>The beans.xml file uses the PropertiesHolder to make ding load properties from php.properties, mysql.properties, astertrace.properties. So the correct values are injected in any beans that need them.</li>
-<li>The beans.xml file includes other bean configurations, for PDO, event listeners, error handler, signal handler, and shutdown handler, so all of them are available in the application.</li>
+<li>The container will use the <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/cli.xml">cli.xml</a> file as its configuration (if cli environment), or the <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/rest.xml">rest.xml</a> (if on web environment).</li>
+<li>Either beans file uses the PropertiesHolder to make ding load properties from php.properties, mysql.properties, astertrace.properties. So the correct values are injected in any beans that need them.</li>
+<li>Either beans file includes other bean configurations, for PDO, event listeners, error handler, signal handler, and shutdown handler, so all of them are available in the application.</li>
 <li>The bean <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/handlers/pami-handler.xml">pamiHelper</a> is requested to the container. This bean is actually the PamiHelper that comes from ding. The container will also create the bean <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/Handlers/PamiHandler.php">pami</a> which is our own event handler.</li>
 <li>An infinite loop is started, calling the process() method of the PamiHelper. This method will read messages incoming from AMI.</li>
 </ul>
@@ -188,6 +205,8 @@ And that is pretty much all we have to do :) the container takes care of the res
 <li>The PamiHelper will call our own handler.</li>
 <li>Our handler will dispatch an event through the container, named "anyEvent", so any beans listening for this event will execute.</li>
 <li>Based on the name of the event, the handler dispatches another event through the container. For example, if the event was Dial, then the "dial" event is dispatched, and the method onDial() of every listening bean (for that event) is executed.</li>
+<li>Make a telnet connection to the address:port configured in server.properties. You should see the events coming in from ami in json format :)</li>
+<li>Setup your web server so you can access rest.php. Remember to setup the environment variable CONFIG_DIR to point to the application environment. When requesting rest.php, you should start seeing events in json format coming in from ami.</li>
 </ul>
 <H3><u>Currently available listeners</u></H3>
 <p><u>Event Listener</u></p>
