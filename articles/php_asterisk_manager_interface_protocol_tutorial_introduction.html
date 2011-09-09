@@ -217,7 +217,11 @@ EventList: Complete
 <p>
 AMI is a pretty straightforward protocol. You can even try to create a client using netcat via a shell script
 or whatever programming language you like, allowing you to make console operators or manage the asterisk queues, calls,
-agents, etc from a single controlled point of your architecture.
+agents, etc from a single controlled point of your architecture. It has it pitfalls. For example, there is
+no specification as to quoting the ":" (semicolon) character (which separates keys from values) and some asterisk
+versions have a broken implementation for some events/resposes (i.e: not even sending the "Event:" / "Response:" keys,)
+sending a "follows" without a "complete", sending "follow" instead of "follows", not even sending "follows", etc.. a
+real nightmare).
 </p>
 <br/>
               </div>
@@ -241,6 +245,7 @@ agents, etc from a single controlled point of your architecture.
                   <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
                 </ul>
                 <div class="google-ads">
                     <script type="text/javascript">
