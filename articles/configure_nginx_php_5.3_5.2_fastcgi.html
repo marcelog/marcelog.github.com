@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>How to attach files to soap envelopes using DIME and PHP</title>
+<title>How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="How to attach files to soap envelopes using DIME and PHP"/>
-<meta name="description" content="This article is a tutorial about how to transfer files as attachments with soap messages using dime with pear NET_Dime"/>
+<meta name="Keywords" content="How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3"/>
+<meta name="description" content="This article will show how to setup nginx to use fastcgi with different php versions, like 5.2 and 5.3 per virtual host"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to attach files to soap envelopes using DIME and PHP</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,130 +49,111 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>How to attach files to soap envelopes using DIME and PHP</h2>
+                <h2>How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</h2>
                 <div class="hr-1"><hr /></div>
   <H3><u>Introduction</u></H3>
   <p>
-As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
-<b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
-support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
-make it work (at least, I couldn't from the client side ;))
-</p>
-<p>
-In this article I'll show you my own solution, which is a little dirty but does the job. What I did is
-to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
-refined a lot, but it may help you in dire, time-lacking situations ;)
-</p>
-  
-<H3><u>Example</u></H3>
-<p>
-So let's say you want to send a soap request with cero or more attachments, using DIME as
-the transport (I had this requirement when dealing with WoodWing(tm)). You will first need to
-get the text of the soap envelope request, like:
+<a href="http://nginx.org/">Nginx</a> seems to be the new silver bullet nowadays, so I've decided
+to give it a try. Of course it is fun to get it up and running and serve static content, but the
+true fun is to see it replace <a href="http://httpd.apache.org">apache</a> or <a href="http://www.lighttpd.net/">lighttpd</a>
+completely. And to make that happen, it has to support serving some dynamic content. In this article, I'll show
+a very basic and quick setup for nginx, using <a href="http://en.wikipedia.org/wiki/FastCGI">FastCGI</a> to serve
+PHP 5.2 and PHP 5.3 for different virtual hosts.
+  </p>
+  <H3><u>Configuration for PHP 5.2</u></H3>
+  <p>
+For PHP 5.2 you will need to configure (as in running ./configure before building) adding
+the following options:
+  </p>
+  <pre name="code" class="php">
+--enable-fastcgi --with-pcre --enable-mbstr-enc-trans --enable-mbstring
+  </pre>
+  <H3><u>Configuration for PHP 5.3</u></H3>
+  <p>
+For PHP 5.3, the configuration options are slightly different:
+  </p>  
+  <pre name="code" class="php">
+--enable-cgi
+  </pre>
+  <H3><u>Configuration file for nginx</u></H3>
+  <p>
+We're going to configure 2 virtual hosts, one for php 5.2 and one for php 5.3. Each one of 
+these will access an exclusive fastcgi daemon, running the correct php version we need.
+  </p>  
 <pre name="code" class="php">
-$req = "&lt;?xml version='1.0' encoding='UTF-8' ?&gt;
+server {
+        listen          1081;
+        server_name     php53;
+        root            /www/php53;
+        index           index.php;
+        fastcgi_index   index.php;
 
-&lt;SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'
-xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-xmlns:SOAP-ENC='http://schemas.xmlsoap.org/soap/encoding/'
-xmlns:ns1='urn:Something'&gt;
-&lt;SOAP-ENV:Body&gt;
-&lt;ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/SOAP-ENV:Body&gt;
-&lt;/SOAP-ENV:Envelope&gt;";
-</pre>
-</p>
-<p>
-The plan, is to send this message using curl, with the following code:
-<pre name="code" class="php">
-/**
- * Send a POST requst using cURL
- * @param string $url to request
- * @param array $post values to send
- * @param array $options for cURL
- * @return string
- */
-function curl_post($url, $post = NULL)
-{
-    $defaults = array(
-        CURLOPT_POST => 1,
-        CURLOPT_HEADER => 0,
-        CURLOPT_URL => $url,
-        CURLOPT_HTTPHEADER => array(
-'Content-Disposition: form-data; name=\"soap\"; filename=\"123\"',
-'Content-Type: application/dime'
-        ),
-        CURLOPT_FRESH_CONNECT => 1,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_FORBID_REUSE => 1,
-        CURLOPT_TIMEOUT => 400,
-        CURLOPT_POSTFIELDS => $post,
-        CURLOPT_BINARYTRANSFER => true
-    );
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $defaults);
-    $result = curl_exec($ch);
-    if(!$result)
-    {
-        trigger_error(curl_error($ch));
-    }
-    curl_close($ch);
-    return $result;
-}
-
-</pre>
-</p>
-<p>
-And this is the code that put the pieces together and actually sends the message
-with the attachments:
-</p>
-<pre name="code" class="php">
-function send($url, $msg, $attachments = array())
-{
-        $tempFile = tmpfile();
-        if ($tempFile === false) {
-                throw new \Exception('Could not create temp file');
+        location ~ \.php {
+                # Workaround PHP vulnerability:
+                # http://forum.nginx.org/read.php?2,88845,page=3
+                try_files $uri =404;
+                # Alternatively you can set
+                # cgi.fix_pathinfo = false
+                # in php.ini
+                include /etc/nginx/fastcgi_params;
+                keepalive_timeout 0;
+                fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+                fastcgi_pass    127.0.0.1:9001;
         }
-        $dime = new Net_DIME_Message($tempFile);
-        $dime->sendData($msg, 'http://schemas.xmlsoap.org/soap/envelope/');
-        foreach ($attachments as $id => $attachment) {
-                $dime->sendData($attachment, 'application/octet-stream', $id);
-        }
-        rewind($tempFile);
-        $msg = stream_get_contents($tempFile);
-        fclose($tempFile);
-        $ret = curl_post($url, strlen($msg), '', $msg);
-        return new SimpleXMLElement($ret);
 }
+server {
+        listen          1081;
+        server_name     php52;
+        root            /www/php52;
+        index           index.php;
+        fastcgi_index   index.php;
+        location ~ \.php {
+                # Workaround PHP vulnerability:
+                # http://forum.nginx.org/read.php?2,88845,page=3
+                try_files $uri =404;
+                # Alternatively you can set
+                # cgi.fix_pathinfo = false
+                # in php.ini
+                include /etc/nginx/fastcgi_params;
+                keepalive_timeout 0;
+                fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+                fastcgi_pass    127.0.0.1:9000;
+        }
+}
+  </pre>
+  <H3><u>Start me up!</u></H3>
+  <p>
+This is a very silly script that will run your fastcgi daemons and nginx. Beware, this is just to show you
+how it can be done, I recommend that you adapt this script to your OS, honoring the way init scripts are created
+(freebsd has its own way, each linux flavor tend to have its own, etc)
+  </p>
+  <pre name="code" class="php">
+#!/bin/bash
+USER=nobody
+PHP_52_BIND=127.0.0.1:9000
+PHP_53_BIND=127.0.0.1:9001
+PHP_52_CGI=/usr/php-5.2/bin/php-cgi
+PHP_53_CGI=/usr/php-5.3/bin/php-cgi
+PHP_FCGI_CHILDREN=15
+PHP_FCGI_MAX_REQUESTS=1000
+PHP_CGI_ARGS="- USER=$USER PATH=/usr/bin PHP_FCGI_CHILDREN=$PHP_FCGI_CHILDREN PHP_FCGI_MAX_REQUESTS=$PHP_FCGI_MAX_REQUESTS"
+PHP_52_CGI_ARGS="${PHP_CGI_ARGS} ${PHP_52_CGI} -b ${PHP_52_BIND}"
+PHP_53_CGI_ARGS="${PHP_CGI_ARGS} ${PHP_53_CGI} -b ${PHP_53_BIND}"
 
-</pre>
-</p>
-  
-<H3><u>Using it</u></H3>
-<p>
-Now, how to use it:
-</p>
-<pre name="code" class="php">
-$file = './a.jpg';
-$fileContents = file_get_contents($file);
-// This is computed so the attachment id is the md5 sum of the file in question.
-$fileMD5 = md5($fileContents);
-$result = send($req, array($fileMD5 => $fileContents));
-</pre>
-<p>
-After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
-the soap response. The request consists of a DIME message with the first attachment being the
-soap request itself, and the following are the attachment themselves.
-</p>
+# First kill nginx
+killall -q -w -u ${USER} nginx
 
-<H3><u>Conclusions</u></H3>
+# Then kill fastcgi daemons
+killall -q -w -u ${USER} ${PHP_53_CGI}
+killall -q -w -u ${USER} ${PHP_52_CGI}
+
+# Launch fastcgi daemons & nginx
+/usr/bin/env -- $PHP_52_CGI_ARGS &
+/usr/bin/env -- $PHP_53_CGI_ARGS &
+/usr/nginx/sbin/nginx
+  </pre>
 <p>
-Quick, dirty, a little low-level, but effective. Lot to improve, but that's the subject
-of another article ;) This will let you quickly implement and/or test your dime client. Let's hope
-that php gets a little better soap support sometime.
+That's it. Enjoy your php/nginx installation :)
 </p>
               </div>
             </div>
@@ -195,8 +176,8 @@ that php gets a little better soap support sometime.
                   <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
-                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
                 </ul>
                 <div class="google-ads">
                     <script type="text/javascript">
