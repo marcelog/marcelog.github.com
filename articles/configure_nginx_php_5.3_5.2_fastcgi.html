@@ -75,6 +75,11 @@ For PHP 5.3, the configuration options are slightly different:
   <pre name="code" class="php">
 --enable-cgi
   </pre>
+  <p>
+  This will let you run the php-cgi as a fastcgi daemon, by specifying -b address:port
+  <p>
+  See below.
+  </p>
   <H3><u>Configuration file for nginx</u></H3>
   <p>
 We're going to configure 2 virtual hosts, one for php 5.2 and one for php 5.3. Each one of 
@@ -82,7 +87,7 @@ these will access an exclusive fastcgi daemon, running the correct php version w
   </p>  
 <pre name="code" class="php">
 server {
-        listen          1081;
+        listen          80;
         server_name     php53;
         root            /www/php53;
         index           index.php;
@@ -102,7 +107,7 @@ server {
         }
 }
 server {
-        listen          1081;
+        listen          80;
         server_name     php52;
         root            /www/php52;
         index           index.php;
