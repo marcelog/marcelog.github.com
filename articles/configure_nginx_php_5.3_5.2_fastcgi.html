@@ -60,6 +60,10 @@ completely. And to make that happen, it has to support serving some dynamic cont
 a very basic and quick setup for nginx, using <a href="http://en.wikipedia.org/wiki/FastCGI">FastCGI</a> to serve
 PHP 5.2 and PHP 5.3 for different virtual hosts.
   </p>
+  <p>
+The idea here, is to compile versions 5.2 and 5.3 of php with FastCGI enabled. Once we get that, we can launch
+both fastcgi daemons and let nginx connect to them. 
+  </p>
   <H3><u>Configuration for PHP 5.2</u></H3>
   <p>
 For PHP 5.2 you will need to configure (as in running ./configure before building) adding
