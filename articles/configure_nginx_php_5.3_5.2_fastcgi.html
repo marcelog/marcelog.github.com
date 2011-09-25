@@ -87,7 +87,9 @@ For PHP 5.3, the configuration options are slightly different:
   <H3><u>Configuration file for nginx</u></H3>
   <p>
 We're going to configure 2 virtual hosts, one for php 5.2 and one for php 5.3. Each one of 
-these will access an exclusive fastcgi daemon, running the correct php version we need.
+these will access an exclusive fastcgi daemon, running the correct php version we need. Also, a sample
+configuration is shown, to route all requests to non-existant files, to a front controller in
+index.php (useful for zend framework, yii, symfony, etc).
   </p>  
 <pre name="code" class="php">
 server {
@@ -96,6 +98,21 @@ server {
         root            /www/php53;
         index           index.php;
         fastcgi_index   index.php;
+
+        location / {
+            index index.php;
+        }
+
+        location ~ \.htaccess {
+            deny all;
+        }
+
+        # These lines will allow to redirect any request that does not match
+        # an existant file to a front controller (zf, yii, symfony, etc)
+        error_page  404 = /index.php;
+        if (!-e $request_filename) {
+            rewrite ^.*$ /index.php last;
+        }
 
         location ~ \.php {
                 # Workaround PHP vulnerability:
@@ -116,6 +133,22 @@ server {
         root            /www/php52;
         index           index.php;
         fastcgi_index   index.php;
+
+        location / {
+            index index.php;
+        }
+
+        location ~ \.htaccess {
+            deny all;
+        }
+
+        # These lines will allow to redirect any request that does not match
+        # an existant file to a front controller (zf, yii, symfony, etc)
+        error_page  404 = /index.php;
+        if (!-e $request_filename) {
+            rewrite ^.*$ /index.php last;
+        }
+        
         location ~ \.php {
                 # Workaround PHP vulnerability:
                 # http://forum.nginx.org/read.php?2,88845,page=3
