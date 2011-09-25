@@ -92,6 +92,15 @@ configuration is shown, to route all requests to non-existant files, to a front 
 index.php (useful for zend framework, yii, symfony, etc).
   </p>  
 <pre name="code" class="php">
+
+# Useful to debug rewrite rules and other stuff
+error_log  logs/error.log  notice; 
+
+http {
+    # Debug rewrite rules
+    rewrite_log  on;
+}
+
 server {
         listen          80;
         server_name     php53;
