@@ -83,8 +83,8 @@ That's it :) Now read on to see how it works.
 To sum up, this is the general idea:
 </p>
 <ul>
-<li>Use <a href="https://marcelog.github.com/Ding">Ding</a> as Inversion of Control and Dependency Injection container. All we're going to do are just beans, plain old php objects.</li>
-<li>Use <a href="https://marcelog.github.com/PAMI">PAMI</a> as the framework to handle the connection to the Asterisk Manager Interface.</li>
+<li>Use <a href="http://marcelog.github.com/Ding">Ding</a> as Inversion of Control and Dependency Injection container. All we're going to do are just beans, plain old php objects.</li>
+<li>Use <a href="http://marcelog.github.com/PAMI">PAMI</a> as the framework to handle the connection to the Asterisk Manager Interface.</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-pami">PamiHelper</a> so we dont need to deal with pami use details. Our main program will be just a bean.</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#config">PropertiesHolder</a> so we can configure mysql, ami, php, etc, from properties file (aka php INI files).</li>
 <li>Use Ding's <a href="http://marcelog.github.com/Ding/manual/toc.html#helper-tcpserver">TCPServerHelper</a> to open a tcp server where you can connect via telnet or via the language of your choice, to listen for events serialized using json. You can also send commands and get the responses in json format.</li>
