@@ -1,0 +1,749 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Writing PHP applications with Doctrine2 as ORM and Ding as DI container</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="php application doctrine2 orm di dependency injection container bean ding aop aspect oriented programming"/>
+<meta name="description" content=""/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Writing PHP applications with Doctrine2 as ORM and Ding as DI container</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Writing PHP applications with Doctrine2 as ORM and Ding as DI container</h2>
+                <div class="hr-1"><hr /></div>
+  <H3><u>Introduction</u></H3>
+  <p>
+This article will show how we can develop software in php with a nifty design and architecture, and very much
+like other languages like java, using an ORM and an AOP, DI, Events container. I will assume you've read (or at least took a quick look) at
+<a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">this article</a> that explains
+the tree layout used throughout the code, and that you have some basic knowledge of <a href="http://www.doctrine-project.org/">Doctrine2</a> and used it before on your
+own.
+</p>
+<p>
+You can find a similar article with a telephony application example for asterisk <a href="php_asterisk_listener_example_using_pami_and_ding.html">here</a>.
+</p>
+<p>
+Doctrine2 has proven to be a great thing to have around for your applications. I'd like to show how <a href="http://marcelog.github.com/Ding">Ding</a> can also
+be one of those good things to use in your projects. So in this example, we'll use Doctrine2 as the orm of a sample application, and use Ding as a
+container to provide the glue (events, aspect oriented programming, dependency injection, and inversion of control) throughout all of the code. 
+  </p>
+  <p>
+You can find the complete source code for this article at <a href="https://github.com/marcelog/Doctrine2-Ding-Example">GitHub.</a>
+  </p>
+<p>
+I'll try to go step by step. Please bare with me as I go along the article trying to explain what is going on. Hopefully, the pieces
+will fit together as you go down the article.
+</p>
+<h3><u>First, the result</u></h3>
+<ul>
+<li>A software architecture based on PHP <a href="http://en.wikipedia.org/wiki/Java_Bean">beans</a>, leading to very decoupled code, orchestrated by the container (ding).</li>
+<li>Lots of boiler plate procedural code transformed into declarative code, in the bean definitions (like doctrine setup
+and aquirement of needed dependencies)</li>
+<li>Our resulting application will have 1 entity, the User.</li>
+<li>A "User" domain service, that can return a User given an id, and also can create a "User" with
+a given username and password.</li>
+<li>We will use an <a href="http://en.wikipedia.org/wiki/Event-driven_programming">event driven</a> (let's call our events, "domain events"), approach to 
+extend our application, in this case we will create a domain event "newUserCreated", dispatched for each "User" created in the system.</li>
+<li>A listener of "newUserCreated" that will log the username created via debug level.</li>
+<li>We will apply <a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a> to create 2 aspects in the system, a "Profiler"
+aspect that can keep track of the time spent in each domain service, and a "Transactional" aspect, that will
+call beginTransaction()-flush()-commit()-rollback() on the doctrine entity manager in nested domain services calls, so our domain services wont have to.</li>
+</ul>
+<p>
+A sample log of the creation of the username "john":
+</p>
+<pre name="code" class="php">
+$userDomainService->createUser('john', 'pass');
+$user = $userDomainService->getById(1);
+</pre>
+<pre name="code" class="php">
+| DEBUG | Execution of Domain\Service\AbstractService::setLogger took: 0.00006
+| DEBUG | Execution of Domain\Service\User::setContainer took: 0.00005
+| DEBUG | Serving for: Domain\Service\User::createUser
+| DEBUG | Beginning transaction
+| DEBUG | Dispatching event: newUserCreated
+| DEBUG | New user: john
+| DEBUG | Commiting transaction
+| DEBUG | Execution of Domain\Service\User::createUser took: 0.01331
+| DEBUG | Serving for: Domain\Service\User::getById
+| DEBUG | Beginning transaction
+| DEBUG | Commiting transaction
+| DEBUG | Execution of Domain\Service\User::getById took: 0.00467
+| DEBUG | Dispatching event: dingShutdown
+</pre>
+<p>
+You can see the "Transactional" aspect managing the per-domain-service-method-call 
+transactions. Also, you can spot 2 transactions being made: one is for the call to createUser, and the
+other one is for the call to getById (we can see that because of the "Profiler" aspect accounting
+the time spent in each one of the calls). These calls are not nested, they are issued
+per separate.
+</p>
+<p>
+Also, notice the "New user: john" message, logged by the event listener for the event
+"newUserCreated" after the container logged a debug message when dispatching the event.
+</p>
+<h4><u>The code</u></h4>
+<p>
+Let's take a quick review of the resuling code first, the code is kind of self explanatory 
+and will let you discover "the magic" behind it before I get into any gory details. If I can still have you interested after that, I'll show
+how to setup the container and the orm later :)
+</p>
+<p>
+The User entity can be something standard, you can find it <a href="https://github.com/marcelog/Doctrine2-Ding-Example/blob/master/src/php/Domain/Entity/User.php">here</a>.
+</p>
+<h4><u>Our beans</u></h4>
+<p>
+So whenever a User is persist()ed, we would have this bean listening for the domain
+event "newUserCreated". We declare beans with annotations like @Component, @Aspect, 
+@Configuration, @Controller, etc:
+</p>
+<pre name="code" class="php">
+namespace Listeners;
+
+use Ding\Logger\ILoggerAware;
+
+/**
+ * @Component
+ * @ListensOn(value=newUserCreated)
+ */
+class NewUser implements ILoggerAware
+{
+    /**
+     * @var \Logger
+     */
+    private $_logger;
+
+   /**
+     * Called by the container.
+     *
+     * @param string $name The created username
+     *
+     * @return void
+     */
+    public function onNewUserCreated($name)
+    {
+        $this->_logger->debug("New user: $name");
+    }
+
+    public function setLogger(\Logger $logger)
+    {
+        $this->_logger = $logger;
+    }
+
+}
+</pre>
+<p>
+Another bean: the user domain service, that will create User entities, persist them, and dispatch the
+"newUserCreated" event. This one is also a @Component, but it specifies a name for itself,
+"userDomainService" (note the @Resource annotation, that wires-by-name the indicated dependency):
+</p>
+<pre name="code" class="php">
+namespace Domain\Service;
+
+use Domain\Entity\User as UserEntity;
+use Ding\Container\IContainerAware;
+use Ding\Container\IContainer;
+
+/**
+ * @Component(name="userDomainService")
+ */
+class User extends AbstractService implements IContainerAware
+{
+    /**
+     * @Resource
+     * @var \Domain\Repository\User
+     */
+    protected $userRepository;
+
+    /**
+     * @var \Ding\Container\IContainer
+     */
+    private $_container;
+
+    public function createUser($username, $password)
+    {
+        $user = new UserEntity($username, $password);
+        $this->entityManager->persist($user);
+        $this->_container->eventDispatch('newUserCreated', $username);
+        return $user;
+    }
+
+    public function getById($id)
+    {
+        return $this->userRepository->find($id);
+    }
+
+    public function setContainer(IContainer $container)
+    {
+        $this->_container = $container;
+    }
+}
+</pre>
+<p>
+Components can extend other components, so the bean definitions can extend other
+bean definitions. The parent class for all domain services will ensure that every domain service
+has a logger and the "entityManager" always injected (note again the @Resource
+annotation, that wires-by-name the indicated dependency):
+</p>
+<pre name="code" class="php">
+namespace Domain\Service;
+
+use Ding\Logger\ILoggerAware;
+
+/**
+ * @Component
+ */
+class AbstractService implements ILoggerAware
+{
+    /**
+     * @Resource
+     * @var \Doctrine\ORM\EntityManager
+     */
+    protected $entityManager;
+
+    /**
+     * @var \Logger
+     */
+    protected $logger;
+
+    public function setLogger(\Logger $logger)
+    {
+        $this->logger = $logger;
+    }
+}
+</pre>
+<p>
+A programatically bean definition for the repository. All components can be a source
+for bean definitions. @Configuration annotated classes are specifically used for this
+purpose. It will be injected with the entityManager itself. Each @Bean annotated method
+is a bean whose name is the method's name.
+</p>
+<pre name="code" class="php">
+namespace Domain\Repository;
+
+/**
+ * @Configuration
+ */
+class Configuration
+{
+    /**
+     * @Resource
+     * @var \Doctrine\ORM\EntityRepository
+     */
+    protected $entityManager;
+
+    protected function getRepo($entityName)
+    {
+        return $this->entityManager
+               ->getRepository("\\Domain\Entity\\$entityName");
+    }
+
+    /** @Bean */
+    public function userRepository()
+    {
+        return $this->getRepo('User');
+    }
+}
+</pre>
+<p>
+The method "userRepository" is a bean definition that will be injected in the
+user domain service, in the "userRepository" property (because of the @Resource
+annotation that wires by name). You can find the code for the repository <a href="https://github.com/marcelog/Doctrine2-Ding-Example/blob/master/src/php/Domain/Repository/User.php">here</a>.
+</p>
+<p>
+The Profiler aspect mentioned above, just another component (bean). Notice the
+@Aspect and @MethodInterceptor annotations:
+</p>
+<pre name="code" class="php">
+namespace Aspect;
+
+use Ding\Aspect\MethodInvocation;
+use Ding\Logger\ILoggerAware;
+
+/**
+ * @Aspect
+ */
+class Profiler implements ILoggerAware
+{
+    protected $logger;
+
+    public function setLogger(\Logger $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * @MethodInterceptor(class-expression=.*Service.*,expression=.*)
+     */
+    public function profileDomainServices(MethodInvocation $invocation)
+    {
+        $time = microtime(true);
+        $originalInvocation = $invocation->getOriginalInvocation();
+        $ret = $invocation->proceed();
+        $total = microtime(true) - $time;
+        $this->logger->debug(
+            "Execution of "
+            . $originalInvocation->getClass()
+            . "::" . $originalInvocation->getMethod()
+            . " took: " . sprintf('%.5f', $total)
+        );
+        return $ret;
+    }
+}
+</pre>
+<p>And last but not least, the "Transactional" aspect, that will call flush() in the
+entityManager to commit changes to DB, mantaining transactions when having nested domain services
+calls. To do it, it will count the number of nested calls, on the first one, the transaction will
+be started. The counter will decrease with every return'ing function, so when this counter
+goes to 1 again, the transactions is commited:
+</p>
+<pre name="code" class="php">
+namespace Aspect;
+
+use Ding\Aspect\MethodInvocation;
+use Ding\Logger\ILoggerAware;
+
+/**
+ * @Aspect
+ */
+class Transactional implements ILoggerAware
+{
+    /**
+     * @Resource
+     * @var \Doctrine\ORM\EntityRepository
+     */
+    protected $entityManager;
+    protected static $count = 0;
+    protected $logger;
+
+    public function setLogger(\Logger $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * @MethodInterceptor(class-expression=AbstractService,expression=.*)
+     */
+    public function manageTransaction(MethodInvocation $methodInvocation)
+    {
+        $method = $methodInvocation->getMethod();
+        $class = $methodInvocation->getClass();
+        if ((strncmp($method, '_', 1) === 0) || (strncmp($method, 'set', 3) === 0)) {
+            return $methodInvocation->proceed();
+        }
+        $this->logger->debug("Serving for: $class::$method");
+        self::$count++;
+        try
+        {
+            if (self::$count === 1) {
+                $this->logger->debug('Beginning transaction');
+                $this->entityManager->beginTransaction();
+            }
+            $result = $methodInvocation->proceed();
+            if (self::$count === 1) {
+                $this->logger->debug('Commiting transaction');
+                $this->entityManager->flush();
+                $this->entityManager->commit();
+            }
+            self::$count--;
+            return $result;
+        } catch(\Exception $exception) {
+            if (self::$count === 1) {
+                $this->logger->error(
+                    'Exception: '
+                    . $exception->getMessage()
+                    . ' occurred, rollbacking transaction'
+                );
+                $this->entityManager->rollback();
+            }
+            self::$count--;
+            throw $exception;
+        }
+    }
+}
+</pre>
+<H3><u>Conclusions</u></H3>
+<p>
+Well, that really is all. Just wanted to make a point on how we can actually do better
+applications using PHP. As you can see, the container handles everything needed to glue the application
+together, and every part of the system can do just what it needs to do, leading to
+more concise software and better practices over time. Of course this is a trivial example, but
+it can be applied without effort to more complex software.
+</p>
+<p>You can get the complete source code <a href="https://github.com/marcelog/Doctrine2-Ding-Example">here</a>.
+What follows, is an overview of how to structure this kind of applications, and where everything goes. The config details
+and bootstrapping stuff, and basically, how everything works. I hope you liked it and that you're still
+interested in continue your reading :)
+</p>
+<H3><u>Setting up</u></H3>
+<p>
+So we'll start with the very same application <a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">mentioned earlier, here.</a>
+</p>
+<p>
+Our config/setup/dependencies file will need to look like:
+</p>
+<pre name="code" class="php">
+pear.doctrine-project.org/DoctrineORM-2.1.0
+pear.marcelog.name/Ding-1.4.2
+pear.apache.org/log4php/Apache_log4php-2.1.0
+</pre>
+<p>
+<a href="http://logging.apache.org/log4php/Log4Php">Log4php</a> is needed by Ding, it will be used to log messages in your application and the container itself.
+</p>
+<p>
+Also, let's add a new directory to the tree layout, the runtime directory:
+</p>
+<pre name="code" class="php">
+|~runtime/        
+| |~cache/        
+| | |~ding/       
+| | `~doctrine/   
+| |   |~hydrators/
+| |   `~proxies/  
+| |~db/           
+| `~log/          
+</pre>
+<p>
+runtime/log will of course hold the log files. runtime/db will hold the database (I've used sqlite3 in this
+particular application).
+</p>
+<p>
+runtime/cache will hold all the files that ding and doctrine might need to generate (also, we could store
+our generated repositories and entities).
+</p>
+<h3><u>The bootstrap</u></h3>
+<p>Now we have to bootstrap the container for our application, this of course will be
+done in the bin/bootstrap.php file of the sample tree layout. The comments will explain what is going on:
+</p>
+<pre name="code" class="php">
+// Establish absolute application root path
+$myDir = realpath(__DIR__ . '/..');
+define('ROOT_APPLICATION_PATH', $myDir);
+$confDir = $myDir . '/config';
+$vendorsDir = $myDir . '/vendor';
+$srcDir = $myDir . '/src/php';
+
+// The ding autoloader needs to be registered. Any 
+// PSR-0 compliant autoloader will also do fine.
+require_once 'Ding/Autoloader/Autoloader.php';
+Ding\Autoloader\Autoloader::register();
+use Ding\Container\Impl\ContainerImpl as DingContainer;
+
+// We will be using annotations throughout all of
+// the code, so let's tell ding to traverse and discover
+// the annotations in these directories.
+$annotationDirectories = array(
+    $srcDir . '/Listeners',
+    $srcDir . '/Domain/Service',
+    $srcDir . '/Domain/Repository',
+    $srcDir . '/Aspect'
+);
+
+/*
+ * Container options:
+ *   - The log4php configuration file will
+ *     be config/application.properties
+ *   - Dont use any cache (you should have cache for production
+ *     environments).
+ *   - The container will have an additional properties file, 
+ *     specified also as config/application.properties
+ *   - Bean providers: Not only we will use annotations in the
+ *     classes "living" in the above specified directories, but also
+ *     xml definitions residing in config/support/beans.xml.
+ *   - Also, a single property is injected in the container, the 
+ *     'config.dir' property will have the absolute path to our /config
+ *     directory.
+ */
+$options = array('ding' => array(
+    'log4php.properties'
+        => $confDir . '/application.properties',
+    'cache' => array(
+        'aspect' => array('impl' => 'dummy'),
+        'annotations' => array('impl' => 'dummy'),
+        'bdef' => array('impl' => 'dummy'),
+        'autoloader' => array('impl' => 'dummy'),
+        'proxy' => array('impl' => 'dummy')
+    ),
+    'factory' => array(
+        'properties' => array('config.dir' => $confDir),
+        'bdef' => array(
+            'xml' => array(
+                'filename' => 'beans.xml',
+                'directories' => array($confDir . '/support')
+            ),
+            'annotation' => array(
+                'scanDir' => $annotationDirectories
+            )
+        )
+    )
+));
+// Get the container instance.
+$container = DingContainer::getInstance($options);
+</pre>
+<H3><u>Application Configuration</u></H3>
+<p>So I've mentioned a config/application.properties file, used to configure the application. Let's take a look at it, it should be self explanatory:</p>
+<pre name="code" class="php">
+; ROOT_APPLICATION_PATH is defined in bootstrap.php
+; Database (doctrine2) configuration
+doctrine.db[driver]=pdo_sqlite
+doctrine.db[path]=ROOT_APPLICATION_PATH "/runtime/db/db.sqlite"
+doctrine.db[charset]=UTF8
+doctrine.proxy.dir=ROOT_APPLICATION_PATH "/runtime/cache/doctrine/proxies"
+doctrine.proxy.namespace="Proxies"
+doctrine.hydrator.dir=ROOT_APPLICATION_PATH "/runtime/cache/doctrine/hydrators"
+doctrine.hydrator.namespace="Hydrators"
+doctrine.entity.path=ROOT_APPLICATION_PATH "/src/php/Domain/Entity"
+doctrine.cache.query="Doctrine\Common\Cache\ApcCache"
+doctrine.cache.metadata="Doctrine\Common\Cache\ApcCache"
+
+; Logging (log4php) configuration
+log4php.appender.default = LoggerAppenderDailyFile
+log4php.appender.default.layout = LoggerLayoutPattern
+log4php.appender.default.layout.ConversionPattern = "%d{ISO8601} | %p | %m%n"
+log4php.appender.default.file = ROOT_APPLICATION_PATH "/runtime/log/log.log"
+log4php.rootLogger = DEBUG, default
+
+; PHP options that will override php.ini stuff. Ding will autoconfigure these.
+php.error_reporting=E_ALL
+php.display_errors=1
+php.date.timezone=America/Buenos_Aires
+</pre>
+<H3><u>Ding and Doctrine Configuration</u></H3>
+<p>So how do these properties end up configuring everything? This is where the container
+comes into action. Remember we specified that we're going to be using a file, config/support/beans.xml
+as a bean provider. Let's take a look at that file:
+</p>
+<pre name="code" class="xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans&gt;
+  &lt;!-- The Doctrine2 configuration is a separated xml file --&gt;
+  &lt;import resource="doctrine.xml"/&gt;
+
+  &lt;!-- The PropertiesHolder bean is what makes it possible for the
+    container to read properties from a standard php.ini file, so we
+    can use them in other bean configurations.  --&gt;
+  &lt;bean id="PropertiesHolder" class="Ding\Helpers\Properties\PropertiesHelper"&gt;
+    &lt;property name="locations"&gt;
+      &lt;array&gt;
+        &lt;entry&gt;&lt;value&gt;
+            resource://file://${config.dir}/application.properties
+        &lt;/value&gt;&lt;/entry&gt;
+      &lt;/array&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+&lt;/beans&gt;
+</pre>
+<p>
+Let's now take a look at the config/support/doctrine.xml file. This will configure
+doctrine not programatically but as a series of bean definitions. This is the equivalent of
+the <a href="http://www.doctrine-project.org/docs/orm/2.0/en/reference/configuration.html#obtaining-an-entitymanager">this code</a>.Everything like
+${..} is replaced by the container with the appropiate values coming in from the
+config/application.properties file:
+</p>
+<pre name="code" class="xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans&gt;
+  &lt;!--
+    The entityManager will be used in our domain service to persist
+    and work with the entities.
+    --&gt;
+  &lt;bean id="entityManager"
+    class="Doctrine\ORM\EntityManager"
+    factory-method="create"&gt;
+    &lt;constructor-arg&gt;&lt;value&gt;${doctrine.db}&lt;/value&gt;&lt;/constructor-arg&gt;
+    &lt;constructor-arg&gt;&lt;ref bean="doctrine-config" /&gt;&lt;/constructor-arg&gt;
+    &lt;constructor-arg&gt;&lt;ref bean="eventManager" /&gt;&lt;/constructor-arg&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="eventManager" class="Doctrine\Common\EventManager"/&gt;
+
+  &lt;bean id="doctrine-config" class="\Doctrine\ORM\Configuration"&gt;
+    &lt;property name="metaDataCacheImpl"&gt;
+      &lt;ref bean="doctrine-metadata-cache"/&gt;
+    &lt;/property&gt;
+    &lt;property name="metadataDriverImpl"&gt;
+      &lt;ref bean="doctrine-metadata-driver"/&gt;
+    &lt;/property&gt;
+    &lt;property name="queryCacheImpl"&gt;
+      &lt;ref bean="doctrine-query-cache"/&gt;
+    &lt;/property&gt;
+    &lt;property name="proxyDir"&gt;
+      &lt;value&gt;${doctrine.proxy.dir}&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property name="proxyNamespace"&gt;
+      &lt;value&gt;${doctrine.proxy.namespace}&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- Optional sql logger --&gt;
+    &lt;!--
+      &lt;property name="sqlLogger"&gt;
+        &lt;ref bean="sqlLogger"/&gt;
+      &lt;/property&gt;
+    --&gt;
+  &lt;/bean&gt;
+
+  &lt;!-- Optional sql logger --&gt;
+  &lt;!--
+    &lt;bean id="sqlLogger"
+    class="\Doctrine\DBAL\Logging\EchoSQLLogger"/&gt;
+  --&gt;
+
+  &lt;bean id="doctrine-metadata-cache"
+    class="${doctrine.cache.query}"/&gt;
+
+  &lt;bean id="doctrine-query-cache"
+    class="${doctrine.cache.metadata}"/&gt;
+
+  &lt;bean id="doctrine-config-dummy"
+    class="\Doctrine\ORM\Configuration"/&gt;
+
+  &lt;bean id="doctrine-metadata-driver"
+    factory-bean="doctrine-config-dummy"
+    factory-method="newDefaultAnnotationDriver"&gt;
+    &lt;constructor-arg&gt;
+      &lt;array&gt;
+        &lt;entry&gt;&lt;value&gt;
+          ${doctrine.entity.path}
+        &lt;/value&gt;&lt;/entry&gt;
+      &lt;/array&gt;
+    &lt;/constructor-arg&gt;
+  &lt;/bean&gt;
+&lt;/beans&gt;
+</pre>
+<h3><u>Running the doctrine cli</u></h3>
+<p>
+Since our application has its own isolated environment, we need our own shell script to call
+the right doctrine cli (the one in our vendors directory). So we run bin/doctrine.sh:
+</p>
+<pre name="code" class="php">
+marcelog@host ~/tmp/test $ bin/doctrine.sh orm:schema-tool:create
+ATTENTION: This operation should not be executed in a production environment.
+
+Creating database schema...
+Database schema created successfully!
+marcelog@host ~/tmp/test $ bin/doctrine.sh orm:validate-schema
+[Mapping]  OK - The mapping files are correct.
+[Database] OK - The database schema is in sync with the mapping files.
+</pre>
+<h3><u>Running the example</u></h3>
+<p>
+</p>
+<pre name="code" class="php">
+marcelog@host ~/tmp/test $ bin/run.sh createUser john doe
+[User: 1: john ]
+</pre>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
