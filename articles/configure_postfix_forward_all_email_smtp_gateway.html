@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Una pequeña historia sobre como se viaja en el subte b, apretado y lleno de gente en horario pico hacia el centro</title>
+<title>Configuring postfix to forward all email to a smtp gateway</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="Una pequeña historia sobre como se viaja en el subte b, apretado y lleno de gente en horario pico hacia el centro"/>
-<meta name="description" content="Una pequeña historia sobre como se viaja en el subte b, apretado y lleno de gente en horario pico hacia el centro"/>
+<meta name="Keywords" content="Configuring postfix to forward all email to a smtp gateway"/>
+<meta name="description" content="This article will show how to setup postfix so it will forward all incoming email to another smtp gateway"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@
     <!-- <a class="logo" href="index.html">Marcelo G</a>-->
     <ul id="nav">
       <li><a href="../index.html"><span>Home</span></a></li>
-      <li><a href="../about.html"><span>About</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
       <li class="active"><a href="articles.html"><span>Articles</span></a></li>
       <li><a href="../software.html"><span>Software</span></a></li>
       <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Una pequeña historia sobre como se viaja en el subte b, apretado y lleno de gente en horario pico hacia el centro</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Configuring postfix to forward all email to a smtp gateway</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,45 +49,39 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Una pequeña historia sobre como se viaja en el subte b, apretado y lleno de gente en horario pico hacia el centro</h2>
+                <h2>Configuring postfix to forward all email to a smtp gateway</h2>
                 <div class="hr-1"><hr /></div>
+  <H3><u>Introduction</u></H3>
   <p>
-Una mini anecdota/observacion no-tecnica (como para variar un poco.. ), que pueden bypassear tranquilamente :)<br/>
-
-como todos los dias, afronte la dura realidad de tomar el subte b en horario pico a la mañana. of course, estaba <br/>
-hasta las tarlipes de gente (que no es la observacion de la que hablaba, doh).<br/>
+Suppose you want all your web servers to locally send all email (maybe from your contact forms, or whatever)
+to a real smtp gateway. If you're running <a href="http://www.postfix.org/">postfix</a> as your mta, this is quite easily to achieve.
 </p>
+<H3><u>Configuration</u></H3>
 <p>
-la cuestion es que entre justito (sin apretujar a nadie, porque no me gusta que me lo hagan a mi) y quede al lado<br/>
-de la puerta, fui el ultimo en subir.<br/>
+In your <a href="http://www.postfix.org/postconf.5.html">main.cf</a> file (usually /etc/postfix/main.cf or /usr/local/etc/postfix/main.cf), specify your transport maps:
 </p>
+<pre name="code" class="php">
+transport_maps =  hash:/etc/postfix/transport
+</pre>
 <p>
-al cabo de un par de estaciones llegamos a pueyrredon (una de las estaciones que ni el deniro de taxi driver se <br/>
-animaria a encarar en hora pico) y por supuesto, un aluvion de gente subio al subte como pudo. yo zafe del<br/>
- estrujamiento general porque estaba justito a un costado de la puerta, al lado de la fila de asientos <br/>
- (vieron que tiene como ese huequito donde uno mas o menos flaco puede escudarse).
- </p>
-<p>
-justo antes de arrancar, un muchacho (y no como diria la cancion de palito "como yo", por suerte) estaba con su <br/>
-pareja y empezo a empujar para entrar. empujaba a su pareja, al grito de "sino no entramos mas". en ese momento mi <br/>
-huequito-escudo comenzo a peligrar porque me estaba empezando a desplazar, asi que (como siempre) hago fuerza en sentido<br/>
- contrario para que no suban (loco, ya fue, no da para mas). entonces quedo la pareja del susodicho entre ambas fuerzas<br/>
-  contrarias. la situacion estaba claramente estancada.
+And in your <a href="http://www.postfix.org/transport.5.html">transport</a> file (usually /etc/postfix/transport or /usr/local/etc/postfix/transport), specify
+your gateways per domain. This allows you to specify with regular expressions which emails go where. In this case, an asterisk specifies every domain
+(the transport file allows very complex setups, this is of course an extreme and trivial example): 
 </p>
+<pre name="code" class="php">
+*              smtp:myotherhost.com
+</pre>
 <p>
-lo loco (y aqui la observacion), es que el muchacho no se dio cuenta de que yo estaba haciendo fuerza para que no <br/>
-entre (en realidad, no era de mala onda, es que realmente no habia mas espacio y no queria quedar como un panqueque). <br/>
-y digo que no se dio cuenta porque no dijo nada y tampoco note miradas (no)sutiles que digan algo al respecto. y seguia <br/>
-haciendo fuerza. lo que me lleva a pensar que creia que la fuerza que percibia en contra era de la gente, que estaba <br/>
-apretujada a mas no poder, y sin embargo, seguia empujando!
+Then invoke postmap to regenerate the transports db, and reload postfix:
 </p>
+<pre name="code" class="php">
+# postmap hash:/etc/postfix/transport
+# postfix reload
+</pre>
 <p>
-incluso empujando a su pareja para que entre! una cosa es que se de cuenta de que alguien le esta haciendo la contra <br/>
-y empuje, pero me parece muy descabellado que siga empujando sin notar esto ultimo y seguramente creyendo que era solo <br/>
-el apretujamiento de gente lo que le impedia subir... la cuestion es que entro, alguien cedio (por suerte no fui yo,<br/>
- que con un rapido movimiento a lo steven segal gire y me quede en el hueco). por ende, cumplio su cometido a cualquier <br/>
- costo...
- </p>
+That should do it. All email generated in this host should now be forwarded to the smtp gateway. Remember to configure your smtp gateway
+to accept mail from all the hosts that will forward emails to it.
+</p>
               </div>
             </div>
             <div class="mod view-more">
@@ -106,15 +100,13 @@ el apretujamiento de gente lo que le impedia subir... la cuestion es que entro, 
                 <ul class="quick-list">
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
-                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
-                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
                   <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
-                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
                   <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
                   <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
-                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
                 </ul>
                 <div class="google-ads">
                     <script type="text/javascript">
