@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Installing and using the Ding DI Container</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="ding di container dependency injection install tutorial how to phar pear channel"/>
+<meta name="description" content="This article will show how to download and install the php ding dependency injection container and use it with pear channel and phar package"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Installing and using the Ding DI Container</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Installing and using the Ding DI Container</h2>
+                <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
+<p>
+<a href="http://marcelog.github.com/Ding">Ding</a> is DI (<a href="http://en.wikipedia.org/wiki/Dependency_injection">Dependency Injection</a>)
+container, featuring IoC (<a href="http://en.wikipedia.org/wiki/Dependency_inversion">Inversion of Control</a>), and AOP (<a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">
+Aspect Orientend Programming</a>) for PHP 5.3 (actually, it needs >= 5.3.3). It also supports some
+<a href="http://en.wikipedia.org/wiki/Event-driven_programming">Event Driven</a> programming too. It is based
+on <a href="http://es.wikipedia.org/wiki/Spring_Framework">The Spring Framework</a>, and also has some of the features of the
+<a href="http://jcp.org/aboutJava/communityprocess/final/jsr250/index.html">JSR-250</a> and the <a href="http://jcp.org/aboutJava/communityprocess/final/jsr330/index.html">JSR-330</a>.
+</p>
+<h3>Getting it</h3>
+<p>
+First, a couple of useful links:
+<ul>
+<li><u><a href="http://marcelog.github.com/Ding/">http://marcelog.github.com/Ding/</a></u>: The homepage, where you can find the user manual.</li>
+<li><u><a href="http://pear.marcelog.name">http://pear.marcelog.name/</a></u>: The PEAR channel</li>
+<li><u><a href="https://github.com/marcelog/Ding">https://github.com/marcelog/Ding/</a></u>: The GitHub repository</li>
+<li><u><a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/</a></u>: The CI server, containing the latest successful built artifacts, phar and pear packages.</li>
+<li><u><a href="http://pear.apache.org/log4php/">http://pear.apache.org/log4php/</a></u>: The <a href="http://logging.apache.org/log4php/">log4php</a> pear channel.</li>
+</ul>
+</p>
+<h3>A brief parenthesis: Installing log4php (only needed if installing manually or using the phar)</h3>
+<p>
+Unless you are installing Ding via the pear channel, you need to install a dependency first. Ding uses <a href="http://logging.apache.org/log4php/">log4php</a>, so let's install that first:
+</p>
+<pre name="code" class="php">
+$ pear channel-discover pear.apache.org/log4php
+$ pear install pear.apache.org/log4php/Apache_log4php-2.1.0
+</pre>
+<p>
+<b><u>Make sure</u></b> the directory "log4php" inside the log4php distribution is in your include path when
+using Ding. If you get this error:
+</p>
+<pre name="code" class="php">
+PHP Fatal error:  Class 'Logger' not found
+</pre>
+<p>
+You need to include the logphp subdirectory correctly in your include_path.
+</p>
+<p>
+You can download and install Ding in a number of ways, let's first examine them and then see how to
+bootstrap the container:
+</p>
+<h3>Installing and using the PHAR distribution</h3>
+<p>
+You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.5.0, so the available artifact is named "Ding-1.5.0.phar". Let's fetch it:
+</p>
+<pre name="code" class="php">
+$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.0.phar
+</pre>
+<p>
+Let's see how to use it:
+</p>
+<pre name="code" class="php">
+// Include the phar file.
+require_once 'Ding-1.5.0.phar';
+
+// Set the include path to have ding's phar first
+// (just to avoid having another installation in
+// the include_path loading first).
+ini_set('include_path', implode(PATH_SEPARATOR, array(
+    'phar://ding.phar', ini_get('include_path')
+)));
+</pre>
+<p>
+That's it. You can now bootstrap the container and do your thing (see below).
+</p>
+<h3>Installing the PEAR distribution manually</h3>
+<p>
+As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.5.0 is the latest version at the time of this writing):
+</p>
+<pre name="code" class="php">
+$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.0.tgz
+$ pear install Ding-1.5.0.tgz
+</pre>
+<h3>Installing via the PEAR Channel</h3>
+<p>
+A pear channel is available <a href="http://pear.marcelog.name/">here</a>. If you want to use it, just:
+</p>
+<pre name="code" class="php">
+$ pear channel-discover pear.marcelog.name
+$ pear install marcelog/Ding
+</pre>
+<p>
+Either way, to use it, make sure log4php is in your include path. Ding will already be, since it's installed
+via pear:
+</p>
+<pre name="code" class="php">
+/*
+ * If you have a PSR-0 compatible autoloader, you wont
+ * need this, just make sure your autoloader is
+ * bootstrapped. If you don't, Ding comes with its own
+ * PSR-0 autoloader, this can also be used for your own
+ * benefit since you need any other autoloader if your
+ * tree honors PSR-0.
+ */
+require_once 'Ding/Autoloader/Autoloader.php';
+Ding\Autoloader\Autoloader::register();
+</pre>
+<p>
+That's it. You can now instantiate the container.
+</p>
+<h3>Getting the source, installing from github</h3>
+<p>
+You can download the <a href="https://github.com/marcelog/Ding/zipball/master">ZIP</a> file from github, and also, you
+can clone the repository:
+</p>
+<pre name="code" class="php">
+$ git clone git://github.com/marcelog/Ding.git
+</pre>
+<p>
+When installed this way, you need to make sure you set the include path into the 
+<a href="https://github.com/marcelog/Ding/tree/master/src/mg">/src/mg</a> subdirectory inside the
+root tree, so the PSR-0 autoloader would load from the src/mg/Ding subdirectory.
+</p>
+<h3>Instantiating the container</h3>
+<p>
+To instantiate the container, you need to pass a set of configuration options:
+</p>
+<pre name="code" class="php">
+// Get the container instance
+use Ding\Container\Impl\ContainerImpl as DingContainer;
+$container = DingContainer::getInstance($dingOptions);
+</pre>
+<p>
+The complete list of configuration options is <a href="http://marcelog.github.com/Ding/manual/toc.html#config">here</a>. Let's try
+some basic stuff first. We will configure the 3 drivers for bean definitions (you need at least 1, and there are up to
+3 drivers available). Each driver will provide bean definitions from a specific source and you can mix them as you like:
+<ul>
+<li>Annotation: Will scan the given set of directories for annotated classes that define components (beans).</li>
+<li>Xml: Given a set of directories and a set of filenames to look for, will read the bean definitions from them.</li>
+<li>Yaml: Same as Xml but with Yaml files.</li>
+</ul>
+</p>
+<pre name="code" class="php">
+$dingOptions = array('ding' => array(
+    'factory' => array(
+        'bdef' => array(
+            'annotation' => array('scanDir' => array(__DIR__))
+            'xml' => array(
+                'filename' => 'beans.xml',
+                'directory' => array(__DIR__)
+            ),
+            'yaml' => array(
+                'filename' => 'beans.yaml',
+                'directory' => array(__DIR__)
+            )
+        )
+    )
+));
+</pre>
+<h3>Getting the beans</h3>
+<p>
+That's it! Here's how to get beans from the container:
+</p>
+<pre name="code" class="php">
+$bean = $container->getBean('myBean');
+</pre>
+<H3>Conclusion</H3>
+<p>
+As you can see there are many different ways to get you started using Ding. In another
+article, I'll talk about the bean definitions themselves, what are they, and what can they
+do exactly for your benefit (this is quite a long article already!). Cheers!
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
