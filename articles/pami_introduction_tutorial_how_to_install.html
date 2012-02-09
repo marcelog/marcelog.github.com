@@ -248,6 +248,10 @@ Easy, isn't it?
 In order to get events, you need to register an event listener. There are 3 possible ways to register an event
 listener, all of them using the registerEventListener() method of the IClient implementation, and 
 your listener will receive <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Message/Event/EventMessage.php">EventMessage</a> objects.
+</p>
+<p>
+You can have as many listeners as you want, and mix them however you need.
+</p>
 <ul>
 <li>Register a <a href="http://us.php.net/closure">Closure</a></li>
 <pre name="code" class="php">
@@ -367,8 +371,7 @@ $pamiClient->registerEventListener(
 </pre>
 <p>
 In this case, our predicate will only return true if and only if the event received is DialEvent, and the
-subevent type is a begin (i.e: an agi application has issued a Dial() command). You can only add 1 predicate,
-but you can make it as complex as as you wish, and as a result, your event listener will be a little cleaner.
+subevent type is a begin (i.e: an agi application has issued a Dial() command). You can only add 1 predicate (per listener, but you can have multiple listeners), but you can make it as complex as as you wish, and as a result, your event listener will be a little cleaner.
 </p>
 <p>
 By the way, <a href="https://github.com/marcelog/PAMI/tree/master/src/mg/PAMI/Message/Event">here are all the events available</a>.
