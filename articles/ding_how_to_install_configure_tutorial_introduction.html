@@ -73,7 +73,10 @@ First, a couple of useful links:
 </p>
 <h3>A brief parenthesis: Installing log4php (only needed if installing manually or using the phar)</h3>
 <p>
-Unless you are installing Ding via the pear channel, you need to install a dependency first. Ding uses <a href="http://logging.apache.org/log4php/">log4php</a>, so let's install that first:
+Unless you are installing Ding via the pear channel, you need to install a dependency first. Ding uses <a href="http://logging.apache.org/log4php/">log4php</a> as its logging system, so let's install log4php via the pear channel:
+</p>
+<p>
+Please also see the <a href="http://logging.apache.org/log4php/install.html">official installation guide</a> of log4php.
 </p>
 <pre name="code" class="php">
 $ pear channel-discover pear.apache.org/log4php
@@ -93,7 +96,7 @@ You need to include the logphp subdirectory correctly in your include_path.
 You can download and install Ding in a number of ways, let's first examine them and then see how to
 bootstrap the container:
 </p>
-<h3>Installing and using the PHAR distribution</h3>
+<h3>Option A: Installing and using the PHAR distribution</h3>
 <p>
 You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.5.0, so the available artifact is named "Ding-1.5.0.phar". Let's fetch it:
 </p>
@@ -117,7 +120,7 @@ ini_set('include_path', implode(PATH_SEPARATOR, array(
 <p>
 That's it. You can now bootstrap the container and do your thing (see below).
 </p>
-<h3>Installing the PEAR distribution manually</h3>
+<h3>Option B: Installing the PEAR distribution manually</h3>
 <p>
 As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.5.0 is the latest version at the time of this writing):
 </p>
@@ -125,7 +128,7 @@ As stated before, you can get the pear package at the <a href="http://ci.marcelo
 $ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.0.tgz
 $ pear install Ding-1.5.0.tgz
 </pre>
-<h3>Installing via the PEAR Channel</h3>
+<h3>Option C: Installing via the PEAR Channel</h3>
 <p>
 A pear channel is available <a href="http://pear.marcelog.name/">here</a>. If you want to use it, just:
 </p>
@@ -152,7 +155,7 @@ Ding\Autoloader\Autoloader::register();
 <p>
 That's it. You can now instantiate the container.
 </p>
-<h3>Getting the source, installing from github</h3>
+<h3>Option D: Getting the source, installing from github</h3>
 <p>
 You can download the <a href="https://github.com/marcelog/Ding/zipball/master">ZIP</a> file from github, and also, you
 can clone the repository:
@@ -184,6 +187,9 @@ some basic stuff first. We will configure the 3 drivers for bean definitions (yo
 <li>Yaml: Same as Xml but with Yaml files.</li>
 </ul>
 </p>
+<p>
+The 'bdef' (from Bean Definition) section of the configuration will configure the drivers:
+</p>
 <pre name="code" class="php">
 $dingOptions = array('ding' => array(
     'factory' => array(
@@ -208,9 +214,35 @@ That's it! Here's how to get beans from the container:
 <pre name="code" class="php">
 $bean = $container->getBean('myBean');
 </pre>
+<H3>Configuring log4php</H3>
+<p>
+If you happen to run the code above, you will notice that log4php is outputing to the
+console. This is because it's probably not configured. You can configure log4php on your own
+(see <a href="http://logging.apache.org/log4php/docs/configuration.html">this</a>) or have ding
+do it on its own, by passing an option to the container with the log4php configuration file you
+want to use (in this case, an .ini file, but you can use xml):
+</p>
+<pre name="code" class="php">
+$dingOptions = array('ding' => array(
+    'log4php.properties' => __DIR__ . '/log4php.properties',
+    'factory' => array(
+    // more options here
+    )
+));
+</pre>
+<p>
+A sample log4php.properties ini file:
+</p>
+<pre name="code" class="php">
+log4php.appender.default = LoggerAppenderDailyFile
+log4php.appender.default.layout = LoggerLayoutPattern
+log4php.appender.default.layout.ConversionPattern = "%d{ISO8601} [%p] %c: %m%n"
+log4php.appender.default.file = /tmp/log.log
+log4php.rootLogger = DEBUG, default
+</pre>
 <H3>Conclusion</H3>
 <p>
-As you can see there are many different ways to get you started using Ding. In another
+Enough to get you started. As you can see there are many different ways to get you started using Ding. In another
 article, I'll talk about the bean definitions themselves, what are they, and what can they
 do exactly for your benefit (this is quite a long article already!). Cheers!
 </p>
