@@ -1,0 +1,649 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>PAGI: Quick telephony applications using AGI and PHP</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="pagi how to tutorial install asterisk voip telephony applications ivr interactive voice response agi php"/>
+<meta name="description" content="This article is about how to download and install pagi, the php asterisk gateway interface client, and how to use it to create easy voip and telephony applications like ivr interactive voice response using agi and php"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  PAGI: Quick telephony applications using AGI and PHP</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>PAGI: Quick telephony applications using AGI and PHP</h2>
+                <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
+<p>
+<a href="http://marcelog.github.com/PAGI">PAGI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI: 
+Asterisk Gateway Interface</a>. AGI is a very simple protocol, and it has been implemented in a wide variety of languages, allowing to quickly create
+telephony applications, like <a href="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</a>'s, voicemails, prepaid telephony systems, etc.  
+If you want or need to create this kind of telephony applications using PHP, you will find PAGI very useful.
+</p>
+<p>
+By the way, it turns out this is quite a long article, but just because I wanted to enumerate and get an overview of all the features (or almost) that pagi
+offers, you can really skip the parts you are not interested in, it's kind of a "modular" reading.
+</p>
+<h3>Getting it</h3>
+<p>
+First, a couple of useful links:
+<ul>
+<li><u><a href="http://marcelog.github.com/PAGI">http://marcelog.github.com/PAGI/</a></u>: The homepage.</li>
+<li><u><a href="http://pear.marcelog.name">http://pear.marcelog.name/</a></u>: The PEAR channel</li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">API documentation</a></u></li>
+<li><u><a href="https://github.com/marcelog/PAGI">https://github.com/marcelog/PAGI/</a></u>: The GitHub repository</li>
+<li><u><a href="https://github.com/marcelog/PAGI/tree/master/docs/examples">Full PAGI examples</a></u></li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/</a></u>: The CI server, containing the latest successful built artifacts, phar and pear packages.</li>
+<li><u><a href="http://pear.apache.org/log4php/">http://pear.apache.org/log4php/</a></u>: The <a href="http://logging.apache.org/log4php/">log4php</a> pear channel.</li>
+<li><u><a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI Protocol article</a></u></li>
+</ul>
+</p>
+<h3>A brief parenthesis: Installing log4php (only needed if installing manually or using the phar)</h3>
+<p>
+Unless you are installing PAGI via the pear channel, you need to install a dependency first. PAGI uses <a href="http://logging.apache.org/log4php/">log4php</a> as its logging system, so let's install log4php via the pear channel:
+</p>
+<p>
+Please also see the <a href="http://logging.apache.org/log4php/install.html">official installation guide</a> of log4php.
+</p>
+<pre name="code" class="php">
+$ pear channel-discover pear.apache.org/log4php
+$ pear install pear.apache.org/log4php/Apache_log4php-2.1.0
+</pre>
+<p>
+<b><u>Make sure</u></b> the directory "log4php" inside the log4php distribution is in your include path when
+using PAGI. If you get this error:
+</p>
+<pre name="code" class="php">
+PHP Fatal error:  Class 'Logger' not found
+</pre>
+<p>
+You need to include the logphp subdirectory correctly in your include_path.
+</p>
+<p>
+You can download and install PAGI in a number of ways, let's first examine them and then see how to
+bootstrap the pagi client:
+</p>
+<h3>Option A: Installing and using the PHAR distribution</h3>
+<p>
+You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.9.1, so the available artifact is named "PAGI-1.9.1.phar". Let's fetch it:
+</p>
+<pre name="code" class="php">
+$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.9.1.phar
+</pre>
+<p>
+Let's see how to use it:
+</p>
+<pre name="code" class="php">
+// Include the phar file.
+require_once 'PAGI-1.9.1.phar';
+
+// Set the include path to have pagi's phar first
+// (just to avoid having another installation in
+// the include_path loading first).
+ini_set('include_path', implode(PATH_SEPARATOR, array(
+    'phar://pagi.phar', ini_get('include_path')
+)));
+</pre>
+<p>
+That's it. You can now bootstrap the pagi client and do your thing (see below).
+</p>
+<h3>Option B: Installing the PEAR distribution manually</h3>
+<p>
+As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.9.1 is the latest version at the time of this writing):
+</p>
+<pre name="code" class="php">
+$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.9.1.tgz
+$ pear install PAGI-1.9.1.tgz
+</pre>
+<h3>Option C: Installing via the PEAR Channel</h3>
+<p>
+A pear channel is available <a href="http://pear.marcelog.name/">here</a>. If you want to use it, just:
+</p>
+<pre name="code" class="php">
+$ pear channel-discover pear.marcelog.name
+$ pear install marcelog/PAGI
+</pre>
+<p>
+Either way, to use it, make sure log4php is in your include path. PAGI will already be, since it's installed
+via pear:
+</p>
+<pre name="code" class="php">
+/*
+ * If you have a PSR-0 compatible autoloader, you wont
+ * need this, just make sure your autoloader is
+ * bootstrapped. If you don't, PAGI comes with its own
+ * PSR-0 autoloader, this can also be used for your own
+ * benefit since you wont need any other autoloader if
+ * your tree honors PSR-0.
+ */
+require_once 'PAGI/Autoloader/Autoloader.php';
+PAGI\Autoloader\Autoloader::register();
+</pre>
+<p>
+That's it!
+</p>
+<h3>Option D: Getting the source, installing from github</h3>
+<p>
+You can download the <a href="https://github.com/marcelog/PAGI/zipball/master">ZIP</a> file from github, and also, you
+can clone the repository:
+</p>
+<pre name="code" class="php">
+$ git clone git://github.com/marcelog/PAGI.git
+</pre>
+<p>
+When installed this way, you need to make sure you set the include path into the 
+<a href="https://github.com/marcelog/PAGI/tree/master/src/mg">/src/mg</a> subdirectory inside the
+root tree, so the PSR-0 autoloader would load from the src/mg/PAGI subdirectory.
+</p>
+<h3>Setup asterisk dialplan</h3>
+<p>
+First of all, you've got to setup asterisk so it will run your agi application in a given extension. For example, we
+can do this in the <a href="http://www.voip-info.org/wiki/view/Asterisk+config+extensions.conf">extensions.conf</a> file:
+</p>
+<pre name="code" class="php">
+exten => _X.,1,AGI(/tmp/app.php)
+exten => _X.,n,Hangup
+</pre>
+<p>
+The <b>_X.</b> is a <a href="http://www.voip-info.org/wiki/view/Asterisk+Dialplan+Patterns">dialplan pattern</a>, it will match
+any number dialed as long as it is 1 digit long. You can of course go ahead and write your own pattern or use an exact number, like
+"111" or "5555555".
+</p>
+<p>
+So the first line uses the dialplan <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+AGI">AGI command</a> to invoke your application. This tells
+asterisk to <a href="http://pubs.opengroup.org/onlinepubs/009604599/functions/fork.html">fork()</a> a new process and
+<a href="http://pubs.opengroup.org/onlinepubs/009604599/functions/exec.html">exec()</a> the given path
+(in this case /tmp/app.php, but it can be anything that is executable, we'll see that in a bit).
+</p>
+<p>
+The second line is just a safe bet, a <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+Hangup">Hangup command</a>, just in case your app
+goes a little funny on the call and does not terminate it in an appropiate way.
+</p>
+<h3>Create the agi application file</h3>
+<p>
+Of course this file is just an <a href="http://en.wikipedia.org/wiki/Entry_point">entry point</a>, and in this particular case, also the application. But as any other entry point,
+it can be used to just bootstrap your real application, in the case you have a more complex scenario.
+</p>
+<p>
+So, assuming your php binary is located in "/usr/bin/php" create the file /tmp/app.php with this content (if using the phar file):
+</p>
+<pre name="code" class="php">
+#!/usr/bin/php
+&lt;?php
+require_once 'PAGI-1.9.1.phar';  
+ini_set('include_path', implode(PATH_SEPARATOR, array(  
+    'phar://pagi.phar', ini_get('include_path')  
+)));  
+</pre>
+<p>
+Or this one, if you're using the source or pear distributions:
+</p>
+<pre name="code" class="php">
+#!/usr/bin/php
+&lt;?php
+require_once 'PAGI/Autoloader/Autoloader.php';
+PAGI\Autoloader\Autoloader::register();
+</pre>
+<p>
+The first line is the <a href="http://en.wikipedia.org/wiki/Shebang_(Unix)">shebang</a> line that will make /usr/bin/php the interpreter for the
+file, effectively using php to run our application.
+</p>
+<p>
+In order for the operating system to execute file, make it executable:
+</p>
+<pre name="code" class="php">
+$ chmod a+x /tmp/app.php
+</pre>
+<p>
+<b>NOTE</b>: You should only give execute permissions to the asterisk user instead of just making it executable for all
+users, this was just an example.
+</p>
+<p>
+If you want to have a little better structure for the project (with configurable
+php installation and php.ini files), or just dont like to hardcode the php interpreter there (good for you!), 
+you might want to take a look at <a href="file:///H:/src/sts/MainWeb/articles/creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">this article</a>.
+</p>
+<h3>The PAGI Client</h3>
+<p> 
+The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_IClient.html#%5CPAGI%5CClient%5CIClient">pagi client</a> is the central player
+here, it will handle all the communication with asterisk during the call. Actually, as you can see, this is just an interface. An abstract implementation
+exists (the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Client/AbstractClient.php">AbstractClient</a>) that implements the AGI commands
+declared in the IClient interface, *but* it leaves the implementation details for managing the I/O to its subclasses.
+</p>
+<p>
+Specifically, this lets you use the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Client/Impl/ClientImpl.php">standard client implementation</a>, or something like <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/AsyncAgi/AsyncClientImpl.php">pami's async agi client</a>,
+suitable for <a href="http://www.moythreads.com/wordpress/2007/12/24/asterisk-asynchronous-agi/">async agi</a> applications. You can read more about pami
+<a href="http://marcelog.github.com/PAMI/">here</a>. 
+</p>
+<p>
+In this case, we're going to use the standard pagi client implementation.
+</p>
+<h3>Getting an instance of the client</h3>
+<p>
+This is as easy as:
+</p>
+<pre name="code" class="php">
+$pagiClientOptions = array(
+    'log4php.properties' => __DIR__ . '/log4php.properties',
+);
+use PAGI\Client\Impl\ClientImpl as PagiClient;
+$pagiClient = PagiClient::getInstance($pagiClientOptions);
+</pre>
+<p>
+<b>NOTE</b>: Since AGI establishes the use of <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">stdin</a> and
+<a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">stdout</a> for communication, you cant
+write anything that outputs to console directly (like echo's, or var_dump's). By default log4php will log to console, 
+so let's first configure it to log to a file (instead of the default, which is log to console). This will allow us to have a logger inside the application
+and avoid messing up the AGI communication.
+<p>
+You can configure log4php on your own
+(see <a href="http://logging.apache.org/log4php/docs/configuration.html">this</a>) or have pagi
+do it on its own, by passing an option to the client with the log4php configuration (just as we did above, 
+in this case, an .ini file, but you can use xml). A sample log4php.properties ini file:
+</p>
+<pre name="code" class="php">
+log4php.appender.default = LoggerAppenderDailyFile
+log4php.appender.default.layout = LoggerLayoutPattern
+log4php.appender.default.layout.ConversionPattern = "%d{ISO8601} [%p] %c: %m%n"
+log4php.appender.default.file = /tmp/log.log
+log4php.rootLogger = DEBUG, default
+</pre>
+<h3>Checkpoint #1: A basic application</h3>
+<pre name="code" class="php">
+$pagiClientOptions = array(
+    'log4php.properties' => __DIR__ . '/log4php.properties',
+);
+use PAGI\Client\Impl\ClientImpl as PagiClient;
+$pagiClient = PagiClient::getInstance($pagiClientOptions);
+$pagiClient->answer();
+$pagiClient->sayDigits(123);
+$pagiClient->hangup();
+</pre>
+<p>
+Now dial into your asterisk, you should listen to the numbers "one", "two", and "three". From now on, I'll mention <b>some</b>
+if the many things you can do through the pagi client, you should refer to the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_IClient.html#%5CPAGI%5CClient%5CIClient">IClient interface</a> to see all the available
+stuff!
+</p>
+<h3>The decorated Results</h3>
+<p>
+Sometimes you want the user to input 1 digit, or many digits, or let him/her interrupt the messages played, or do something
+if no input is received, or any kind of logic associated with playing and reading simultaneously. Every result from an agi command
+that pagi issues, is returned as an <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_IResult.html#%5CPAGI%5CClient%5CResult%5CIResult">IResult</a>. This is then
+implemented in <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_ResultDecorator.html#%5CPAGI%5CClient%5CResult%5CResultDecorator">ResultDecorator</a>, effectively
+implementing the <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a> to return the result of the operation. This is so, because sometimes
+you only want to play a file, sometimes you just want to read digits, and sometimes you want to play AND read input from the user, and you might need to check the result
+of one or all the operations. See the 
+<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">API documentation</a> for all the results available, in the namespace PAGI\Client\Result.
+You should check the api documentation for the method you are using to see what kind of result is available (ExecResult, RecordResult, FaxResult, PlayResult, etc). Do not be freighten! It's quite easy to use them. See below.
+</p>
+<h3>Playing a sound file</h3>
+<pre name="code" class="php">
+$result = $pagiClient->streamFile($aSoundFile, $escapeDigits);
+</pre>
+<p>
+Where:
+<ul>
+<li>$aSoundFile: A sound file to play, like 'welcome', or 'silence/1', etc</li>
+<li>$escapeDigits: The digits that can be used to skip the sound file, like "#" or "01234567890*#".</li>
+</ul>
+</p>
+<p>
+$result will be a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_PlayResult.html#%5CPAGI%5CClient%5CResult%5CPlayResult">PlayResult</a> that
+you can use to get information about what happened while the file was playing.
+</p>
+<pre name="code" class="php">
+if ($result->isTimeout()) {
+    // The user did not interrupt the play
+} else {
+    // The user interrupted the play
+    $digits = $result->getDigits(); // Get what the user pressed
+}
+</pre>
+<h3>Reading input from the user</h3>
+<p>
+To read input from the user, you have a couple of options:
+</p>
+<pre name="code" class="php">
+// Read a single digit, play a sound file as a prompt.
+$result = $pagiClient->getOption(
+    $aSoundFile, $escapeDigits, $maxInputTime
+);
+
+// Read a single digit, no sound file played.
+$result = $pagiClient->waitDigit($maxInputTime);
+
+// Get at least 1 digit, playing a sound file as a prompt.
+$result = $pagiClient->getData(
+    $aSoundFile, $maxInputTime, $maxDigitsToRead
+);
+</pre>
+<p>
+Where:
+<ul>
+<li>$maxInputTime: The maximum amount of time to wait for the user input in milliseconds.</li>
+<li>$maxDigitsToRead: The maximum number of digits a user can input for this reading.</li>
+</ul>
+</p>
+<p>
+In the case of waitDigit(), the result is a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_DigitReadResult.html#%5CPAGI%5CClient%5CResult%5CDigitReadResult">DigitReadResult</a>, and
+the others return a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_PlayResult.html#%5CPAGI%5CClient%5CResult%5CPlayResult">PlayResult</a>.
+</p>
+<h3>Playing indication tones</h3>
+<p>
+You can also play some standard tones, these might need some tweaking in your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+indications.conf">indications.conf</a> file:
+</p>
+<pre name="code" class="php">
+$pagiClient->playDialTone();
+$pagiClient->playCongestionTone($seconds);
+$pagiClient->playBusyTone($seconds);
+</pre>
+<p>
+And you can also send indications at the signaling level, without playing any audio:
+</p>
+<pre name="code" class="php">
+$pagiClient->indicateProgress();
+$pagiClient->indicateBusy();
+$pagiClient->indicateCongestion();
+</pre>
+<h3>Playing Music On Hold</h3>
+<p>
+Putting music on hold is also quite easy. You might need to configure your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+musiconhold.conf">moh.conf</a> file:
+</p>
+<pre name="code" class="php">
+$pagiClient->setMusic(true, 'myMOHClass');
+$pagiClient->setMusic(false);
+</pre>
+<h3>Logging through asterisk</h3>
+<p>
+In case you want to log stuff through the asterisk logger (so your messages get to the asterisk console or
+general asterisk log files), you can use the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Logger/Asterisk/IAsteriskLogger.php">AsteriskLogger</a> interface, remember
+that when logging through asterisk, you might need to tweak your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+logger.conf">logger.conf</a> file:
+</p>
+<pre name="code" class="php">
+$asteriskLogger = $pagiClient->getAsteriskLogger();
+$asteriskLogger->dtmf("A DTMF priority message");
+$asteriskLogger->verbose("A VERBOSE priority message");
+$asteriskLogger->debug("A DEBUG priority message");
+$asteriskLogger->notice("A NOTICE priority message");
+$asteriskLogger->error("An ERROR priority message");
+$asteriskLogger->warn("A WARNING priority message");
+</pre>
+<h3>Manipulating the channel variables</h3>
+<p>
+When AGI handshake starts, the server (asterisk) sends a couple of <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+Standard+Channel+Variables">channel variables</a>.
+The pagi client offers the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_ChannelVariables_IChannelVariables.html#%5CPAGI%5CChannelVariables%5CIChannelVariables">IChannelVariables</a>
+interface to access them:
+</p>
+<pre name="code" class="php">
+$channelVariables = $pagiClient->getChannelVariables();
+$asteriskLogger->debug($channelVariables->getCallerId());
+$asteriskLogger->debug($channelVariables->getDNIS());
+</pre>
+<p>
+To set a variable, you would do:
+</p>
+<pre name="code" class="php">
+$pagiClient->setVariable("myVariable", "myValue");
+$asteriskLogger->debug($pagiClient->getVariable("myVariable"));
+</pre>
+<p>
+The IChannelVariables also provides access to some important environment variables. For example, to get the
+directory where spooled call files should go:
+</p>
+<pre name="code" class="php">
+$spoolDir = $channelVariables->getDirectorySpool();
+</pre>
+<h3>Manipulating the CDR (Call Detail Record)</h3>
+<p>
+Pagi offers the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CDR_ICDR.html#%5CPAGI%5CCDR%5CICDR">ICDR</a> interface to interact with
+the cdr's, by setting custom values and retrieving the ones set by asterisk itself:
+</p>
+<pre name="code" class="php">
+$cdr = $pagiClient->getCDR();
+$cdr->setUserfield("my own content here");
+$cdr->setAccountCode("blah");
+$cdr->setCustom("myOwnField", "withMyOwnValue");
+$asteriskLogger->debug($cdr->getAnswerLength());
+</pre>
+<h3>Working with the Caller ID's</h3>
+<p>
+In order to get and set caller id values, you can access the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallerId_ICallerId.html#%5CPAGI%5CCallerId%5CICallerId">ICallerId</a> interface: 
+</p>
+<pre name="code" class="php">
+$clid = $pagiClient->getCallerId();
+$asteriskLogger->debug($clid->getNumber());
+$clid->setNumber('123123');
+</pre>
+<p>
+In this case, the next <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+Dial">dial command</a> will carry the caller id set.
+</p>
+<h3>Spooling calls through call files</h3>
+<p>
+Asterisk lets you use <a href="http://www.voip-info.org/wiki/view/Asterisk+auto-dial+out">call files</a> to generate calls automatically, you
+can access this feature via the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallSpool_ICallSpool.html#%5CPAGI%5CCallSpool%5CICallSpool">ICallSpool</a>
+interface:
+</p>
+<pre name="code" class="php">
+use PAGI\DialDescriptor\SIPDialDescriptor;
+use PAGI\CallSpool\CallFile;
+use PAGI\CallSpool\Impl\CallSpoolImpl;
+
+$dialDescriptor = new SIPDialDescriptor("myDevice", "myProvider");
+$callFile = new CallFile($dialDescriptor);
+$callFile->setCallerId('123');
+$callFile->setContext('campaignContext');
+$callFile->setExtension('555');
+$callFile->setPriority(1);
+
+$spool = CallSpoolImpl::getInstance(array(
+    "tmpDir" => "/tmp/temporaryDirForSpool",
+    "spoolDir" => "/var/lib/asterisk/spool/outgoing"
+));
+</pre>
+<p>
+The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDialDescriptor">dial descriptor</a> is an abstraction over dial strings, so you dont have to code them yourself. Currently, 
+PAGI supports <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_SIPDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CSIPDialDescriptor">SIPDialDescriptor</a> and
+<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DAHDIDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDAHDIDialDescriptor">DAHDIDialDescriptor</a>. 
+</p>
+<p>
+This example will then issue a dial to <b>SIP/myDevice@myProvider</b> with the caller id "123". When the call is answered, it will go to 
+context "campaignContext", in the priority 1 of the extension 555. There are many options you can use in the 
+<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallSpool_CallFile.html#%5CPAGI%5CCallSpool%5CCallFile">CallFile</a>, like custom
+variables, timeouts, etc.
+</p>
+<p>
+The array passed to the CallSpoolImpl::getInstance() method is necessary so the call file can be created in a temporary directory and then
+moved to the real asterisk spool directory, so asterisk will pick it up when it's completely written to disk.
+</p>
+<h3>Last but not least: The PAGI Application</h3>
+<p>
+The pagi client can also be used inside a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Application_PAGIApplication.html#%5CPAGI%5CApplication%5CPAGIApplication">PAGI Application</a>. That is, your
+own ivr application can be itself a PAGIApplication, by extending it. This will provide a number of features:
+<ul>
+<li>An <a href="http://us.php.net/set_error_handler">error handler</a> is automatically registered, and will invoke PAGIApplication::errorHandler() method.</li>
+<li>A <a href="http://us.php.net/pcntl_signal">signal handler</a> is automatically registered for the signals SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGUSR1, SIGUSR2, SIGCHLD, SIGALRM, and will invoke PAGIApplication::signalHandler() method.</li>
+<li>A <a href="http://us.php.net/manual/en/function.register-shutdown-function.php">shutdown handler</a> is automatically registered, and will invoke PAGIApplication::shutdown()</li>
+<li>An init method, PAGIApplication::init()</li>
+<li>A log4php logger instance in PAGIApplication::$logger (protected).</li>
+</ul>
+</p>
+<h3>Checkpoint #2: A complete PAGI Application Skeleton</h3>
+<pre name="code" class="php">
+use PAGI\Application\PAGIApplication;
+use PAGI\Client\Impl\ClientImpl as PagiClient;
+
+class MyPagiApplication extends PAGIApplication 
+{
+    protected $agi;
+    protected $asteriskLogger;
+    protected $channelVariables;
+
+    public function run()
+    {
+        $this->asteriskLogger->notice("Run");
+        $this->logger->info("Run");
+    }
+
+    public function init()
+    {
+        $this->logger->info('Init');
+        $this->agi = $this->getAgi();
+        $this->asteriskLogger = $this->agi->getAsteriskLogger();
+        $this->channelVariables = $this->agi->getChannelVariables();
+        $this->asteriskLogger->notice('Init');
+    }
+
+    public function signalHandler($signo)
+    {
+        $this->asteriskLogger->notice("Got signal: $signo");
+        $this->logger->info("Got signal: $signo");
+    }
+
+    public function errorHandler($type, $message, $file, $line)
+    {
+        $this->asteriskLogger->error("$message at $file:$line");
+        $this->logger->error("$message at $file:$line");
+    }
+
+    public function shutdown()
+    {
+        $this->asteriskLogger->notice('Shutdown');
+    }
+}
+
+// Go, go, gooo!
+$pagiClientOptions = array(
+    'log4php.properties' => __DIR__ . '/log4php.properties',
+);
+$pagiClient = PagiClient::getInstance($pagiClientOptions);
+$pagiAppOptions = array(
+    'pagiClient' => $pagiClient,
+);
+$pagiApp = new MyPagiApplication($pagiAppOptions);
+$pagiApp->init();
+$pagiApp->run();
+</pre>
+<H3>Conclusion</H3>
+<p>
+Enough writing already, right? Go make your own ivr applications now :)
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
