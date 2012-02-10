@@ -493,6 +493,18 @@ variables, timeouts, etc.
 The array passed to the CallSpoolImpl::getInstance() method is necessary so the call file can be created in a temporary directory and then
 moved to the real asterisk spool directory, so asterisk will pick it up when it's completely written to disk.
 </p>
+<h3>Dialing</h3>
+<p>If you want to <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+Dial">Dial</a> from an agi application:
+</p>
+<pre name="code" class="php">
+$result = dial("DAHDI/g1/5555555", array(60, 'rh'));
+if ($result->isAnswer()) {
+    $asteriskLogger->debug($result->getAnsweredTime());
+}
+</pre>
+<p>
+The result is a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_DialResult.html#%5CPAGI%5CClient%5CResult%5CDialResult">DialResult</a>
+</p>
 <h3>Last but not least: The PAGI Application</h3>
 <p>
 The pagi client can also be used inside a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Application_PAGIApplication.html#%5CPAGI%5CApplication%5CPAGIApplication">PAGI Application</a>. That is, your
