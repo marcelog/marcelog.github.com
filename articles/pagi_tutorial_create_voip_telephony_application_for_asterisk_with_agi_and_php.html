@@ -507,6 +507,18 @@ own ivr application can be itself a PAGIApplication, by extending it. This will 
 </p>
 <h3>Checkpoint #2: A complete PAGI Application Skeleton</h3>
 <pre name="code" class="php">
+#!/usr/bin/php
+&lt;?php
+// Include the phar file.
+require_once 'PAGI-1.9.1.phar';
+
+// Set the include path to have pagi's phar first
+// (just to avoid having another installation in
+// the include_path loading first).
+ini_set('include_path', implode(PATH_SEPARATOR, array(
+    'phar://pagi.phar', ini_get('include_path')
+)));
+
 use PAGI\Application\PAGIApplication;
 use PAGI\Client\Impl\ClientImpl as PagiClient;
 
