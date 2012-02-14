@@ -1,0 +1,391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Ding bean annotations</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="ding php di container dependency injection bean annotations"/>
+<meta name="description" content="This article will take a look at the available annotations in the ding php dependency injection container"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Ding bean annotations</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Ding bean annotations</h2>
+                <div class="hr-1"><hr /></div>
+<h3>About components</h3>
+<p>
+Everything shown here using annotations, is also available by using the XML and YAML bean definition providers, so you are
+free to use any of the 3 drivers (XML, YAML, Annotations) to define your beans and mix them anyway you like or need to. See 
+<a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">the manual</a> for details on how to use xml and yaml.
+</p>
+<p>
+One more thing :) These annotations are used to define the components, the annotations that are specifically designed to 
+describe the component's injections and dependencies are a subject of another article, so this one wont get too long.
+</p>
+<h3>@Component and @Named</h3>
+<p>
+These annotations define beans (components). @Component comes from the <a href="http://www.springsource.org">spring framework</a> and
+@Named from the <a href="http://jcp.org/en/jsr/detail?id=330">JSR-330</a>. Both are equivalent, and the reason to have both, is
+just to make it a little more comfortable for people that used one or the other. Ding is all about
+beans, which are components. There are types (not stereotypes, yet) for these components. So a basic generic
+component is defined with @Component or @Named (see below), and other components are specifically defined as of a
+given kind, like @Aspect, @Controller, @Configuration, @Controller, @Bean. So when an annotation defines a component, it will
+extend the definition of @Component, inheriting its options and available extra annotations.
+</p>
+<h4><b>Arguments</b></h4>
+<ul>
+<li><u>name</u>: A string or array of strings. Optional. Specifies a given name for the bean, and its aliases.</li>
+<li><u>primary</u>: A boolean. Optional. If "true", when injecting by type (like @Inject) this will tell the container to choose this bean when multiple. "false" by default.
+candidates are available.</li> 
+</ul>
+<h4><b>Examples</b></h4>
+<p>Here he have a named component, with 3 names:</p>
+<pre name="code" class="php">
+/**
+ * @Named(name={"name1", "name2", "name3"})
+ */
+class MyNamedComponent
+{
+}
+</pre>
+<p>And here's one without a specific name, so Ding will autogenerate one:</p>
+<pre name="code" class="php">
+/**
+ * @Component(primary="true")
+ */
+class MyBean
+{
+}
+</pre>
+<h3>@Primary</h3>
+<p>
+This annotation is the equivalent of using "primary=true" in a bean/component definition.
+</p>
+<h4><b>Examples</b></h4>
+<pre name="code" class="php">
+/**
+ * @Component
+ * @Primary
+ */
+class MyComponent
+{
+    /**
+     * @Bean
+     * @Primary
+     */
+    public function beanName()
+    {
+        return new MyBean();
+    }
+}
+</pre>
+<h3>@Configuration</h3>
+<p>
+This annotation lets you define beans that are the source for other bean definitions.
+</p>
+<h4><b>Arguments</b></h4>
+<ul>
+<p>This annotation extends the @Component definition. See @Component for the available options.</p>
+</ul>
+<h4><b>Examples</b></h4>
+<p>In this case, this class is the source for the bean definition of the bean "beanName". When this bean is requested,
+the method acts as a factory method for it (i.e: it gets called).
+</p>
+<pre name="code" class="php">
+/**
+ * @Configuration
+ */
+class MyConfigClass
+{
+    /** @Bean */
+    public function beanName()
+    {
+        return new MyBean();
+    }
+    /** @Bean(primary="true") */
+    public function anotherBeanName()
+    {
+        return new MyBean();
+    }
+}
+</pre>
+<h3>@Bean</h3>
+<p>This annotation can be used in any method(s) inside any classes annotated as a component (like @Configuration, 
+@Component, @Named, @Aspect, @Controller, etc), it will tell the container to use that particular component as a
+factory bean of the given bean name. @Bean methods accepts every annotation that a @Component accepts, like @Scope,
+@Singleton, @Prototype, @ListensOn, etc. If the argument "name" is omitted, the name of the bean is the name of the
+annotated method (i.e: the "name" argument will override it if present).
+</p>
+<h4><b>Arguments</b></h4>
+<p>This annotation extends the @Component definition. See @Component for the available options.</p>
+<ul>
+<li><u>class</u>: A string. Optional. Since PHP is not strict about the types returned and the funcions/methods do not specify a type for
+the return value, this will tell the container that this particular bean is of type "class". When not specified, the bean will be of class
+<a href="http://ar.php.net/manual/en/reserved.classes.php">StdClass</a>.
+</ul>
+<h4><b>Examples</b></h4>
+<p>In this case, this component is the source for the bean definition of the bean "beanName". When this bean is requested,
+the method acts as a factory method for it (i.e: it gets called).
+</p>
+<pre name="code" class="php">
+/**
+ * @Component
+ */
+class MyComponent
+{
+    /** @Bean(class="MyBean") */
+    public function beanName()
+    {
+        return new MyBean();
+    }
+}
+</pre>
+<h3>@Scope</h3>
+<p>
+Use this annotation to define the bean scope, at the class level. Can also be used in @Bean methods.
+</p>
+<h4><b>Arguments</b></h4>
+<ul>
+<li><u>value</u>: A string, can be "singleton" or "prototype". Required. </li>
+</ul>
+<h4><b>Examples</b></h4>
+<pre name="code" class="php">
+/**
+ * @Component
+ * @Scope(value="singleton")
+ */
+class MyComponent
+{
+}
+</pre>
+<h3>@Singleton and @Prototype</h3>
+<p>
+@Singleton is equivalent to @Scope(value="singleton"), and @Prototype is equivalent to
+@Scope(value="prototype"). Can be used at the class level and in @Bean methods.
+</p>
+<h4><b>Examples</b></h4>
+<pre name="code" class="php">
+/**
+ * @Component
+ * @Singleton
+ */
+class MyComponent
+{
+}
+</pre>
+<h3>@InitMethod and @DestroyMethod</h3>
+<p>
+These annotations lets you hook a method call right after the bean as been completely
+assembled (@InitMethod) and right before destructing it (@DestroyMethod). These are used at the
+class level, but can also be used in @Bean methods.
+</p>
+<h4><b>Arguments</b></h4>
+<ul>
+<li><u>method</u>: A string. Required. This is where the name of the method intended to be called is defined.</li>
+</ul>
+<h4><b>Examples</b></h4>
+<pre name="code" class="php">
+/**
+ * @Component
+ * @InitMethod(method="init")
+ * @DestroyMethod(method="shutdown")
+ */
+class MyComponent
+{
+    public function init()
+    {
+    }
+      
+    public function destroy()
+    {
+    }
+}
+</pre>
+<h3>@PostConstruct and @PreDestroy</h3>
+<p>
+These annotations are used at the method level in @Component's, and are the equivalent of using
+@InitMethod(method="xxx") and @DestroyMethod(method="yyy") respectively. The main difference is that the
+latter are used at the class level and @PostConstruct and @PreDestroy are used at the method level, so you
+can't use them in @Bean methods.
+</p>
+<h4><b>Examples</b></h4>
+<pre name="code" class="php">
+/**
+ * @Component
+ */
+class MyComponent
+{
+    /** @PostConstruct */
+    public function init()
+    {
+    }
+    /** @PreDestroy */  
+    public function destroy()
+    {
+    }
+}
+</pre>
+<h3>@ListensOn</h3>
+<p>This annotation tells ding that the given bean will listen for the specified event names. Can be used at the class level and in @Bean methods.</p>
+<p>When one of the events is dispatched through the container (let's say event1 as an example), ding will try to find a method named onEvent1(). The event
+data will be sent as an argument. See 
+<a href="http://marcelog.github.com/Ding/manual/toc.html#events">the manual</a> for details on using event driven programming with ding.</p>
+<h4><b>Arguments</b></h4>
+<ul>
+<li><u>value</u>: A string or an array of strings. Required. Specifies the name of the events that this bean will receive.</li>
+</ul>
+<h4><b>Examples</b></h4>
+<pre name="code" class="php">
+/**
+ * @Component
+ * @ListensOn(value={"event1", "event2", "event3"})
+ */
+class MyComponent
+{
+    /** Called by the container when event1 is dispatched */
+    public function onEvent1($data)
+    {
+    }
+    /** Called by the container when event2 is dispatched */
+    public function onEvent2($data)
+    {
+    }
+    /** Called by the container when event3 is dispatched */
+    public function onEvent3($data)
+    {
+    }
+    /**
+     * @Bean(class="MyOtherComponent")
+     * @ListensOn(value="event1")
+     */
+    public function myOtherBean()
+    {
+        return new MyOtherComponent();
+    }
+}
+</pre>
+<p>
+
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
