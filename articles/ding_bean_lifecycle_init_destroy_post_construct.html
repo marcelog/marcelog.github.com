@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>How to attach files to soap envelopes using DIME and PHP</title>
+<title>Hooks into the bean lifecycle in the Ding container</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="How to attach files to soap envelopes using DIME and PHP"/>
-<meta name="description" content="This article is a tutorial about how to transfer files as attachments with soap messages using dime with pear NET_Dime"/>
+<meta name="Keywords" content="ding di container dependency injection bean lifecycle init destroy method postconstruct predestroy"/>
+<meta name="description" content="How to hook into the bean lifecycle init and destroy"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@
     <!-- <a class="logo" href="index.html">Marcelo G</a>-->
     <ul id="nav">
       <li><a href="../index.html"><span>Home</span></a></li>
-      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li><a href="../about.html"><span>About</span></a></li>
       <li class="active"><a href="articles.html"><span>Articles</span></a></li>
       <li><a href="../software.html"><span>Software</span></a></li>
       <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to attach files to soap envelopes using DIME and PHP</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Hooks into the bean lifecycle in the Ding container</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,131 +49,84 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>How to attach files to soap envelopes using DIME and PHP</h2>
+                <h2>Hooks into the bean lifecycle in the Ding container</h2>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
-  <p>
-As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
-<b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
-support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
-make it work (at least, I couldn't from the client side ;))
+<h3>Introduction</h3>
+<p>
+Sometimes it's useful (or needed) to have the container call certain methods right before injecting (or giving
+away) our beans, and right before destructing it, as a way of setup-teardown or init-shutdown.
 </p>
 <p>
-In this article I'll show you my own solution, which is a little dirty but does the job. What I did is
-to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
-refined a lot, but it may help you in dire, time-lacking situations ;)
+Ding provides a way to execute code in some of the points of the bean lifecycle:
 </p>
-  
-<H3><u>Example</u></H3>
+<ul>
+<li>After the bean has been assembled, and all its dependencies injected.</li>
+<li>Right before calling the bean's destructor.</li>
+</ul>
 <p>
-So let's say you want to send a soap request with cero or more attachments, using DIME as
-the transport (I had this requirement when dealing with WoodWing(tm)). You will first need to
-get the text of the soap envelope request, like:
-<pre name="code" class="php">
-$req = "&lt;?xml version='1.0' encoding='UTF-8' ?&gt;
-
-&lt;SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'
-xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-xmlns:SOAP-ENC='http://schemas.xmlsoap.org/soap/encoding/'
-xmlns:ns1='urn:Something'&gt;
-&lt;SOAP-ENV:Body&gt;
-&lt;ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/SOAP-ENV:Body&gt;
-&lt;/SOAP-ENV:Envelope&gt;";
-</pre>
+We'll see how to use them with the 3 drivers. In the following examples, the method "init" will be called
+as soon as the beans are completely assembled, and the shutdown method will be called when the container
+is destroyed:
 </p>
+<h3>The annotations way</h3>
 <p>
-The plan, is to send this message using curl, with the following code:
+You can do this in 2 ways. At the method level:
+</p>
 <pre name="code" class="php">
 /**
- * Send a POST requst using cURL
- * @param string $url to request
- * @param array $post values to send
- * @param array $options for cURL
- * @return string
+ * @Component
  */
-function curl_post($url, $post = NULL)
+class MyBean
 {
-    $defaults = array(
-        CURLOPT_POST => 1,
-        CURLOPT_HEADER => 0,
-        CURLOPT_URL => $url,
-        CURLOPT_HTTPHEADER => array(
-'Content-Disposition: form-data; name=\"soap\"; filename=\"123\"',
-'Content-Type: application/dime'
-        ),
-        CURLOPT_FRESH_CONNECT => 1,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_FORBID_REUSE => 1,
-        CURLOPT_TIMEOUT => 400,
-        CURLOPT_POSTFIELDS => $post,
-        CURLOPT_BINARYTRANSFER => true
-    );
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $defaults);
-    $result = curl_exec($ch);
-    if(!$result)
+    /** @PostConstruct */
+    public function init()
     {
-        trigger_error(curl_error($ch));
     }
-    curl_close($ch);
-    return $result;
+    
+    /** @PreDestroy */
+    public function shutdown()
+    {
+    }
 }
-
 </pre>
-</p>
 <p>
-And this is the code that put the pieces together and actually sends the message
-with the attachments:
+And at the class level:
 </p>
 <pre name="code" class="php">
-function send($url, $msg, $attachments = array())
+/**
+ * @Component
+ * @InitMethod(method="init")
+ * @DestroyMethod(method="shutdown")
+ */
+class MyBean
 {
-        $tempFile = tmpfile();
-        if ($tempFile === false) {
-                throw new \Exception('Could not create temp file');
-        }
-        $dime = new Net_DIME_Message($tempFile);
-        $dime->sendData($msg, 'http://schemas.xmlsoap.org/soap/envelope/');
-        foreach ($attachments as $id => $attachment) {
-                $dime->sendData($attachment, 'application/octet-stream', $id);
-        }
-        rewind($tempFile);
-        $msg = stream_get_contents($tempFile);
-        fclose($tempFile);
-        $ret = curl_post($url, strlen($msg), '', $msg);
-        return new SimpleXMLElement($ret);
+    public function init()
+    {
+    }
+    
+    public function shutdown()
+    {
+    }
 }
-
 </pre>
-</p>
-  
-<H3><u>Using it</u></H3>
-<p>
-Now, how to use it:
-</p>
+<h3>The Xml way</h3>
+<pre name="code" class="xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans&gt;
+  &lt;bean id="myXmlBean"
+    class="MyBean"
+    init-method="init"
+    destroy-method="shutdown"/&gt;
+&lt;/beans&gt;
+</pre>
+<h3>The Yaml way</h3>
 <pre name="code" class="php">
-$file = './a.jpg';
-$fileContents = file_get_contents($file);
-// This is computed so the attachment id is the md5 sum of the file in question.
-$fileMD5 = md5($fileContents);
-$result = send($req, array($fileMD5 => $fileContents));
+beans:
+  myYamlBean:
+    class: MyBean
+    init-method: init
+    destroy-method: destroy
 </pre>
-<p>
-After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
-the soap response. The request consists of a DIME message with the first attachment being the
-soap request itself, and the following are the attachment themselves.
-</p>
-
-<H3><u>Conclusions</u></H3>
-<p>
-Quick, dirty, a little low-level, but effective. Lot to improve, but that's the subject
-of another article ;) This will let you quickly implement and/or test your dime client. Let's hope
-that php gets a little better soap support sometime.
-</p>
               </div>
             </div>
             <div class="mod view-more">
@@ -190,15 +143,15 @@ that php gets a little better soap support sometime.
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
-                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
                   <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
-                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
                   <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
                   <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
                   <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
