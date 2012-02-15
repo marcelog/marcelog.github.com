@@ -58,6 +58,9 @@ tool to work with. Events also have associated data, sent to the listeners as an
 simple workflow will allow you to extend your system with autonomous components that react to events, totally decoupled
 from the rest of the code.
 </p>
+<p>
+The <a href="http://marcelog.github.com/Ding/manual/toc.html#events">events section of the manual</a> will also be handy.
+</p>
 <h3>Firing an event</h3>
 <p>
 To fire an event, you need an instance of the container. You can get it by implementing the interface IContainerAware in your
@@ -112,8 +115,13 @@ to upper camel case the event name, and prepend the "on" to it, so "userCreated"
 </p>
 <p>
 This will make the container able to dispatch the event, but we still need to register the bean as a listener for the event. Let's now see how to do
-it with the XML, YAML, and Annotations drivers.
+it programatically, and then with the XML, YAML, and Annotations drivers.
 </p>
+<h3>Register a listener programatically</h3>
+<p>The container has the method eventListen() used to register a component as an event listener. Thus, by using a container instance, you could do:</p>
+<pre name="code" class="php">
+$container->eventListen('userCreated', 'aBeanName'); 
+</pre>
 <h3>The annotations way</h3>
 <pre name="code" class="php">
 /**
