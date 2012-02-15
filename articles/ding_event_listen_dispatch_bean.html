@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Configuring postfix to forward all email to a smtp gateway</title>
+<title>Dispatching and listening for events in the Ding container</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="Configuring postfix to forward all email to a smtp gateway"/>
-<meta name="description" content="This article will show how to setup postfix so it will forward all incoming email to another smtp gateway"/>
+<meta name="Keywords" content="ding di container dependency injection bean lifecycle event driven programming dispatch listen"/>
+<meta name="description" content="How to do some event driven programming with the Ding container, dispatching and listening for events"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@
     <!-- <a class="logo" href="index.html">Marcelo G</a>-->
     <ul id="nav">
       <li><a href="../index.html"><span>Home</span></a></li>
-      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li><a href="../about.html"><span>About</span></a></li>
       <li class="active"><a href="articles.html"><span>Articles</span></a></li>
       <li><a href="../software.html"><span>Software</span></a></li>
       <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Configuring postfix to forward all email to a smtp gateway</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Dispatching and listening for events in the Ding container</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,40 +49,107 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Configuring postfix to forward all email to a smtp gateway</h2>
+                <h2>Dispatching and listening for events in the Ding container</h2>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
-  <p>
-Suppose you want all your web servers to locally send all email (maybe from your contact forms, or whatever)
-to a real smtp gateway. If you're running <a href="http://www.postfix.org/">postfix</a> as your mta, this is quite easily to achieve.
-</p>
-<H3><u>Configuration</u></H3>
+<h3>Introduction</h3>
 <p>
-In your <a href="http://www.postfix.org/postconf.5.html">main.cf</a> file (usually /etc/postfix/main.cf or /usr/local/etc/postfix/main.cf), specify your transport maps:
+Events in the ding container are strings. This is not a great level of abstraction but still provides a powerful
+tool to work with. Events also have associated data, sent to the listeners as an argument when firing the event. This
+simple workflow will allow you to extend your system with autonomous components that react to events, totally decoupled
+from the rest of the code.
+</p>
+<h3>Firing an event</h3>
+<p>
+To fire an event, you need an instance of the container. You can get it by implementing the interface IContainerAware in your
+beans, like:
 </p>
 <pre name="code" class="php">
-transport_maps =  hash:/etc/postfix/transport
+use Ding\Container\IContainerAware;
+use Ding\Container\IContainer;
+
+class UserService implements IContainerAware
+{
+    private $container;
+    
+    public function setContainer(IContainer $container)
+    {
+        $this->container = $container;
+    }
+
+    public function createUser($username, $password)
+    {
+        $user = new User($username, $password);
+        // ... some more code ...
+        // fire an event!
+        $this->container->eventDispatch('userCreated', $user);
+    }
+}
 </pre>
 <p>
-And in your <a href="http://www.postfix.org/transport.5.html">transport</a> file (usually /etc/postfix/transport or /usr/local/etc/postfix/transport), specify
-your gateways per domain. This allows you to specify with regular expressions which emails go where. In this case, an asterisk specifies every domain
-(the transport file allows very complex setups, this is of course an extreme and trivial example): 
+When the container creates a bean that implements the <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Container_IContainerAware.html#%5CDing%5CContainer%5CIContainerAware">IContainerAware</a> interface
+it will automatically inject a container instance through the setContainer() method. So now you have a container instance.
+</p>
+<p>
+Notice in the createUser() method how we do our thing, and then dispatch the "userCreated" event throughout the container. The listeners will then receive
+this event and associated data, in this case a User entity. Let's see how to create the listeners.
+</p>
+<p>Listener code</p>
+<p>
+A very simple listener code for the above scenario can be:
 </p>
 <pre name="code" class="php">
-*              smtp:myotherhost.com
+class UserAccounting
+{
+    public function onUserCreated($user)
+    {
+        // save some accounting information for this user
+    }
+}
 </pre>
 <p>
-Then invoke postmap to regenerate the transports db, and reload postfix:
+That's it. The container will call (by convention) the method onUserCreated() when the "userCreated" event is dispatched. The general rule is
+to upper camel case the event name, and prepend the "on" to it, so "userCreated" becomes "onUserCreated".
 </p>
+<p>
+This will make the container able to dispatch the event, but we still need to register the bean as a listener for the event. Let's now see how to do
+it with the XML, YAML, and Annotations drivers.
+</p>
+<h3>The annotations way</h3>
 <pre name="code" class="php">
-# postmap hash:/etc/postfix/transport
-# postfix reload
+/**
+ * @Component
+ * @ListensOn(value="userCreated")
+ */
+class UserAccounting
+{
+    public function onUserCreated($user)
+    {
+        // save some accounting information for this user
+    }
+}
 </pre>
+<h3>The Xml way</h3>
+<pre name="code" class="xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans&gt;
+  &lt;bean id="myXmlBean"
+    class="UserAccounting"
+    listens-on="userCreated"/&gt;
+&lt;/beans&gt;
+</pre>
+<h3>The Yaml way</h3>
+<pre name="code" class="php">
+beans:
+  myYamlBean:
+    class: UserAccounting
+    listens-on: userCreated
+</pre>
+<H3>Conclusion</H3>
 <p>
-That should do it. All email generated in this host should now be forwarded to the smtp gateway. Remember to configure your smtp gateway
-to accept mail from all the hosts that will forward emails to it.
-</p>
-              </div>
+Some things are still missing, for example listening or catching all the events or all events of a certain type. However, this
+simple schema can also do some good in decoupling your code and separating your concerns in different components throughout your
+application.
+</p>              </div>
             </div>
             <div class="mod view-more">
               <div class="inner">
@@ -103,17 +170,18 @@ to accept mail from all the hosts that will forward emails to it.
                   <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
-                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
-                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
-                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
                   <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
                   <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
                   <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
                   <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
                   <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
                   <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
-                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
                 </ul>
                 <div class="google-ads">
                     <script type="text/javascript">
