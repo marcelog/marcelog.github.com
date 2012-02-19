@@ -99,9 +99,11 @@ foreach (SimplePcap::findAllDevs() as $name => $description) {
 <li>The network interface name, can be something like "any", or "eth0"</li>
 <li>A libpcap filter, like "port 80". This tells libpcap to filter some specific traffic.</li>
 <li>The number of bytes to capture per packet, like 4096, 1024, 40, etc.</li>
+<li>The read timeout in milliseconds. This goes directly to pcap_open_live(). Use 0 for a blocking operation. If you
+get an exception saying that pcap_next() returned null, try incrementing this one, or setting it to 0.</li>
 </ul>
 <pre name="code" class="php">
-$simplePcap = new SimplePcap($interfaceName, $filter, $snapLen);
+$simplePcap = new SimplePcap($interfaceName, $filter, $snapLen, $timeout);
 
 // Then, loop!
 while(true) {
@@ -122,6 +124,14 @@ $timeMicroSeconds = $packet->getMicroSecondsOffset();
 </pre>
 <H3>A sample output from running the included example</H3>
 <pre name="code" class="php">
+$ php -c php.ini list.php
+any => Pseudo-device that captures on all interfaces
+eth0 =>
+lo =>
+</pre>
+<pre name="code" class="php">
+$ php -c php.ini sniff.php eth0 "port 80" 4096 0
+...
 00184   63 63 65 70    74 2d 45 6e    ccep   t-En
 00192   63 6f 64 69    6e 67 3a 20    codi   ng:
 00200   67 7a 69 70    2c 20 64 65    gzip   , de
@@ -147,7 +157,8 @@ description (<b>pcap_t.name</b> and <b>pcap_t.description</b> respectively).
 </p>
 <p>
 To construct a SimplePcap class, you need the interface name (hence the need for findAllDevs()), a libpcap
-filter expression (like "host 127.0.0.1 and port 80"), and the number of bytes to capture per packet.
+filter expression (like "host 127.0.0.1 and port 80"), the number of bytes to capture per packet, and the read timeout
+in milliseconds. If you get an exception saying that pcap_next() returned null, try incrementing this one, or setting it to 0.
 </p>
 <p>
 Once you get the SimplePcap instance, the method <b>get()</b> can be used to get packets, which wraps around the
