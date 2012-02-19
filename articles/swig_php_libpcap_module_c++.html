@@ -120,6 +120,16 @@ $realLen = $packet->getRealLen();
 $timeSeconds = $packet->getSecondsOffset();
 $timeMicroSeconds = $packet->getMicroSecondsOffset();
 </pre>
+<H3>A sample output from running the included example</H3>
+<pre name="code" class="php">
+00184   63 63 65 70    74 2d 45 6e    ccep   t-En
+00192   63 6f 64 69    6e 67 3a 20    codi   ng:
+00200   67 7a 69 70    2c 20 64 65    gzip   , de
+00208   66 6c 61 74    65 2c 20 62    flat   e, b
+00216   7a 69 70 32    0d 0a 41 63    zip2   ..Ac
+00224   63 65 70 74    2d 43 68 61    cept   -Cha
+00232   72 73 65 74    3a 20 75 73    rset   : us
+</pre>
 <h3>SimplePcap (C++ side)</h3>
 <p>
 SimplePcap is actually pretty simple, since it was done only to try SWIG. There is a <a href="https://github.com/marcelog/SimplePcap/blob/master/include/SimplePcap.h">SimplePcap class</a>
