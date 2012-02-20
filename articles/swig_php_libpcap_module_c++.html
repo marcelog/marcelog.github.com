@@ -3,8 +3,8 @@
 <head>
 <title>Sniffing in PHP using libpcap: Thank you SWIG!</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="libpcap c c++ swig php class wrapper extension module sniffer promiscuous interface dump capture packet network"/>
-<meta name="description" content="This article is about how to create a php extension in c++ to access libpcap and capture packets"/>
+<meta name="Keywords" content="libpcap c c++ swig php sniffer capture packet class wrapper extension module sniffer promiscuous interface dump capture packet network"/>
+<meta name="description" content="This article is about how to create a php extension in c++ to access libpcap and capture packets from a php sniffer"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -85,7 +85,7 @@ how do you want to expose the C/C++ code to the scripting language, and then it 
 </p>
 <h3>SimplePcap (PHP side)</h3>
 <p>
-NOTE: A "complete" sniffer that dumps the packets like tcpdump is included as an example in the 
+NOTE: A "complete" php sniffer that dumps the packets like tcpdump is included as an example in the 
 <a href="https://github.com/marcelog/SimplePcap/blob/master/example/sniff.php">GitHub repository</a> for the source code.
 </p>
 <p>This is how you can use SimplePcap from PHP to list all available devices:</p>
