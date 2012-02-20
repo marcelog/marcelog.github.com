@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>How to attach files to soap envelopes using DIME and PHP</title>
+<title>Aspect Oriented Programming in PHP with Ding</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="How to attach files to soap envelopes using DIME and PHP"/>
-<meta name="description" content="This article is a tutorial about how to transfer files as attachments with soap messages using dime with pear NET_Dime"/>
+<meta name="Keywords" content="libpcap c c++ swig php class wrapper extension module sniffer promiscuous interface dump capture packet network"/>
+<meta name="description" content="This article is about how to create a php extension in c++ to access libpcap and capture packets"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to attach files to soap envelopes using DIME and PHP</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Aspect Oriented Programming in PHP with Ding</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,130 +49,113 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>How to attach files to soap envelopes using DIME and PHP</h2>
+                <h2>Aspect Oriented Programming in PHP with Ding</h2>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
-  <p>
-As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
-<b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
-support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
-make it work (at least, I couldn't from the client side ;))
+<H3><u>Introduction</u></H3>
+<p>
+<a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">Aspect Oriented Programming</a> (just AOP from now on),
+is a very powerful tool we can use to implement the infamous <a href="http://en.wikipedia.org/wiki/Cross-cutting_concern">cross cutting
+concerns</a> we have in our applications (auditing, logging, security, etc). In this article, I'll show how we can easily use AOP in a very simple language like PHP, by using
+the <a href="http://marcelog.github.com/Ding/">Ding container</a>. 
+</p>
+<h3>Useful links</h3>
+<ul>
+<li>Complete source code for this article at <a href="https://github.com/marcelog/Ding-Aop-Example">GitHub</a>.</li>
+<li><a href="http://marcelog.github.com/Ding/manual/toc.html#aop">AOP Section</a> of the ding manual.</li>
+</ul>
+<h3>How it works</h3>
+<p>
+Ding uses 2 patterns to achieve AOP in PHP:
+</p>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Interceptor_pattern">Interceptor Pattern</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Proxy_pattern">Proxy Pattern</a></li>
+</ul>
+<p>
+The interceptor pattern is used to provide 2 kind of interceptions for methods: one to allow code
+to be executed before (and after) an intercepted method, and another one that only gets executed when
+the intercepted method throws an uncatched exception. Thus, when defining aspects and pointcuts, you will
+have to decide which one of them you will use. The general rule:
+</p>
+<ul>
+<li>Method Interceptors: Use them when you want your code to be run before (and after) the interesting method.</li>
+<li>Exception Interceptors: Only useful if you want to catch unhandled exceptions. Your code will be called only when
+the method throws an exception.</li>
+</ul>
+<p>
+When you call a method that is not intercepted, the call is just executed by PHP directly, nothing special
+there. But when calling a method of a bean that has 1 or more aspects applied to it, you are in fact calling
+a proxy method that will call a dispatcher. The dispatcher will call all the aspects in order, if all these aspects
+proceed with the call, the last method in this chain will be the original intercepted method.
 </p>
 <p>
-In this article I'll show you my own solution, which is a little dirty but does the job. What I did is
-to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
-refined a lot, but it may help you in dire, time-lacking situations ;)
+The <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_Interceptor_IDispatcher.html#%5CDing%5CAspect%5CInterceptor%5CIDispatcher">IDispatcher</a> interface and the
+<a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_Interceptor_DispatcherImpl.html#%5CDing%5CAspect%5CInterceptor%5CDispatcherImpl">DispatcherImpl</a> implementation
+take care of handling and dispatching the chained calls to advices and original methods. This is automatically done by the container
+when it finds that a bean (or some beans) have any aspects associated with them.
 </p>
-  
-<H3><u>Example</u></H3>
 <p>
-So let's say you want to send a soap request with cero or more attachments, using DIME as
-the transport (I had this requirement when dealing with WoodWing(tm)). You will first need to
-get the text of the soap envelope request, like:
+Each method call generates a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_MethodInvocation.html#%5CDing%5CAspect%5CMethodInvocation">MethodInvocation</a> object. This
+is the only argument that advices receive. Thus, your interceptor code, would look like (the names are 
+just for illustrative purposes): 
+</p>
 <pre name="code" class="php">
-$req = "&lt;?xml version='1.0' encoding='UTF-8' ?&gt;
-
-&lt;SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'
-xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-xmlns:SOAP-ENC='http://schemas.xmlsoap.org/soap/encoding/'
-xmlns:ns1='urn:Something'&gt;
-&lt;SOAP-ENV:Body&gt;
-&lt;ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/SOAP-ENV:Body&gt;
-&lt;/SOAP-ENV:Envelope&gt;";
-</pre>
-</p>
-<p>
-The plan, is to send this message using curl, with the following code:
-<pre name="code" class="php">
-/**
- * Send a POST requst using cURL
- * @param string $url to request
- * @param array $post values to send
- * @param array $options for cURL
- * @return string
- */
-function curl_post($url, $post = NULL)
-{
-    $defaults = array(
-        CURLOPT_POST => 1,
-        CURLOPT_HEADER => 0,
-        CURLOPT_URL => $url,
-        CURLOPT_HTTPHEADER => array(
-'Content-Disposition: form-data; name=\"soap\"; filename=\"123\"',
-'Content-Type: application/dime'
-        ),
-        CURLOPT_FRESH_CONNECT => 1,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_FORBID_REUSE => 1,
-        CURLOPT_TIMEOUT => 400,
-        CURLOPT_POSTFIELDS => $post,
-        CURLOPT_BINARYTRANSFER => true
-    );
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $defaults);
-    $result = curl_exec($ch);
-    if(!$result)
+    public function methodInterceptor(MethodInvocation $invocation)
     {
-        trigger_error(curl_error($ch));
+        // Code to be run before calling the next method in the chain.
+        $result = $invocation->proceed();
+        // Code to be run after the method has finished.
+        return $result;
     }
-    curl_close($ch);
-    return $result;
-}
-
+    
+    public function exceptionInterceptor(MethodInvocation $invocation)
+    {
+        // Code to handle the exception that intercepted method threw
+    }
 </pre>
+<h3>Proxies</h3>
+<p>
+In environments like the JVM, <a href="http://www.eclipse.org/aspectj/">AspectJ</a> manipulates the bytecode
+at runtime to achieve doing lots of cool things. In PHP we cant do that (or at least, I cant do that.. ). So 
+we need to create a proxy, that will call the dispatcher instead of the original implementation. 
+</p>
+<p>Unfortunately, we cant create proxies by using the native reflection api provided with PHP, 
+so we only have one option: generate php code that will actually be a proxy class for the class of the bean where we want to apply
+our aspects. This is also done automatically by the container, by using the 
+<a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_Proxy.html#%5CDing%5CAspect%5CProxy">Proxy</a> class.
 </p>
 <p>
-And this is the code that put the pieces together and actually sends the message
-with the attachments:
+So for each bean that has aspects applied, ding generates the necessary proxies. These proxies can (and should) be
+cached. See the <a href="http://marcelog.github.com/Ding/manual/toc.html#config">configuration section of the container</a> in the
+ding manual to see how.
 </p>
-<pre name="code" class="php">
-function send($url, $msg, $attachments = array())
-{
-        $tempFile = tmpfile();
-        if ($tempFile === false) {
-                throw new \Exception('Could not create temp file');
-        }
-        $dime = new Net_DIME_Message($tempFile);
-        $dime->sendData($msg, 'http://schemas.xmlsoap.org/soap/envelope/');
-        foreach ($attachments as $id => $attachment) {
-                $dime->sendData($attachment, 'application/octet-stream', $id);
-        }
-        rewind($tempFile);
-        $msg = stream_get_contents($tempFile);
-        fclose($tempFile);
-        $ret = curl_post($url, strlen($msg), '', $msg);
-        return new SimpleXMLElement($ret);
-}
-
-</pre>
-</p>
-  
-<H3><u>Using it</u></H3>
+<h3>Defining Aspects and Pointcuts</h3>
 <p>
-Now, how to use it:
+When defining an <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_AspectDefinition.html#%5CDing%5CAspect%5CAspectDefinition">Aspect</a>, you will need:
 </p>
-<pre name="code" class="php">
-$file = './a.jpg';
-$fileContents = file_get_contents($file);
-// This is computed so the attachment id is the md5 sum of the file in question.
-$fileMD5 = md5($fileContents);
-$result = send($req, array($fileMD5 => $fileContents));
-</pre>
+<ul>
+<li>A bean, where the advice code is. Effectively, the code you want to be run and intercept the target methods with.</li>
+<li>Type of interception: method or exception.</li>
+<li>A <a href="http://php.net/pcre">PCRE</a> expression used to specify class names. All beans that match this class will have the aspects applied.</li>
+</ul>
 <p>
-After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
-the soap response. The request consists of a DIME message with the first attachment being the
-soap request itself, and the following are the attachment themselves.
+When defining a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_PointcutDefinition.html#%5CDing%5CAspect%5CPointcutDefinition">Pointcut</a>, you will need to specify:
 </p>
-
+<ul>
+<li>A PCRE expression that will be used to match method names.</li>
+<li>The name of the method to invoke when this pointcut matches.</li>
+</ul>
+<H3>Examples</H3>
+<p>
+In the <a href="https://github.com/marcelog/Ding-Aop-Example">github repository</a> for the source of this article, you can find an example with each one
+of the drivers,
+<a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/xml">XML</a>,
+<a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/yaml">YAML</a>,
+and <a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/annotations">Annotations</a>. 
+</p>
 <H3><u>Conclusions</u></H3>
-<p>
-Quick, dirty, a little low-level, but effective. Lot to improve, but that's the subject
-of another article ;) This will let you quickly implement and/or test your dime client. Let's hope
-that php gets a little better soap support sometime.
+<p>AOP is really great. Definitely not a silver bullet, but a tool that will just fit in certain
+ocassions. 
 </p>
               </div>
             </div>
@@ -190,24 +173,22 @@ that php gets a little better soap support sometime.
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
+                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
                   <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
                   <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
                   <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
-                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
-                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
-                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">Creating isolated environments for PHP applications with PEAR dependencies</a></li>
                   <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
                   <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
                   <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
                   <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
                   <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
-                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
                   <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
                 </ul>
                 <div class="google-ads">
