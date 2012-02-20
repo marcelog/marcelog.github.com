@@ -99,17 +99,17 @@ bootstrap the container:
 </p>
 <h3>Option A: Installing and using the PHAR distribution</h3>
 <p>
-You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.5.0, so the available artifact is named "Ding-1.5.0.phar". Let's fetch it:
+You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.5.1, so the available artifact is named "Ding-1.5.1.phar". Let's fetch it:
 </p>
 <pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.0.phar
+$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.1.phar
 </pre>
 <p>
 Let's see how to use it:
 </p>
 <pre name="code" class="php">
 // Include the phar file.
-require_once 'Ding-1.5.0.phar';
+require_once 'Ding-1.5.1.phar';
 
 // Set the include path to have ding's phar first
 // (just to avoid having another installation in
@@ -123,11 +123,11 @@ That's it. You can now bootstrap the container and do your thing (see below).
 </p>
 <h3>Option B: Installing the PEAR distribution manually</h3>
 <p>
-As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.5.0 is the latest version at the time of this writing):
+As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.5.1 is the latest version at the time of this writing):
 </p>
 <pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.0.tgz
-$ pear install Ding-1.5.0.tgz
+$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.5.1.tgz
+$ pear install Ding-1.5.1.tgz
 </pre>
 <h3>Option C: Installing via the PEAR Channel</h3>
 <p>
@@ -271,6 +271,7 @@ do exactly for your benefit (this is quite a long article already!). Cheers!
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
                   <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
                   <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
