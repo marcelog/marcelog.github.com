@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Mocking global php functions for unit testing</title>
+<title>Ding container: Using the Xml, Yaml, and Annotations drivers</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="This article is a tutorial about how to mock php global functions for unit testing with phpunit."/>
-<meta name="description" content="This article is a tutorial about how to mock php global functions for unit testing with phpunit."/>
+<meta name="Keywords" content="ding di container dependency injection tutorial how to bean provider xml yaml annotation driver example"/>
+<meta name="description" content="This article will show how to use the xml yaml and annotations driver to get beans from the container"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -25,7 +25,7 @@
     <!-- <a class="logo" href="index.html">Marcelo G</a>-->
     <ul id="nav">
       <li><a href="../index.html"><span>Home</span></a></li>
-      <!-- <li><a href="../about.html"><span>About</span></a></li>  -->
+      <li><a href="../about.html"><span>About</span></a></li>
       <li class="active"><a href="articles.html"><span>Articles</span></a></li>
       <li><a href="../software.html"><span>Software</span></a></li>
       <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Mocking global php functions for unit testing</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Ding container: Using the Xml, Yaml, and Annotations drivers</div>
   </div>
   <div class="main-outer">
   	<div class="main-inner">
@@ -49,132 +49,99 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Mocking Global Php 5.3 Functions Using Namespaces</h2>
+                <h2>Ding container: Using the Xml, Yaml, and Annotations drivers</h2>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
-  <p>
-Let's say you'd like to achieve a 100% <b>coverage</b> of your code in your <b>php</b> application (you obsessive geek..). It's almost
-certain you'll need to start mock'ing things around. So far so good.. but sooner or later you will need to deal with the test cases
-for the code that use <b>global</b> php <b>functions</b>. How can you mock them? In this article I'll show you a small
-technique to allow you to <b>mock global php functions</b>. This will
-require your code to use <b>namespaces</b>, available since <b>PHP 5.3</b>.
-</p>
-  
-<H3><u>Classical example</u></H3>
+<h3>Introduction</h3>
 <p>
-Suppose this is the code you'd like to test, a file called SomeClass.php:
+In a <a href="http://marcelog.github.com/articles/ding_how_to_install_configure_tutorial_introduction.html">previous article</a> I've shown how to download and install
+<a href="http://marcelog.github.com/Ding/">the ding container</a>. The article ended with getting a container instance, but didn't show how to actually define and use your
+beans. So that's what this article is all about.
+</p>
+<p>
+So ding is basically about beans (aka components). The <a href="http://marcelog.github.com/Ding/manual/toc.html">ding manual</a> contains a little more information about beans and about the whole container. What you will find
+here is kind of a "hands-on" approach to it.
+</p>
+<p>  
+The idea here is to put your code in your components (beans) following the
+<a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle</a>, and let the container take care of the
+rest (like injecting dependencies or maybe even choosing which dependencies to inject and where). So lots of your actual real code will become declarative
+stuff, that the container interprets and acts upon. As a result, your code will end up containing only the lines of code that are the true value of the 
+application. Also, your code will become more testable, because you will no longer need to programatically get your dependencies.
+</p>
+<p>
+So that's how it works: code your components. Then, define (declare) your dependencies to the container. When your components are needed, they will be
+injected with any dependencies they might need. 
+</p>
+<H3>Declaring your beans</H3>
+<p>
+Ding supports 3 bean providers: Xml, Yaml, and Annotations. You can use 1 or all 3 of them, you need at least 1 but you can mix them in any way you need.
+The Xml and Yaml files are non code-invasive. In contrast, using annotations is kind of invasive, because you need to actually annotate the code, but they
+are a little more agile in the daily developer's work. The most used combination is to have a very short xml or yaml file and the rest using annotations throughout the code.
+Let's see an example of a bean declared in the 3 drivers (just a preview), then I'll show how to configure them in the container:
+</p>
+<pre name="code" class="xml">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans&gt;
+  &lt;bean id="myXmlBean" class="MyBean"/&gt;
+&lt;/beans&gt;
+</pre>
+<p>And the equivalent Yaml:</p>
 <pre name="code" class="php">
-namespace My\Nice\Namezpace;
-
-class SomeClass
+beans:
+  myYamlBean:
+    class: MyBean
+</pre>
+<p>
+And the equivalent using annotations:
+</p>
+<pre name="code" class="php">
+/**
+ * @Component(name="myAnnotatedBean")
+ */
+class MyBean
 {
-    public function doSomething()
-    {
-        // Notice how the global function "socket_create" is called without
-        // the leading backslash (relative instead of absolute call in a 
-        // namespaced environment). This will let us later mock the call 
-        // by taking advantage of the relative-to-the-namespace call.
-        $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-        if ($socket === false) {
-            throw new \Exception('Ooops!');
-        }
-        socket_close($socket);
-        return true;
-    }
 
-    public function __construct()
-    {
-    }
 }
 </pre>
-</p>
-<p>
-It's fairly easy to have a unit test for the "success case" by just asserting
-the result value. What happens with the other use case, where the exception is
-thrown? <br/>
-This is an extreme simple example, but what happens if something complicated
-has to be done when the call to <b>socket_create</b> fails for whatever reason? How can
-you be sure that the code is behaving like it should be?<br/>
-</p>
 
-<H1><u>The tests</u></H1>
-<p>
-This is our Test_SomeClass.php file:
-
+<h3>Configuring the 3 drivers</h3>
+<p>The drivers are specified in the <a href="http://marcelog.github.com/Ding/manual/toc.html#config">container configuration options</a>:</p>
 <pre name="code" class="php">
-namespace {
-    // This allow us to configure the behavior of the "global mock"
-    $mockSocketCreate = false;
-}
-
-namespace My\Nice\Namezpace {
-    // And this here, does the trick: it will override the socket_create()
-    // function in your code *just for the namespace* where you are defining it.
-    // This relies on the code above calling the socket_create function without
-    // the leading backslash, so we trick SomeClass into calling our own function
-    // inside that namespace instead of the global socket_create function.
-    function socket_create() {
-        global $mockSocketCreate;
-        if (isset($mockSocketCreate) && $mockSocketCreate === true) {
-            return false;
-        } else {
-            return call_user_func_array('\socket_create', func_get_args());
-        }
-    }
-
-include_once './SomeClass.php';
-
-class Test_SomeClass extends \PHPUnit_Framework_TestCase
-{
-    public function setUp()
-    {
-        global $mockSocketCreate;
-        $mockSocketCreate = false;
-    }
-
-    /**
-     * This will test the success case.
-     * @test
-     */
-    public function can_success_case()
-    {
-        $dummy = new \My\Nice\Namezpace\SomeClass;
-        $this->assertTrue($dummy->doSomething());
-    }
-
-    /**
-     * This will enable the mock and call the code. socket_create will now
-     * return false instead the call of the original socket_create, our work
-     * here is done.
-     * @test
-     * @expectedException \Exception
-     */
-    public function cannot_error_case()
-    {
-        global $mockSocketCreate;
-        $mockSocketCreate = true;
-        $dummy = new \My\Nice\Namezpace\SomeClass;
-        $dummy->doSomething();
-        $this->fail('Should not here');
-    }
-}
-}
+$options = array('ding' => array(
+    'factory' => array(
+        'bdef' => array(
+            'xml' => array(
+                'filename' => array('beans.xml', 'otherbeans.xml'),
+                'directories' => array(__DIR__, __DIR__ . '/otherDir')
+            ),
+            'yaml' => array(
+                'filename' => array('beans.yaml', 'otherbeans.yaml'),
+                'directories' => array(__DIR__, __DIR__ . '/otherDir')
+            ),
+            'annotation' => array('scanDir' => array(__DIR__))
+        )
+    )
+));
+// Get an instance of the container.
+$container = Ding\Container\Impl\ContainerImpl::getInstance($options);
 </pre>
-</p>
 <p>
-Running phpunit will give you the 100% coverage :)
+In this case we are configuring all the drivers:
 </p>
-<pre name="code" class="php">
-phpunit --debug --process-isolation --verbose --stop-on-incomplete --stop-on-skipped --stop-on-failure --stop-on-error --colors --coverage-html html Test_SomeClass.php
-</pre>
-<H3><u>Conclusions</u></H3>
+<ul>
+<li><u>xml</u>: We are defining 2 possible names for the bean files, beans.xml and otherbeans.xml. Possible candidates
+are the directory where the script is, and the subdirectory "otherDir". So ding will try to find these files in these directories.</li>
+<li><u>yaml</u>: Same as xml, but with .yaml files.</li>
+<li><u>annotation</u>: We're declaring the directory where the script is as one of the directories to be scanned for annotations.</li>
+</ul>
+<h3>Enough to get you started</h3>
 <p>
-With this little trick we can increase the testing level of the code. Most "normal" php code lacks good error
-handling (differences between cero, false, and null are among the #1's). Now everything can be tested at the highest
-levels possible, which is a novelty in the php language :) now go get that 100%!
+You can find more about the xml and yaml drivers here:
+<ul>
+<li><a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">Ding manual</a></li>
+<li><a href="https://github.com/marcelog/Ding/tree/master/docs/examples">All ding examples at Github</a>: Including yaml, xml, aspects, setter/constructor injection, using arrays, properties, etc.</li>
+</ul>
 </p>
-<br/>
-
               </div>
             </div>
             <div class="mod view-more">
@@ -194,12 +161,12 @@ levels possible, which is a novelty in the php language :) now go get that 100%!
                   <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
                   <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
                   <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
-                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
                   <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
-                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
                   <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
@@ -209,8 +176,6 @@ levels possible, which is a novelty in the php language :) now go get that 100%!
                   <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
                   <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
                   <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
-                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
-                  <li><a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">Ding container: Using the Xml, Yaml, and Annotations drivers</a></li>
                 </ul>
                 <div class="google-ads">
                     <script type="text/javascript">
