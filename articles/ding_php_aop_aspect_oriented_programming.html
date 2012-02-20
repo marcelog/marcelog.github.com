@@ -113,6 +113,9 @@ just for illustrative purposes):
         // Code to handle the exception that intercepted method threw
     }
 </pre>
+<p>
+And that is pretty much you need to add AOP to your projects :)
+</p>
 <h3>Proxies</h3>
 <p>
 In environments like the JVM, <a href="http://www.eclipse.org/aspectj/">AspectJ</a> manipulates the bytecode
@@ -136,7 +139,10 @@ When defining an <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspec
 <ul>
 <li>A bean, where the advice code is. Effectively, the code you want to be run and intercept the target methods with.</li>
 <li>Type of interception: method or exception.</li>
-<li>A <a href="http://php.net/pcre">PCRE</a> expression used to specify class names. All beans that match this class will have the aspects applied.</li>
+<li>A <a href="http://php.net/pcre">PCRE</a> expression used to specify class names. All beans that match this class will have the aspects applied. This is kind of a "global"
+aspect definition, because it will trap all classes of a given name.</li>
+<li>You can avoid having the PCRE expression and declare the aspect right there inside the bean definition(s) you're interested in (vs. global aspects, that
+will apply to more beans if the class names matches).</li>
 </ul>
 <p>
 When defining a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_PointcutDefinition.html#%5CDing%5CAspect%5CPointcutDefinition">Pointcut</a>, you will need to specify:
@@ -145,6 +151,10 @@ When defining a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect
 <li>A PCRE expression that will be used to match method names.</li>
 <li>The name of the method to invoke when this pointcut matches.</li>
 </ul>
+<p>
+You can then associate pointcuts to aspects in the configuration files (if using xml or yaml). You can reuse
+aspect definitions and pointcut definitions as well.
+</p>
 <H3>Examples</H3>
 <p>
 In the <a href="https://github.com/marcelog/Ding-Aop-Example">github repository</a> for the source of this article, you can find an example with each one
