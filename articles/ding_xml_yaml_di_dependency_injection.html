@@ -66,6 +66,25 @@ factory beans and factory classes, etc.
 <p>And, you can see the full examples for <a href="https://github.com/marcelog/Ding/tree/master/docs/examples/quickstart">xml</a> and <a href="https://github.com/marcelog/Ding/tree/master/docs/examples/yaml">yaml</a> at the Ding github repository.</p>
 
 <h3>Setter Injection</h3>
+<p>
+Setter injection works given 2 conditions:
+</p>
+<ul>
+<li>You declare "properties" in your bean definitions.</li>
+<li>You include the needed setter methods in your classes.</li>
+</ul>
+<p>
+Quick example: You have a repository class, and you want to set a value when you create an instance of it. Let's say you want
+to set the DB driver for a given repository, you could do something like:
+</p>
+<pre name="code" class="php">
+$repository->setDriver($mysqlDriver);
+</pre>
+<p>
+In this case, you would define a "driver" property. And ding will automatically look for a "setDriver" method and use it
+to inject the configured values. The convention is that the property name is upercamel cased first, and then prepended with the word
+<b>set</b>. The new string is the name of the method to be called to perform the setter injection. That's it. Let's now see how to actually do this :)
+</p>
 <h4><u>Injecting scalar variables</u></h4>
 <p>The general syntax for setter injection with xml is the following:</p>
 <pre name="code" class="xml">
