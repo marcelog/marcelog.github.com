@@ -140,6 +140,21 @@ $ php -c php.ini sniff.php eth0 "port 80" 4096 0
 00224   63 65 70 74    2d 43 68 61    cept   -Cha
 00232   72 73 65 74    3a 20 75 73    rset   : us
 </pre>
+<H3>UPDATE: Injecting packets</H3>
+<p>
+If you want to inject packets in the interface, you will be glad to know that I've added a method send() just for that:
+</p>
+<pre name="code" class="php">
+$totalBytesSent = $simplePcap->send($rawPacketData);
+</pre>
+<p>
+An example file is provided, inject.php that when run, will inject the data contained in the given file. Here's a sample run
+sending an ICMP echo request captured with sniff.php:
+</p>
+<pre name="code" class="php">
+$ php -c php.ini inject.php eth0 "" 4096 10000 myRawPacketData.raw
+Injected 98 in: eth0
+</pre>
 <h3>SimplePcap (C++ side)</h3>
 <p>
 SimplePcap is actually pretty simple, since it was done only to try SWIG. There is a <a href="https://github.com/marcelog/SimplePcap/blob/master/include/SimplePcap.h">SimplePcap class</a>
@@ -171,6 +186,7 @@ next article! Also, I couldn't find out how to translate the exceptions from C++
 <a href="https://github.com/marcelog/SimplePcap/blob/master/include/Exception.h">here</a>, which are custom SimplePcap exceptions, and not
 mappable into SWIG_* exceptions).
 </p>
+<p><u>UPDATE</u>: You can also use the method send() to inject packets in the interface, it will call pcap_inject().</p>
 <H3>The SWIG interface file</H3>
 <p>
 Here's the <a href="https://github.com/marcelog/SimplePcap/blob/master/SimplePcap.i">interface file</a> I'm using for the
