@@ -58,17 +58,6 @@ As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does no
 support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
 make it work (at least, I couldn't from the client side ;))
 </p>
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-6947936742546167";
-/* articles */
-google_ad_slot = "2063567365";
-google_ad_width = 728;
-google_ad_height = 15;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
 <p>
 In this article I'll show you my own solution, which is a little dirty but does the job. What I did is
 to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
@@ -136,17 +125,6 @@ function curl_post($url, $post = NULL)
 
 </pre>
 </p>
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-6947936742546167";
-/* articles */
-google_ad_slot = "2063567365";
-google_ad_width = 728;
-google_ad_height = 15;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
 <p>
 And this is the code that put the pieces together and actually sends the message
 with the attachments:
@@ -184,17 +162,6 @@ $fileContents = file_get_contents($file);
 $fileMD5 = md5($fileContents);
 $result = send($req, array($fileMD5 => $fileContents));
 </pre>
-<script type="text/javascript"><!--
-google_ad_client = "ca-pub-6947936742546167";
-/* articles */
-google_ad_slot = "2063567365";
-google_ad_width = 728;
-google_ad_height = 15;
-//-->
-</script>
-<script type="text/javascript"
-src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-</script>
 <p>
 After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
 the soap response. The request consists of a DIME message with the first attachment being the
