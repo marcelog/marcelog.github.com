@@ -191,6 +191,19 @@ if ($mainMenuNode->maxInputsReached()) {
     }
 }
 </pre>
+<p>
+You can chain as many message prompts as desired. Message prompts can play a sound file, say some digits, a number, or
+a datetime. For example, this plays multiple messages to actually build the prompt:
+</p>
+<pre name="code" class="php">
+$pagiClient->createNode('mainMenu')
+    ->saySound('sound1')
+    ->saySound('sound2')
+    ->sayDigits(123)
+    ->sayDateTime(time(), 'dmY')
+    ->saySound('sound3')
+;
+</pre>
 <h3>Manipulating pre prompt messages</h3>
 <p>
 Messages can be played before playing the prompt. These messages are called "Pre Prompt" messages. These messages
