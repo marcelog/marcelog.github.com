@@ -514,6 +514,52 @@ $mockedNode->doBeforeValidInput(function (Node $node) {
 So when the node reaches a valid input and the valid input callback is run (and the
 dial is executed), everything works as expected.
 </p>
+<p>
+So, having this node:
+</p>
+<pre name="code" class="php">
+$pagiClient->createNode('mainMenu')
+    ->saySound('main-menu-prompt')
+    ->expectExactly(1)
+    ->maxTimeBetweenDigits(3000)
+    ->playOnNoInput('please-choose-an-option')
+    ->playOnMaxValidInputAttempts("max-attempts-reached")
+    ->validateInputWith(
+        'standardOptionValidation',
+        function(Node $node) {
+            return in_array(
+                $node->getInput(), array('1', '2', '3', '4')
+            );
+        },
+        'invalid-option'
+    )->executeOnInputFailed(function (Node $node) {
+        if ($node->getTotalInputAttemptsUsed() <= 2) {
+            $node->addPrePromptMessage("please-try-again");
+        }
+    })->run()
+;
+</pre>
+<p>
+This can be a test:
+</p>
+<pre name="code" class="php">
+$mockedClient
+    ->onCreateNode('mainMenu')
+    ->runWithInput('   9  1')
+    ->assertSaySound('main-menu-prompt', 1)
+    ->assertSaySound('please-choose-an-option', 1)
+    ->assertSaySound('invalid-option', 1)
+    ->assertSaySound('please-try-again', 1)
+    ->assertComplete()
+;
+</pre>
+<p>
+In this way, we're using one space to let the "main-menu-prompt" finish completely, then
+another space to make the call to "WAIT FOR DIGIT" return timeout (no input from the user), the
+message "please-choose-an-option" is played completely, the next input is an invalid input, and will trigger the failed validation, playing "invalid-option"
+and "please-try-again" (note the 2 spaces). Then the prompt is interrupted with a valid input and the node finishes
+with status complete.
+</p>
 <H3>Conclusion</H3>
 <p>
 Phew. First of all, thanks for keep on reading! :P I think the conclusion is somewhat clear:
