@@ -276,7 +276,9 @@ it is considered a failed input attempt.
 Also, a cancel digit is defined (the star digit, *). So the user can cancel the node. An additional 
 behaviour is specified for the cancel digit (cancelWithInputRetriesInput()) that means that the node will
 be cancelled if the user presses the cancel digit without any previous input, but if there is any previous input,
-only the input attempt is cancelled. For example, if after the prompt, the user immediatly presses the cancel digit,
+only the input attempt is cancelled.
+</p>
+<p>For example, if after the prompt, the user immediatly presses the cancel digit,
 then the node is cancelled and ends. On the other hand, if the user presses something like "123*", then the node
 will cancel that particular input attempt and then retry it (this is useful when the user enters a wrong digit and want to
 continue using that particular node, retrying the input). Each cancelled input attempt counts as a failed input attempt.
