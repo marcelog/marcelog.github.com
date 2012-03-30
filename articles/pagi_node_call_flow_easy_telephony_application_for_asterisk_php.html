@@ -1,0 +1,620 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Advanced telephony applications with PHP and PAGI using call flow nodes</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content=""/>
+<meta name="description" content=""/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Advanced telephony applications with PHP and PAGI using call flow nodes</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Advanced telephony applications with PHP and PAGI using call flow nodes</h2>
+                <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
+<p>
+In the <a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">last article</a> I've talked about how to
+create telephony applications using nothing else than the standard pagi client. Also, in <a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">this article</a>
+I've shown how to unit test them, by using the mocked client pagi. Now, since version 1.10.0, PAGI comes with a neat feature, which is a small 
+abstraction layer over the pagi client, called "Nodes". Also, the "NodeController" will orchestrate how those nodes interact with each other. Nodes are essentially call flow nodes. 
+<p>
+These new features will allow you to implement complete call flows in no time, and maybe even without using the pagi client by yourself. In
+this article, I'll introduce the nodes by themselves (and how to unit test them), and will talk about the node controller in a latter article.
+</p>
+<p>
+First, a couple of useful links:
+<ul>
+<li><u><a href="http://marcelog.github.com/articles/pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI introduction</a></u></li>
+<li><u><a href="http://marcelog.github.com/articles/pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit testing with PAGI</a></u></li>
+<li><u><a href="http://marcelog.github.com/PAGI">http://marcelog.github.com/PAGI/</a></u>: The homepage.</li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">PAGI API documentation</a></u></li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Node_Node.html#%5CPAGI%5CNode%5CNode">Node API</a></u></li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Node_MockedNode.html#%5CPAGI%5CNode%5CMockedNode">MockedNode API</a></u></li>
+</ul>
+</p>
+<h3>What can a Node do</h3>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Fluent_interface">Fluent</a> interface.</li>
+<li>A node has a resulting state after being run: COMPLETE, CANCEL, TIMEOUT, MAX_INPUT_REACHED</li>
+<li>Can play prompt messages (sound files, saying digits/numbers/datetimes).</li>
+<li>Can expect input from users.</li>
+<li>Can play a message on no input from the user (except in the last attempt).</li>
+<li>Expected input can be of exactly K digits, or of a length between M and N (0 -zero- by default).</li>
+<li>Input may (or may not) interrupt prompt messages (interruptable by default).</li>
+<li>Can configure a DTMF digit to behave as a "cancel digit", allowing the node to be "cancelled" (usually *, none by default).</li>
+<li>Can configure a DTMF digit to behave as the "end of input" digit, (usually #, none by default).</li>
+<li>Cancel digit can be configured to cancel and retry the input or cancel the node completely (will cancel the node by default).</li>
+<li>Can use a maximum timeout between expected digits (infinite by default).</li>
+<li>Can use a maximum timeout to enter the complete input (infinite by default).</li>
+<li>Once the user entered input, it can be validated.</li>
+<li>Messages can be played for each failed validation or when timeout has expired.</li>
+<li>Error messages from failed validations may (or may not) be interrupted by user input (interruptable by default).</li>
+<li>Can configure a maximum attempt number to use to enter a valid input (1 by default).</li>
+<li>Can play a message when maximum attempts has been reached (none by default).</li>
+<li>Can carry state: each node has an internal registry where temporal data can be stored/retrieved, useful to pass information between nodes.</li>
+<li>Can execute callbacks: before/after running the node, on validated/failed input.</li>
+</ul>
+<h3>Creating a Node</h3>
+<p>
+First, get a pagi client instance:
+</p>
+<pre name="code" class="php">
+$pagiClientOptions = array(
+    'log4php.properties' => __DIR__ . '/log4php.properties',
+);
+use PAGI\Client\Impl\ClientImpl as PagiClient;
+$pagiClient = PagiClient::getInstance($pagiClientOptions);
+</pre>
+<p>Then, just create a node:</p>
+<pre name="code" class="php">
+$mainMenuNode = $pagiClient->createNode('mainMenu');
+</pre>
+<p>To run the node:</p>
+<pre name="code" class="php">
+$mainMenuNode->run();
+</pre>
+<p>To get what the user entered as input after running the node:</p>
+<pre name="code" class="php">
+$input = $mainMenuNode->getInput();
+</pre>
+<p>To access the pagi client used for that node:</p>
+<pre name="code" class="php">
+$client = $mainMenuNode->getClient();
+</pre>
+<h3>A Basic IVR Menu</h3>
+<p>
+Let's see a semi-complex example of an ivr menu. Of course this is just an example and it's possible
+you may not need everything shown:
+</p>
+<pre name="code" class="php">
+$mainMenu = $pagiClient->createNode('mainMenu');
+$mainMenu
+    ->saySound('main-menu-prompt')
+    ->expectExactly(1)
+    ->maxAttemptsForInput(3)
+    ->maxTimeBetweenDigits(3000)
+    ->playOnNoInput('please-choose-an-option')
+    ->playOnMaxValidInputAttempts("max-attempts-reached")
+    ->validateInputWith(
+        'standardOptionValidation',
+        function(Node $node) {
+            return in_array(
+                $node->getInput(), array('1', '2', '3', '4')
+            );
+        },
+        'invalid-option'
+    )->executeOnInputFailed(function (Node $node) {
+        if ($node->getTotalInputAttemptsUsed() <= 2) {
+            $node->addPrePromptMessage("please-try-again");
+        }
+    })->run()
+;
+</pre>
+<p>
+The above code will setup a node that will prompt the user with the sound
+"main-menu-prompt", will expect exactly 1 digit as input, and will give the user
+3 opportunities to enter a valid input. A timeout of 3 seconds is set to enter 
+the input. The input will be validated with just 1
+validation, named "standardOptionValidation", and if this validation fails, the
+sound file "invalid-option" will be played. If the user does not enter any input
+(i.e: the timeout expires) the sound file "please-choose-an-option" will be played
+(except in the last attempt). When the maximum allowed input attempts has been
+reached without a valid input, the sound file "max-attempts-reached" will be played.
+Also, after each invalid input, a callback will add the sound file "please-try-again"
+to be played before the prompt and after the failed validation message, except in the
+last attempts.
+</p>
+<p>
+A note about validators: Validators can have an optional sound file to be played, but that's not
+mandatory at all. However, it *is* mandatory to return true to indicate success and false to 
+indicate a validation failure. You can configure as many validators as needed (by calling validateWithInput() several times)
+and they will be executed in order. The validator's execution will stop when any of them returns false (that is, only 1 failed
+validation is allowed).
+</p>
+<p>
+To check how this node ended up, we could use the following code (note that this is pretty much
+the job of the NodeController, which we are not using *yet*):
+</p>
+<pre name="code" class="php">
+if ($mainMenuNode->maxInputsReached()) {
+    $mainMenuNode->getClient()->hangup();
+} else if ($mainMenuNode->isComplete()) {
+    $input = $mainMenuNode->getInput();
+    if ($input == 1) {
+        $option1Node->run();
+    } else if ($input == 2) {
+        $option2Node->run();
+    } else if ($input == 3) {
+        $option3Node->run();
+    } else if ($input == 4) {
+        $option4Node->run();
+    }
+}
+</pre>
+<h3>Manipulating pre prompt messages</h3>
+<p>
+Messages can be played before playing the prompt. These messages are called "Pre Prompt" messages. These messages
+are for example the sound files played when a validation fails, or the "no input" message. These messages are
+interruptable by default, and if a digit is pressed while playing them, it will also interrupt the prompt messages themselves
+and the digit counts as input to be handled by the node. This behaviour can be altered. For example, if you would like to
+make the pre prompt messages interruptable but continue to play the prompt messages:
+</p>
+<pre name="code" class="php">
+$mainMenu = $pagiClient->createNode('mainMenu');
+
+// input on pre prompt messages will not interrupt the
+// prompt messages and will not be counted as user input.
+$mainMenu->dontAcceptPrePromptInputAsInput(); 
+</pre>
+<p>
+If you would like to make the pre prompt messages not interruptable:
+</p>
+<pre name="code" class="php">
+$mainMenu = $pagiClient->createNode('mainMenu');
+$mainMenu->prePromptMessagesNotInterruptable();
+</pre>
+<p>
+To programatically add a pre prompt message:
+</p>
+<pre name="code" class="php">
+$mainMenu = $pagiClient->createNode('mainMenu');
+$mainMenu->addPrePromptMessage('myMessage');
+</pre>
+<p>
+Remember that pre prompt messages are dynamic. They are cleared (reset) after playing them, so 
+if you want to replay a pre prompt message, you have to add it yourself (probably in one of the callbacks allowed
+for a node, see below).
+</p>
+<h3>Playing digits, numbers, and datetimes</h3>
+<p>
+Let's now create a node that will play back to the user his/her telephone number and the amount of money available, with a given
+due date. This node wont accept any input and cant be interrupted:
+</p>
+<pre name="code" class="php">
+$clid = $pagiClient->getCallerId();
+$pagiClient->createNode('playCredit')
+    ->unInterruptablePrompts()
+    ->saySound('you-are-calling-from')
+    ->sayDigits($clid->getNumber())
+    ->saySound('and-you-currently-have')
+    ->sayNumber(20)
+    ->saySound('dollars')
+    ->saySound('the-credit-will-expire-on')
+    ->sayDateTime(time(), 'Bd')
+    ->run()
+;
+</pre>
+<p>
+To know more about the datetime formats in asterisk, see <a href="http://www.voip-info.org/wiki/view/say+datetime">this</a>.
+</p>
+<h3>Entering a calling card PIN</h3>
+<p>
+Let's see how we could ask a user for their pin number:
+</p>
+<pre name="code" class="php">
+$pagiClient->createNode('inputPin')
+    ->saySound('please-enter-your-pin-number')
+    ->maxTimeBetweenDigits(3000)
+    ->expectAtLeast(10)
+    ->expectAtMost(12)
+    ->cancelWith(Node::DTMF_STAR)
+    ->cancelWithInputRetriesInput()
+    ->endInputWith(Node::DTMF_HASH)
+    ->maxAttemptsForInput(3)
+    ->run()
+;
+</pre>
+<p>
+In this case, we are expecting between 10 and 12 digits for a valid PIN number. If the user
+enters 12 digits, no more digits will be expected. However, a valid PIN number may have 10 
+digits instead of 12. When the node is waiting for the 11th digit, the user may press the hash
+character (#), configured as the end of input digit, so he/she does not have to wait for
+the timeout to complete. Validators will only be run if the input length is above or equals to the minimum expected length. Otherwise, 
+it is considered a failed input attempt.
+</p>
+<p>
+Also, a cancel digit is defined (the star digit, *). So the user can cancel the node. An additional 
+behaviour is specified for the cancel digit (cancelWithInputRetriesInput()) that means that the node will
+be cancelled if the user presses the cancel digit without any previous input, but if there is any previous input,
+only the input attempt is cancelled. For example, if after the prompt, the user immediatly presses the cancel digit,
+then the node is cancelled and ends. On the other hand, if the user presses something like "123*", then the node
+will cancel that particular input attempt and then retry it (this is useful when the user enters a wrong digit and want to
+continue using that particular node, retrying the input). Each cancelled input attempt counts as a failed input attempt.
+</p>
+<h3>Loading a bunch of validators</h3>
+<p>
+If you have many validators to use for an input, it can be annoying to call
+validateInputWith() for every one of them. In this case, you can use the
+loadValidatorsFrom() method, like so:
+</p>
+<pre name="code" class="php">
+use PAGI\Node\Node;
+
+function getValidators()
+{
+	return array(
+	    'validationName1' => Node::createValidatorInfo(
+	        function(Node $node) {
+	            return true;
+	        },
+	        'validationFailedSound1'
+	    ),
+	    'validationWithoutSound' => Node::createValidatorInfo(
+	        function(Node $node) {
+	            return true;
+	        },
+	    ),
+	    'validationName2' => Node::createValidatorInfo(
+	        function(Node $node) {
+	            return true;
+	        },
+	        'validationFailedSound2'
+	    )
+	);
+}
+
+$pagiClient->createNode('enterCreditCard')
+    ->loadValidatorsFrom(getValidators())
+;
+</pre>
+<h3>Executing custom callbacks</h3>
+<p>
+Here's a brief example of all the callbacks available in a node:
+</p>
+<pre name="code" class="php">
+$pagiClient->createNode('callbackTest')
+    ->executeOnValidInput(function (Node $node) {
+        // Will run when all validations passed
+        // for the entered input
+    })->executeOnInputFailed(function (Node $node) {
+        // Will run after all attempts to enter a valid
+        // input have been used. Will only be run 1 or 0
+        // times.
+    })->executeBeforeRun(function (Node $node) {
+        // Will run before the node starts to run.
+    })->executeAfterRun(function (Node $node) {
+        // Will run after the node has completed execution.
+    })->executeAfterFailedValidation(function (Node $node) {
+        // Will run after an input validation has been failed.
+        // May be run 0 or multiple times.
+    })
+;
+</pre>
+<h3>Carrying state: Using the node internal registry</h3>
+<p>
+Let's go back to our example of calling card pin input, adding some validations:
+</p>
+<pre name="code" class="php">
+$inputPinNode = $pagiClient->createNode('inputPin');
+$inputPinNode
+    ->saySound('please-enter-your-pin-number')
+    ->maxTimeBetweenDigits(3000)
+    ->expectAtLeast(10)
+    ->expectAtMost(12)
+    ->cancelWith(Node::DTMF_STAR)
+    ->cancelWithInputRetriesInput()
+    ->endInputWith(Node::DTMF_HASH)
+    ->maxAttemptsForInput(3)
+    ->validateInputWith(
+        'cardExists',
+        function (Node $node) use ($cardService) {
+            // Try to get a calling card entity with the
+            // given PIN.
+            $input = $node->getInput();
+            $cardEntity = $cardService->getByPin($input);
+            if ($cardEntity === null) {
+                return false;
+            }
+            // Success! Save the calling card entity for
+            // other validations.
+            $node->saveCustomData('cardEntity', $cardEntity);
+            return true;
+        },
+        'card-does-not-exist'
+    )
+    ->validateInputWith(
+        'cardHasFunds',
+        function (Node $node)  {
+            // This validator will now have the calling card
+            // entity stored in the registry.
+            $cardEntity = $node->getCustomData('cardEntity');
+            return $cardEntity->hasAtLeast(20);
+        },
+        'insufficient-funds'
+    )
+    ->run()
+;
+
+// Check how the node ended.
+if ($inputPinNode->wasCancelled()) {
+    $mainMenuNode->run();
+} else if ($inputPinNode->maxInputsReached()) {
+    $inputPinNode->getClient()->hangup();
+} else {
+    $cardEntity = $inputPinNode->getCustomData('cardEntity');
+    // Optional, not mandatory cleanup.
+    $inputPinNode->delCustomData('cardEntity');
+    // Continue the application in another node.
+    $anotherNode->saveCustomData('cardEntity', $cardEntity)->run();
+}
+</pre>
+<h3>How to unit test the nodes</h3>
+<p>
+To unit test a node (for example, from a phpunit testcase or event without it), first, get a pagi mocked client:
+</p>
+<pre name="code" class="php">
+$mockedClient = new PAGI\Client\Impl\MockedClientImpl(array(
+    'log4php.properties' => __DIR__ . '/log4php.properties'
+));
+</pre>
+<p>
+Then, mock the node:
+</p>
+<pre name="code" class="php">
+$mockedClient
+    ->onCreateNode('mainMenu')
+    ->runWithInput('123*4#') // simulate this input from the user
+    ->assertSaySound('pp/30', 1)
+    ->assertSayDigits(123, 2)
+    ->assertSayNumber(321, 3)
+    ->assertSayDateTime(11223344, 'dmY', 4)
+;
+</pre>
+<p>
+In the above test, we are configuring the mocked client to expect a node
+to be created by someone else, called "mainMenu". When this node is created,
+the mocked client will return a mocked node. When run() is called on the node (
+from your application, or wherever you need/want to), the mocked
+node will be run with the input "1".
+</p>
+<p>
+After the node has finished, some assertions will be done (in no particular order):
+</p>
+<ul>
+<li>The file pp/30 has to be played exactly 1 time.</li>
+<li>The digits "123" will be read to the user, exactly 2 times.</li>
+<li>The number "321" will be read to the user, exactly 3 times.</li>
+<li>A datetime will be read to the user (the unix timestamp 11223344) with the format 'dmY, exactly 4 times.</li>
+</ul>
+<p>
+Also, there are some other assertions available:
+</p>
+<pre name="code" class="php">
+$mockedNode->assertMaxInputAttemptsReached();
+$mockedNode->assertComplete();
+$mockedNode->assertCancelled();
+</pre>
+<h3>Simulating the exact input from the user</h3>
+<p>
+When simulating input from the user, use the method "runWithInput()" in the
+mocked node, like so:
+</p>
+<pre name="code" class="php">
+$mockedNode->runWithInput('123*4#');
+</pre>
+<p>
+You can specify every dtmf digit available (1234567890#*). Also, if you want
+to simulate a timeout when entering a digit, you can use a space, for example:
+</p>
+<pre name="code" class="php">
+$mockedNode->runWithInput('1 2  3');
+</pre>
+<p>
+This simulates the user pressing "1", then nothing, then "2", then nothing (twice),
+and then "3". This is useful to avoid skipping one or more prompt/pre prompt
+messages. For example, you can use a space to emulate the user listening to the
+complete error message, and then pressing an option in the prompt message. Or even
+2 spaces to simulate the user listening to the pre prompt message and the prompt message
+without interrupting them, and then pressing a dtmf digit.
+</p>
+<p>
+This works this way because the simulated input string is only consumed whenever an "interruptable"
+call happens in the pagi client. Interruptable calls are the ones that let the user press a dtmf digit
+to interrupt the operation, for example:
+</p>
+<ul>
+<li>Playing a sound (STREAM FILE).</li>
+<li>Playing digits (SAY DIGITS).</li>
+<li>Playing a number (SAY NUMBER).</li>
+<li>Playing a datetime (SAY DATETIME).</li>
+<li>Waiting for a digit (WAIT FOR DIGIT).</li>
+</ul>
+<p>
+Interruptable operations can be made non interruptable (thus modifying the behaviour described above). When
+an operation is not interruptable, the input string will not be consumed by that particular operation.
+</p>
+<h3>Special callbacks for the mocked node</h3>
+<p>
+There also some specific callbacks available for the mocked node:
+</p>
+<pre name="code" class="php">
+// Called before running the callback for failed input in
+// the real node.
+$mockedNode->doBeforeFailedInput(function (Node $node) {} );
+
+// Called before running the callback for a validated input
+// in the real node.
+$mockedNode->doBeforeValidInput(function (Node $node) {} );
+</pre>
+<p>
+These callbacks are useful (for example) to add some assertions in the pagi
+client, when you expect something to be done from outside the node. Suppose you
+issue a dial() when the node has valid input, you could then do: 
+</p>
+<pre name="code" class="php">
+$mockedNode->doBeforeValidInput(function (Node $node) {
+    $node->getClient()->onDial(
+        true, 'peerName', '5555555', 10, 'ANSWER', ''
+    );
+});
+</pre>
+<p>
+So when the node reaches a valid input and the valid input callback is run (and the
+dial is executed), everything works as expected.
+</p>
+<H3>Conclusion</H3>
+<p>
+Phew. First of all, thanks for keep on reading! :P I think the conclusion is somewhat clear:
+It's now much more easy to create ivr applications by just configuring the call flow nodes to do
+what you need. Lots of code should now disappear from your applications (like reading loops, error
+checking, manually manipulating the pagi client). Also, you can now focus on doing exactly what your
+telephony application requires, and nothing else.
+</p>
+<p>
+This leads to reduced development times and less
+bugs introduced. The node behaviour aims to be generic, and to cover the vast majority of general
+use cases for standard call flow nodes. Still, it will let you "fill in the blanks", by using callbacks
+appropiately. This feature was very fun to write, and I hope it will be fun for you to use :)
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
+                  <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
+                  <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
+                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
+                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
+                  <li><a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">Ding container: Using the Xml, Yaml, and Annotations drivers</a></li>
+                  <li><a href="ding_xml_yaml_di_dependency_injection.html">Dependency injection with Xml and Yaml in the Ding container</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
