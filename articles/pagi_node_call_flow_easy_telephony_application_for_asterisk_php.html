@@ -439,6 +439,10 @@ After the node has finished, some assertions will be done (in no particular orde
 <li>A datetime will be read to the user (the unix timestamp 11223344) with the format dmY, exactly 4 times.</li>
 </ul>
 <p>
+<b>NOTE</b>: Be careful when asserting numbers. A strict check is used (===) to distinguish between false and 0 and null, so
+when asserting numbers, remember that '123' IS NOT THE SAME AS 123.
+</p>
+<p>
 Also, there are some other assertions available:
 </p>
 <pre name="code" class="php">
