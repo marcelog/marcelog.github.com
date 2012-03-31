@@ -357,7 +357,10 @@ $pagiClient->createNode('callbackTest')
 </pre>
 <h3>Carrying state: Using the node internal registry</h3>
 <p>
-Let's go back to our example of calling card pin input, adding some validations:
+A Node has what is called a registry, where data can be stored, queried, and
+deleted. This is a convenient way to store data in the node so outsiders can
+access it, specially, a chained of validations. Let's go back to our example of
+calling card pin input, adding some validations:
 </p>
 <pre name="code" class="php">
 $inputPinNode = $pagiClient->createNode('inputPin');
