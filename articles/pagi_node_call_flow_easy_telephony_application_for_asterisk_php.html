@@ -172,14 +172,20 @@ and they will be executed in order. The validator's execution will stop when any
 validation is allowed).
 </p>
 <p>
+If you want to play the "no input" message in the last attempt too, you can use:
+</p>
+<pre name="code" class="php">
+$mainMenu->playNoInputMessageOnLastAttempt();
+</pre>
+<p>
 To check how this node ended up, we could use the following code (note that this is pretty much
 the job of the NodeController, which we are not using *yet*):
 </p>
 <pre name="code" class="php">
-if ($mainMenuNode->maxInputsReached()) {
-    $mainMenuNode->getClient()->hangup();
-} else if ($mainMenuNode->isComplete()) {
-    $input = $mainMenuNode->getInput();
+if ($mainMenu->maxInputsReached()) {
+    $mainMenu->getClient()->hangup();
+} else if ($mainMenu->isComplete()) {
+    $input = $mainMenu->getInput();
     if ($input == 1) {
         $option1Node->run();
     } else if ($input == 2) {
