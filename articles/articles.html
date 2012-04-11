@@ -164,7 +164,15 @@ to give it a try. Of course it is fun to get it up and running and serve static 
                 <h2>Configuring postfix to forward all email to a smtp gateway</h2>
                 <div class="hr-1"><hr /></div>
                 <p>Suppose you want all your web servers to locally send all email (maybe from your contact forms, or whatever)
-to a real smtp gateway. If you're running <a href="http://www.postfix.org/">postfix</a> as your mta, this is quite easily to achieve. &nbsp;<a href="configure_postfix_forward_all_email_smtp_gateway.html"><strong>Read More &raquo;</strong></a></p>              </div>
+to a real smtp gateway. If you're running <a href="http://www.postfix.org/">postfix</a> as your mta, this is quite easily to achieve. &nbsp;<a href="configure_postfix_forward_all_email_smtp_gateway.html"><strong>Read More &raquo;</strong></a></p>
+                <h2>Different relays in postfix based on regular expressions</h2>
+                <div class="hr-1"><hr /></div>
+                <p>So I had this particular situation where a site sends lots of emails to its
+registered users, and some of those emails go directly to the Spam folder of hotmail, yahoo, or gmail, for various reasons.
+This was acceptable for the majority of the emails, but some of them were really important (like password resets, registration confirmations, and the like) so
+the site hired a payed smtp relay to be used for sending *only* those emails &nbsp;<a href="configure_postfix_forward_email_regex_subject_transport_relay.html"><strong>Read More &raquo;</strong></a></p>
+
+</div>
             </div>
             <div class="mod view-more">
               <div class="inner">
