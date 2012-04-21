@@ -99,6 +99,8 @@ You will need to already have installed:
 <li>Jenkins (here are the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins">installation instructions</a>.)</li>
 <li>PHP (with a working copy of pear)</li>
 <li>Phing (<a href="http://www.phing.info/trac/wiki/Users/Download">installation instructions</a>.)</li>
+<li><a href="http://xdebug.org/">Xdebug</a> so PHPUnit can generate the coverage report.</li>
+<li>The <a href="https://wiki.jenkins-ci.org/display/JENKINS/Phing+Plugin">phing plugin</a> for Jenkins.</li>
 </ul>
 <p>
 Download the example code:
@@ -109,12 +111,18 @@ $ cd Ci-Php-Phing-Example
 <h3><u>Configuring the build</u></h3>
 <p>
 The file <a href="https://github.com/marcelog/Ci-Php-Phing-Example/blob/master/build.properties">build.properties</a> controls how to run the tools
-and how the build is generated. This file is imported from the <a href="https://github.com/marcelog/Ci-Php-Phing-Example/blob/master/build.xml">build.xml</a> file, which is
+that generate artfacts, and how the build is generated. This file is imported from the <a href="https://github.com/marcelog/Ci-Php-Phing-Example/blob/master/build.xml">build.xml</a> file, which is
 the main file read by phing.
 </p>
 <p>
-Before running anything, we need to configure the current php and pear copies in the project. Edit the file build.properties, configure the property "php.bin" and "defaultpear.bin" with the path for your own. Then edit
-resources/php.ini and set the paths to the correct extensions directory for your php.
+Before running anything, we need to configure the current php and pear copies in the project. Another properties file is used in this case, named php.properties, which is
+shipped as an example, and ignored at the scm level. This is so you can customize this file without having to commit this change and affect everyone else. So:
+<pre name="code" class="php">
+Ci-Php-Phing-Example $ cp php.properties.example php.properties
+</pre>
+<p>
+Edit the file php.properties, configure the property "php.bin", "php.ini", and "defaultpear.bin" with the path for your own. You can find a sample php.ini file in <a href="https://github.com/marcelog/Ci-Php-Phing-Example/blob/master/resources/php.ini.example">resources/php.ini.example</a>. 
+But maybe you should just copy and reuse the one in your system. 
 </p>
 <p>
 Now try the install-dependencies target:
@@ -206,16 +214,25 @@ a major version number (in this case, "1"), a dot, and the build number. So the 
 This version number will be stored in an environment variable (APP_VERSION) before running the build. 
 </p>
 <p>
-<b>NOTE</b>:I could not manage to get the build version out of a git tag, which would be better.
+<b>NOTE</b>:I could not manage to get the build version out of a git tag (in a simple way), which would've be better.
 </p>
 <p>
 Note that this behavior is enough for my own projects, but at work, we update the major version every 10 sprints. We also have a minor version number,
 that is the number of the sprint since the beginning of that version, and a micro version which is the build number inside that sprint, and is reset to 0 in every sprint beginning. So a version like
 2.3.12 means the product version number 2, 3rd sprint for that version, and build 12th since the beginning of the sprint.
 </p>
+<p>
+Also, I've added the GIT_COMMIT variable value to the pear package description and the name of the phar distribution. This is populated by Jenkins with the id the commit
+that triggered the build. 
+</p>
 <h3><u>Setting up Jenkins</u></h3>
 <p>
-Here's an example of how to configure Jenkins to generate the artifacts (you can click the image to see it completely)
+Here's an example of how to configure Jenkins to generate and publish the artifacts (you can click the image to see it completely). After each build,
+you will get the software metrics published and also a phar and pear distribution.
+</p>
+<p>
+In the image, the full configuration is shown. However, the important stuff is how to configure the repository polling, the application version number, 
+the phing targets to run, and the publishing of the artifacts. In order to use phing in Jenkins, you need the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Phing+Plugin">phing plugin</a>.
 </p>
 <p>
 <a href="ciconfigexample.jpeg"><img width="580" src="ciconfigexample.jpeg"/></a>
