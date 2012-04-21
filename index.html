@@ -52,8 +52,10 @@ thing or the other. So this weekend I've finally decided to give it a try by try
 that access a small C++ wrapper for libpcap, so I can sniff packets directly from PHP. Just for fun (and actually because
 I couldn't find any active pecl extension to use libpcap, so it might as well be something useful). I've named it "SimplePcap". &nbsp;<a href="articles/swig_php_libpcap_module_c++.html"><strong>Read More &raquo;</strong></a></p>
                 <div class="hr-2"><hr /></div>
-                <h3>Mocking global php functions for unit testing</h3>
-                <p>Let&acute;s say you&acute;d like to achieve a 100% coverage of your code in your php application (you obsessive geek..). It&acute;s almost certain you&acute;ll need to start mock&acute;ing things around. So far so good.. but sooner or later you will need to deal with the test cases for the code that use global php functions. How can you mock them?  &nbsp;<a href="articles/php_mock_global_functions_for_unit_tests_with_phpunit.html"><strong>Read More &raquo;</strong></a></p>
+                <h3>PHP Continuous integration, with Jenkins and Phing</h3>
+<p>This article is about how to use <a href="http://www.phing.info/trac/">Phing</a> in your projects, so a <a href="http://en.wikipedia.org/wiki/Continuous_integration">continuous integration server</a> (in this case <a href="http://jenkins-ci.org/">Jenkins</a> -ex Hudson-) can generate
+the necessary artifacts for your php application (deployment artifacts, documentation, code metrics, etc). I'll try to show why this will make your life easier when
+developing or auditing code, generating releases and deploying new versions, trace bugs, etc. &nbsp;<a href="articles/ci_jenkins_hudson_continuous_integration_php_phing.html"><strong>Read More &raquo;</strong></a></p>
                 <div class="hr-2"><hr /></div>
                 <h3>How to make a cross compiler (gcc) for freebsd under linux. A small tutorial.</h3>
                 <p>I manage a Hudson CI Server that runs on a linux system where I work, and one of our projects is written in plain C code that should be able to run on linux and also freebsd 7. Up to now we were using a freebsd (hudson) slave node in order to build the freebsd binaries. &nbsp;<a href="articles/cross_freebsd_compiler_in_linux.html"><strong>Read More &raquo;</strong></a></p>
@@ -61,6 +63,9 @@ I couldn't find any active pecl extension to use libpcap, so it might as well be
                 <h3>Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</h3>
                 <p>Here, I'll write about AsterTrace (<a href="https://github.com/marcelog/AsterTrace">https://github.com/marcelog/AsterTrace</a>), a
 simple project that will help you get started using the asterisk manager interface. &nbsp;<a href="articles/php_asterisk_listener_example_using_pami_and_ding.html"><strong>Read More &raquo;</strong></a></p>
+                <div class="hr-2"><hr /></div>
+                <h3>Mocking global php functions for unit testing</h3>
+                <p>Let&acute;s say you&acute;d like to achieve a 100% coverage of your code in your php application (you obsessive geek..). It&acute;s almost certain you&acute;ll need to start mock&acute;ing things around. So far so good.. but sooner or later you will need to deal with the test cases for the code that use global php functions. How can you mock them?  &nbsp;<a href="articles/php_mock_global_functions_for_unit_tests_with_phpunit.html"><strong>Read More &raquo;</strong></a></p>
                 <div class="hr-2"><hr /></div>
                 <h3>Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</h3>
                 <p>In <a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">this article</a> I explained the inners of the AMI protocol, and talked about actions, events, and responses. As a complement of that article I wrote (just for fun) a little shell script &nbsp;<a href="bash_asterisk_manager_interface_client_shell_script.html"><strong>Read More &raquo;</strong></a></p>
