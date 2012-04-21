@@ -58,10 +58,16 @@ the necessary <a href="http://en.wikipedia.org/wiki/Artifact_(software_developme
 developing or auditing code, generating releases and deploying new versions, trace bugs, etc. All with just a handful of phing tasks.
 </p>
 <p>
+Note that I wont go into any details about what is CI and what it implies to your way of work. I'll assume you already heard about it, and you just want to
+implement it for your php projects. To know more about continuous integration, you can read <a href="http://martinfowler.com/articles/continuousIntegration.html">this post</a> by Martin Fowler
+and <a href="http://en.wikipedia.org/wiki/Continuous_integration">this wiki post</a>.
+</p>
+<p>
 Phing in PHP is like <a href="http://ant.apache.org/">ant</a> in java, and
-"kind of" like <a href="http://en.wikipedia.org/wiki/Make_(software)">make</a>. I'll describe a skeleton of an application, that you could easily copy&paste to port legacy projects
+"kind of" like <a href="http://en.wikipedia.org/wiki/Make_(software)">make</a>. For an in depth tour of phing, you can read the <a href="http://www.phing.info/docs/guide/current/">user guide</a>.
+I'll describe a skeleton of an application, that you could easily copy&paste to port legacy projects
 (or create new ones) so that they are ready to be built by Jenkins (and also, the needed job configuration). Note that except for the job configuration (which is jenkins specific), everything
-can be used in the CI server of your choice.
+can be used in the CI server of your choice. 
 </p>
 <p>Not only that, but also your team members can manage your project (their copies) by calling the same
 phing tasks. So humans can run tests, see coverage and other metrics before commiting, and also try the artifacts that will be generated when the
@@ -93,6 +99,8 @@ First, a couple of useful links:
 <li><u><a href="https://github.com/sebastianbergmann/phploc">PHPLoc</a></u> does a summary of how much lines of code, classes, etc the code has.</li>
 <li><u><a href="http://pdepend.org/">PHPDepend</a></u> is used to analyze dependencies between the different modules of the application.</li>
 <li><u><a href="http://www.docblox-project.org/">The DocBlox Project</a></u> used to generate API documentation.</a></li>
+<li><u><a href="http://martinfowler.com/articles/continuousIntegration.html">CI Post</a></u> by Martin Fowler.</li> 
+<li><u><a href="http://www.phing.info/docs/guide/current/">Phing user guide</a></u></li>
 </ul>
 </p>
 <h3><u>Getting Started</u></h3>
