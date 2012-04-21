@@ -1,0 +1,317 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>PHP Continuous integration, with Jenkins and Phing</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content=""/>
+<meta name="description" content=""/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  PHP Continuous integration, with Jenkins and Phing</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>PHP Continuous integration, with Jenkins and Phing</h2>
+                <div class="hr-1"><hr /></div>
+  <H3><u>Introduction</u></H3>
+<p>
+This article is about how to use <a href="http://www.phing.info/trac/">Phing</a> in your projects, so a <a href="http://en.wikipedia.org/wiki/Continuous_integration">continuous integration server</a> (in this case <a href="http://jenkins-ci.org/">Jenkins</a> -ex Hudson-) can generate
+the necessary artifacts for your php application (deployment artifacts, documentation, code metrics, etc). I'll try to show why this will make your life easier when
+developing or auditing code, generating releases and deploying new versions, trace bugs, etc.
+</p>
+<p>
+Phing in PHP is like <a href="http://ant.apache.org/">ant</a> in java, and
+"kind of" like <a href="http://en.wikipedia.org/wiki/Make_(software)">make</a>. I'll describe a skeleton of an application, that you could easily copy&paste to port legacy projects
+(or create new ones) so that they are ready to be built by Jenkins (and also, the needed job configuration). Note that except for the job configuration (which is jenkins specific), everything
+can be used in the CI server of your choice.
+</p>
+<p>Not only that, but also your team members can manage your project (their copies) by calling the same
+phing tasks. So humans can run tests, see coverage and other metrics before commiting, and also try the artifacts that will be generated when the
+CI server builds them. This will surely rise the quality of the commited code and also yield some very nice statistics about the code itself.
+</p>
+<p>
+Also, the guys from "operations" will be happy to be automatically notified by email when a new build is made, so they can upgrade any production code. They just need to 
+download the latest build from the CI server and do their thing. Also, the project will have a lot more visibility to the outside world. 
+</p>
+<p>
+Another nice feature shown in the example code is how to create an isolated environment where you can test new dependency versions without affecting other users or other
+copies of the code. Every member of the team have their own versions of the code and the dependencies.
+</p>
+<p>
+First, a couple of useful links:
+<ul>
+<li><u><a href="https://github.com/marcelog/Ci-Php-Phing-Example">Code for this article @Github</a></u>: Example application for this article, including unit tests, ready to go to a CI server of choice.</li>
+<li><u><a href="http://ci.marcelog.name:8080/job/CiPhpExample/">Jenkins Job</a></u>: The resulting job built from the above application.</li>
+<li><u><a href="http://jenkins-ci.org/">Jenkins CI Server</a></u>: The CI server chosen (another good one is <a href="http://cruisecontrol.sourceforge.net/">CruiseControl</a>)</li>
+<li><u><a href="http://www.phing.info/trac/">Phing</a></u>: This is the tool chosen to build and manage the project.</li>
+<li><u><a href="http://www.phpunit.de/manual/3.6/en/">PHPUnit</a></u>: This provides the unit tests framework.</li>
+<li><u><a href="http://pear.php.net/package/PHP_CodeSniffer">CodeSniffer</a></u>: Provides syntax check for the project.</li>
+<li><u><a href="http://phpmd.org/">PHPMD</a></u>: Detects possible problems and complexity throughout the code.</li>
+<li><u><a href="https://github.com/sebastianbergmann/phpcpd">PHPCpd</a></u>: Copy&Paste code detector :)</li>
+<li><u><a href="https://github.com/sebastianbergmann/phploc">PHPLoc</a></u> does a summary of how much lines of code, classes, etc the code has.</li>
+<li><u><a href="http://pdepend.org/">PHPDepend</a></u> is used to analyze dependencies between the different modules of the application.</li>
+<li><u><a href="http://www.docblox-project.org/">The DocBlox Project</a></u> used to generate API documentation.</a></li>
+</ul>
+</p>
+<h3><u>Getting Started</u></h3>
+<p>
+You will need to already have installed:
+</p>
+<ul>
+<li>Jenkins (here are the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins">installation instructions</a>.)</li>
+<li>PHP (with a working copy of pear)</li>
+<li>Phing (<a href="http://www.phing.info/trac/wiki/Users/Download">installation instructions</a>.)</li>
+</ul>
+<p>
+Download the example code:
+<pre name="code" class="php">
+$ git clone git://github.com/marcelog/Ci-Php-Phing-Example.git
+$ cd Ci-Php-Phing-Example
+</pre>
+<h3><u>Configuring the build</u></h3>
+<p>
+The file <a href="https://github.com/marcelog/Ci-Php-Phing-Example/blob/master/build.properties">build.properties</a> controls how to run the tools
+and how the build is generated. This file is imported from the <a href="https://github.com/marcelog/Ci-Php-Phing-Example/blob/master/build.xml">build.xml</a> file, which is
+the main file read by phing.
+</p>
+<p>
+Before running anything, we need to configure the current php and pear copies in the project. Edit the file build.properties, configure the property "php.bin" and "defaultpear.bin" with the path for your own. Then edit
+resources/php.ini and set the paths to the correct extensions directory for your php.
+</p>
+<p>
+Now try the install-dependencies target:
+</p>
+<pre name="code" class="php">
+Ci-Php-Phing-Example $ phing install-dependencies
+</pre>
+<p>
+It may take a while to complete, but you only need to run this when checking out the project or when upgrading/adding a dependency. This will create a "vendor" directory, and install a 
+fresh copy of pear. This copy of pear will be used to download a new version of phing, phpunit, phpcpd,
+phpmd, pdepend, etc. So now you have your own versions of these tools (and so everyone in your team). These wont
+conflict with each other or with the defaults installed in the dev server you're using. 
+</p>
+<h3><u>Other targets</u></h3>
+<ul>
+<li><u>clean</u>: Will remove the build directory, where artifacts are generated.</li>
+<li><u>report</u>: Will create all the reports from the code metrics tools.</li>
+<li><u>package</u>: Generates phar and pear package distribution.</li>
+<li><u>test</u>: Will run the unit tests and produce coverage output.</li>
+<li><u>all</u>: Will run report and package targets.</li>
+</ul>
+<p>
+When running something like "phing test", the phing run is the one installed in the dev server you're using. This copy of phing will
+then be used internally to use the phing copy inside of the "vendor" directory. This gives you the possibility of changing the phing
+version without affecting the one installed in the system. Same thing applies to the pear copy used and everything inside the vendor
+directory.
+</p>
+<h3><u>The build output</u></h3>
+<p>
+The artifacts are generated in the "build" directory, which is created automatically from the build.xml file. After a complete build, you will find the phar distribution, the pear
+package, and the xml and html's generated by the tools.
+</p>
+<p>
+That's all. Give it a try, and then continue reading :) Now you and your team members have a common way of
+managing their copies of the project without affecting each others work. 
+</p>
+<h3><u>Tools and Software Metrics Report</u></h3>
+<p>
+The following tools are installed by the "install-dependencies" target and are used to generate lots of software metrics reports. These reports
+will then be published by the CI server.
+</p>
+<ul>
+<li><u>Codesniffer</u>: CodeSniffer enforces the use of a coding standard. It will warn you when a code does not follow the given standard (for example, putting braces
+in a new line when writing for's, if's, etc or using tabs instead of spaces). It's very useful when you have new team members or lots of people making commits, and you want to make sure
+that everyone writes the code in the same way.</li>
+<li><u>PHPMD</u>: PHPMD is the PHP Mess Detector. Will issue warnings when it detects that a code violates some well known best practices or smells in some way, like classes containing too many methods or
+properties, code that exceeds certain CRAP, NPATH, etc. You can see a complete list of these (and their meanings) <a href="http://phpmd.org/rules/codesize.html">here</a>.</li>
+<li><u>PHPCPD</u>: The PHP Copy&Paste detector. Will analyze the code trying to find any copy pasted code and warn you if any is found.</li>
+<li><u>PDepend</u>: Will generate a report for package dependencies in the project, will report any cyclic dependencies.</li>
+<li><u>PHPLoc</u>: Measures project size in lines of code, classes, methods, etc.</li>
+<li><u>DocBlox</u>: Generates API documentation from code.</li>
+</ul>
+<h3><u>The Resources directory</u></h3>
+<p>
+The <a href="https://github.com/marcelog/Ci-Php-Phing-Example/tree/master/resources">resources directory</a> of the project contains the following needed stuff:
+</p>
+<ul>
+<li><u>checkstyle.xsl / cpd.xslt / pdepend.xsl / phpunit_to_surefire.xslt / pmd.xslt</u>: I've collected these stylesheets from different sources, they were not created by me, and unfortunately I've lost the original author(s) and website(s) for them. They are
+needed so Jenkins can correctly publish the results for the tools CodeSniffer, PHPCPD, PHPMD, PHPDepend, and phpunit. Jenkins can publish the results of their Java equivalents, but a few transformations are
+needed to make the PHP counterparts fully compatible.</li>
+<li><u>php.ini</u>: An example php.ini file. This one will be used to invoke the tools, so you can run them in a "controlled" environment.</li>
+<li><u>generatePhar.php</u>: A very simple script used to generate a phar distribution for the entire project.</li>
+<li><u>generatePackageXml.php</u>: This is a very (very) raw script that I wrote in a few minutes so I can easily generate the <a href="http://pear.php.net/manual/en/guide.developers.package2.php">package.xml</a> file needed for pear, so then a "pear package" will create
+the pear package in .tgz form.</li>
+</ul>
+<h3><u>Triggering Builds</u></h3>
+<p>
+As you can see in the example configuration for the Jenkins job (the image at the
+end of this article), I've set that the git repository should be polled for changes every 5 minutes
+(<a href="http://en.wikipedia.org/wiki/Cron#Examples_2">a cron-like syntax</a>). When Jenkins detects
+a new commit, it will build a new release.
+</p>
+<p>
+Of course, you can manually trigger the builds whenever needed.
+</p>
+<h3><u>The release versions</u></h3>
+<p>
+By default, Jenkins increments the build number for every new build. Starting at 1. So the next 
+version is 2, then 3, and so on.
+</p>
+<p>
+I like version numbers to be something like 1.3 or 2.8, so for a more advanced behavior when creating a version number for a build, I'm using
+the <a href="http://wiki.hudson-ci.org/display/HUDSON/Version+Number+Plugin">Version Number</a> plugin and
+the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables">Jenkins environment variables</a>.
+</p>
+<p>
+I've configured the job to generate this "formatted version number" (check the image with the example configuration), composing
+a major version number (in this case, "1"), a dot, and the build number. So the first version number will be 1.1, then 1.2, 1.3, etc.
+This version number will be stored in an environment variable (APP_VERSION) before running the build. 
+</p>
+<p>
+<b>NOTE</b>:I could not manage to get the build version out of a git tag, which would be better.
+</p>
+<p>
+Note that this behavior is enough for my own projects, but at work, we update the major version every 10 sprints. We also have a minor version number,
+that is the number of the sprint since the beginning of that version, and a micro version which is the build number inside that sprint, and is reset to 0 in every sprint beginning. So a version like
+2.3.12 means the product version number 2, 3rd sprint for that version, and build 12th since the beginning of the sprint.
+</p>
+<h3><u>Setting up Jenkins</u></h3>
+<p>
+Here's an example of how to configure Jenkins to generate the artifacts (you can click the image to see it completely)
+</p>
+<p>
+<a href="ciconfigexample.jpeg"><img width="580" src="ciconfigexample.jpeg"/></a>
+</p>
+
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
+                  <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
+                  <li><a href="ding_xml_yaml_di_dependency_injection.html">Dependency injection with Xml and Yaml in the Ding container</a></li>
+                  <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
+                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
+                  <li><a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">Ding container: Using the Xml, Yaml, and Annotations drivers</a></li>
+                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
