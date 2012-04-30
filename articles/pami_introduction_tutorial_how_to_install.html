@@ -109,7 +109,8 @@ You need to include the logphp subdirectory correctly in your include_path.
 You can download and install PAMI in a number of ways, let's first examine them and then see how to
 bootstrap the pami client:
 </p>
-<p><b>NOTE</b>:Be sure that your PHP version is not 5.3.9 or 5.3.10, beacuse they had a bug in stream_get_line() that will prevent PAMI from working correctly. Please use a different 5.3 or 5.4 version. If you really need a patch, just email me.</p>
+<h3>For PHP 5.3.9 and 5.3.10 users</h3>
+<p><b>NOTE</b>:Be sure that your PHP version is not 5.3.9 or 5.3.10, beacuse they had a bug in stream_get_line() that will prevent PAMI from working correctly. Please use a different 5.3 or 5.4 version. If you really need a patch, just email me or see <a href="https://github.com/marcelog/PAMI/blob/master/README.PHP-5.3.9-and-5.3.10">this</a>.</p>
 <h3>Option A: Installing and using the PHAR distribution</h3>
 <p>
 You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.60.2, so the available artifact is named "PAMI-1.60.2.phar". Let's fetch it:
