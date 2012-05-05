@@ -149,12 +149,8 @@ in the application:
 php=/usr/bin/php
 pear=/usr/bin/pear
 
-# Should not need to touch anything below.
-# We use readlink here to return the full absolute
-# path to a filesystem entry very much similar to realpath()
-# in php.
-vendors=$(readlink -f ${root}/vendor)
-config=$(readlink -f ${root}/config)
+vendors=${root}/vendor
+config=${root}/config
 myphppath=${vendors}/php
 
 # The include path for all the applications will be
@@ -198,8 +194,10 @@ only be run once, at deployment time (or every other time you update your depend
 #!/bin/bash
 
 # Get our base directory (the one where this script is located)
-me=$(dirname ${0})
-root=$(readlink -f ${me}/../..)
+# http://mywiki.wooledge.org/BashFAQ/028
+me=$([[ $0 == /* ]] && echo "$0" || echo "${PWD}/${0#./}")
+root=$(dirname ${me})/..
+. ${root}/config/cli.properties
 
 # Try to include the well known config file.
 configFile=${root}/config/cli.properties
@@ -265,8 +263,11 @@ the absolute paths needed. Cool.
 </p>
 <pre name="code" class="php">
 #!/bin/bash
-me=$(dirname ${0})
-root=$(readlink -f ${me}/..)
+
+# Get our base directory (the one where this script is located)
+# http://mywiki.wooledge.org/BashFAQ/028
+me=$([[ $0 == /* ]] && echo "$0" || echo "${PWD}/${0#./}")
+root=$(dirname ${me})/..
 . ${root}/config/cli.properties
 
 # The first argument is the php script to run (the stub).
