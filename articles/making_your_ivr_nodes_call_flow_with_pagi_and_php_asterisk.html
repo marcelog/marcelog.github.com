@@ -1,0 +1,352 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Making your ivr nodes (call) flow with pagi</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content=""/>
+<meta name="description" content=""/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li><a href="../about.html"><span>About</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Making your ivr nodes (call) flow with pagi</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Making your ivr nodes (call) flow with pagi</h2>
+                <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
+<p>
+The <a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">last article</a> was about how to create
+call flow nodes for asterisk, using pagi and php, to easily create telephony applications. It's now time to add a layer on top of it, 
+and create a complete call flow with several nodes.
+</p>
+<p>
+First, a couple of useful links:
+<ul>
+<li><u><a href="https://github.com/marcelog/PAGI/tree/master/docs/examples/nodecontroller">Example NodeController application</a></u></li>
+<li><u><a href="http://marcelog.github.com/articles/pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Introduction to PAGI nodes</a></u></li>
+<li><u><a href="http://marcelog.github.com/PAGI">PAGI homepage</a></u></li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">PAGI API documentation</a></u></li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Node_Node.html#%5CPAGI%5CNode%5CNode">Node API</a></u></li>
+<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Node_NodeController.html#%5CPAGI%5CNode%5CNodeController">NodeController API</a></u></li>
+</ul>
+</p>
+<h3>So what is a NodeController?</h3>
+<p>
+A NodeController is what controls the execution flow of the nodes in your ivr application. You can register nodes in a
+node controller, and also register <b>actions</b>, to be executed based on their specific <b>result</b> when they are done executing.
+</p>
+<p>
+For example, you could register a jump to another node when the user input some specific digits, or when he/she has reached the
+maximum input attempts to enter a valid option in a menu, or when the node has been cancelled by pressing the cancel digit, etc.
+</p>
+<p>
+This is effectively a complete Call Flow, composed by different nodes and some specific behavior to control how the user
+navigates it.
+</p>
+<h3>Why should I use them?</h3>
+<p>
+It's not like you wont be able to do your application without them. Their main purpose is to save yourself from coding
+if's and switch-case's to make decisions in your code after executing every node. So instead of coding these, you will 
+just write declarative code that defines how a node controller will control and execute these nodes. 
+</p>
+<p>
+See below a brief description of the available results and actions that a NodeController can evalute and carry on when dealing with the
+Nodes execution.
+</p>
+<h3>List of available Results</h3>
+<ul>
+<li>onCancel(): Execute an action when the node is cancelled with the cancel digit.</li>
+<li>onComplete(): Execute an action when the node is completed successfully (not a cancelled node, and not an exceeded input attempts). Often used in conjunction with withInput().</li>
+<li>onMaxAttemptsReached(): Execute an action when the node ended with maximum attempts exceeded for a valid input.</li>
+<li>withInput($input): Will check that the user has entered $input before executing the action.</li>
+</ul>
+<h3>List of available Actions</h3>
+<li>hangup($cause): Hangup the communication with the given cause code.</li>
+<li>jumpTo($nodeName): Jump to the given node (by name).</li>
+<li>jumpAfterEval(Closure $callback): Evaluates the given callback. This callback must accept the currently running node, and return a string which is the name of the next node to jump to.</li>
+<li>execute(Closure $callback): Execute a callback.</li>
+<h3>Creating a NodeController</h3>
+<p>
+Creating a node controller is as easy as this. First, get a pagi client instance, as usual:
+</p>
+<pre name="code" class="php">
+$pagiClientOptions = array(
+    'log4php.properties' => __DIR__ . '/log4php.properties',
+);
+use PAGI\Client\Impl\ClientImpl as PagiClient;
+$pagiClient = PagiClient::getInstance($pagiClientOptions);
+</pre>
+<p>
+Then, instantiate a NodeController:
+</p>
+<pre name="code" class="php">
+$nodeController = $pagiClient->createNodeController('appName');
+</pre>
+<h3>Registering a Node</h3>
+<p>
+Nodes can be registered through the register() method, which returns a Node, creating a fluent
+interface for it:
+</p>
+<pre name="code" class="php">
+$nodeController->register('mainMenu')
+    ->saySound('menu')
+    ->maxAttemptsForInput(3)
+    ->expectExactly(1)
+    ->playOnNoInput('please-enter-an-option')
+;
+</pre>
+<h3>Executing the node controller</h3>
+<p>
+Once you registered your nodes, you can execute them by jump()ing to them:
+</p>
+<pre name="code" class="php">
+$nodeController->jumpTo('mainMenu');
+</pre>
+<p>
+Typically you would only do this when starting your application. At this stage, you
+are jumping to the first node, and then the NodeController will figure how to execute
+the other nodes by itself. See below.
+</p>
+<h3>Spicing it a little bit with Results and Actions</h3>
+<p>
+We havent done anything useful yet. We only have 1 node and we are executing it
+programatically. Let's add a node that will play a sound file to the user when it has
+reached the maximum input attempts for the above main menu:
+</p>
+<pre name="code" class="php">
+$nodeController->register('maxAttemptsReached')
+    ->saySound('max-attempts-reached')
+;
+</pre>
+<p>
+And let's now register a result handler for this node, that will hangup the communication after playing the
+sound file:
+</p>
+<pre name="code" class="php">
+$nodeController->registerResult('maxAttemptsReached')
+    ->onComplete()
+    ->hangup(16)
+;
+</pre>
+<p>
+So far we have added a new node that will just play a sound file. When the node completes, the NodeController
+will execute the action configured, in this case a hangup with the cause code 16.
+</p>
+<p>
+Let's now configure a result handler for the main menu, that will jump to the "maxAttemptsReached" node when the user
+has exceeded the maximum input attempts to enter a valid option:
+</p>
+<pre name="code" class="php">
+$nodeController->registerResult('mainMenu')
+    ->onMaxAttemptsReached()
+    ->jumpTo('maxAttemptsReached')
+;
+</pre>
+<h3>Completing the menu with conditional jumps</h3>
+<p>Let's add some behavior to the main menu so it will jump to other nodes based on the option chosen by the user:</p>
+<pre name="code" class="php">
+$nodeController->registerResult('mainMenu')
+    ->onComplete()
+    ->withInput('1')
+    ->jumpTo('menuOption1')
+;
+$nodeController->registerResult('mainMenu')
+    ->onComplete()
+    ->withInput('2')
+    ->jumpTo('menuOption2')
+;
+$nodeController->registerResult('mainMenu')
+    ->onComplete()
+    ->withInput('3')
+    ->jumpTo('menuOption3')
+;
+$nodeController->registerResult('mainMenu')
+    ->onComplete()
+    ->withInput('3')
+    ->jumpTo('help')
+;
+</pre>
+<p>
+Let's now add the help node, that when completed or cancelled will go back to the main menu:
+</p>
+<pre name="code" class="php">
+$nodeController->register('help')
+    ->saySound('help')
+    ->cancelWith(Node::DTMF_STAR)
+;
+$nodeController->registerResult('help')
+    ->onComplete()
+    ->jumpTo('mainMenu')
+;
+$nodeController->registerResult('help')
+    ->onCancel()
+    ->jumpTo('mainMenu')
+;
+</pre>
+<h3>Coding complex logic</h3>
+<p>
+Sometimes you need to take decisions based on some more complex logic, for example if the user has input a 
+calling card pin, you will sure need to validate it or try to get that entity from the database, and jump to one node
+or another based on these things. For this particular case, you can use the action jumpAfterEval(), like so:
+</p>
+<pre name="code" class="php">
+$nodeController->registerResult('pinEntry')
+    ->onComplete()
+    ->jumpAfterEval(function (Node $node) {
+	    // Try to get a calling card entity with the
+	    // given PIN.
+	    $input = $node->getInput();
+	    $cardEntity = $cardService->getByPin($input);
+	    if ($cardEntity === null) {
+	        return 'invalid-calling-card';
+	    }
+	    // Success! Save the calling card entity for
+	    // other validations.
+	    $node->saveCustomData('cardEntity', $cardEntity);
+	    return 'good-calling-card'
+    })
+;
+</pre>
+<p>
+Note that the Nodes have validators, that will usually suffice to do whatever needed before marking a node as complete. The code
+above is just an example, and better implementation would be to use a node validator. 
+</p>
+<H3>Conclusion</H3>
+<p>
+Using a NodeController clearly allows you to code less if's and switch-cases's and concentrate on the really important stuff
+of you ivr application. It might not be a killer feature, and maybe the nodes themselves are more important than the node controllers, but
+they are very useful once you get used to work with them. Creating a complete callflow in php for asterisk should be a lot more fun now :)
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="ci_jenkins_hudson_continuous_integration_php_phing.html">PHP Continuous integration, with Jenkins and Phing</a></li>
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
+                  <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
+                  <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
+                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
+                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
+                  <li><a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">Ding container: Using the Xml, Yaml, and Annotations drivers</a></li>
+                  <li><a href="ding_xml_yaml_di_dependency_injection.html">Dependency injection with Xml and Yaml in the Ding container</a></li>
+                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
