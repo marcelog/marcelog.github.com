@@ -49,7 +49,7 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Making your ivr nodes (call) flow with pagi</h2>
+                <h2>Making your ivr nodes (call) flow with PAGI</h2>
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
 <p>
@@ -74,12 +74,12 @@ A NodeController is what controls the execution flow of the nodes in your ivr ap
 node controller, and also register <b>actions</b>, to be executed based on their specific <b>result</b> when they are done executing.
 </p>
 <p>
-For example, you could register a jump to another node when the user input some specific digits, or when he/she has reached the
+For example, you could register a jump to another node when the user inputs some specific digits, or when he/she has reached the
 maximum input attempts to enter a valid option in a menu, or when the node has been cancelled by pressing the cancel digit, etc.
 </p>
 <p>
 This is effectively a complete Call Flow, composed by different nodes and some specific behavior to control how the user
-navigates it.
+navigates through them.
 </p>
 <h3>Why should I use them?</h3>
 <p>
@@ -88,7 +88,7 @@ if's and switch-case's to make decisions in your code after executing every node
 just write declarative code that defines how a node controller will control and execute these nodes. 
 </p>
 <p>
-See below a brief description of the available results and actions that a NodeController can evalute and carry on when dealing with the
+Below is a brief description of the available results and actions that a NodeController can evalute and carry on when dealing with the
 Nodes execution.
 </p>
 <h3>List of available Results</h3>
@@ -99,10 +99,12 @@ Nodes execution.
 <li>withInput($input): Will check that the user has entered $input before executing the action.</li>
 </ul>
 <h3>List of available Actions</h3>
+<ul>
 <li>hangup($cause): Hangup the communication with the given cause code.</li>
 <li>jumpTo($nodeName): Jump to the given node (by name).</li>
 <li>jumpAfterEval(Closure $callback): Evaluates the given callback. This callback must accept the currently running node, and return a string which is the name of the next node to jump to.</li>
 <li>execute(Closure $callback): Execute a callback.</li>
+</ul>
 <h3>Creating a NodeController</h3>
 <p>
 Creating a node controller is as easy as this. First, get a pagi client instance, as usual:
@@ -247,7 +249,7 @@ $nodeController->registerResult('pinEntry')
 </pre>
 <p>
 Note that the Nodes have validators, that will usually suffice to do whatever needed before marking a node as complete. The code
-above is just an example, and better implementation would be to use a node validator. 
+above is just an example, and a better implementation would be to use a node validator. 
 </p>
 <H3>Conclusion</H3>
 <p>
