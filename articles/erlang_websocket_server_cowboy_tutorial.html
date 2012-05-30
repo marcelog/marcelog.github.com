@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Erlang Websocket Server using Cowboy</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="websocket server erlang cowboy framework html5"/>
+<meta name="description" content="Tutorial that shows how to write a websocket server in erlang using the cowboy framework"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+  	<div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+   	</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Erlang Websocket Server using Cowboy</div>
+  </div>
+  <div class="main-outer">
+  	<div class="main-inner">
+    	<div class="main">
+      	<div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Erlang Websocket Server using Cowboy</h2>
+                <div class="hr-1"><hr /></div>
+  <p>
+<b>NOTE</b>: This is the translation of the <a href="http://erlang.org.ar/WebsocketsConCowboy">original article</a> I wrote in spanish for the
+wiki of <a href="http://erlang.org.ar/">Erlang Argentina</a>.
+</p>
+<h3>Introduction</h3>
+<p>
+Out of curiosity, and because some of my own projects needed it, I decided to go ahead and try writing a <a href="http://www.websocket.org/">websocket</a>
+server in erlang. After evaluating some of the available options (so I dont have to implement the whole websocket RFC
+-and their different drafts/versions- myself), I chose the Cowboy framework. This article tries to show my conclusions after
+the experience. 
+</p>
+<p>
+Note that I dont have that much experience using Cowboy, so I'd really like to know whatever comment you may think of that
+might make this article (or the code) any better. By the way, you can find the code for this article
+<a href="https://github.com/marcelog/erws">at GitHub</a>.
+</p>
+
+<h3>So, why Cowboy?</h3>
+<p>
+Well, it was the "last man standing" at the end of the tests. Up to now (05/2012), the available alternatives for
+writing a websocket server in erlang are:
+</p>
+<ul>
+<li>
+<b><a href="https://github.com/yrashk/socket.io-erlang">Socket.io-Erlang</a></b>:
+This was the most tempting option to me, because it would've been great to use <a href="http://socket.io/">socket.io</a> on the client side. Socket.io
+is really popular (specially in <a href="https://nodejs.org/">NodeJS</a>), and also because one of the authors
+(<a href="https://github.com/ferd">Frederic Trottier-Hebert</a>) is also the author of <a href="http://learnyousomeerlang.com/">LearnYouSomeErlang</a>.
+Unfortunately, the authors decided to not add any more features beyond those provided by socket.io 0.6.x (socket.io is
+now in the 0.9.x version) due to not being ok with internal changes to the socket.io code. So this pretty much 
+killed this one.
+</li>
+<li><b><a href="https://github.com/mochi/mochiweb">MochiWeb</a></b>: This one is incredible popular, and allows you to quickly create HTTP servers
+and would've been a great opportunity to use it, but it does not support websockets natively.</li>
+<li><b><a href="http://yaws.hyber.org/">Yaws</a></b>: It's a complete HTTP server, designed as a robust and scalable
+solution to server dynamic and static content, and also supports websockets. It seemed to me this was kind of an
+<a href="http://en.wikipedia.org/wiki/Overkill">overkill</a> for my particular situation, but I would have definitely used
+it if all the other options failed.</li>
+<li><b><a href="https://github.com/ostinelli/misultin">Misultin</a></b>: It's a library used to handle HTTP requests in an
+easy way. I didn't use this one because the author himself says (in the project README file), that he stopped
+further development because of the increased interest/attention and development on mochiweb and cowboy.</li>
+<li><b><a href="https://github.com/extend/cowboy">Cowboy</a></b>: It has quite a different (and interesting) approach, 
+because handling HTTP requests is just a part of the framework. Cowboy is actually more like a generic pool of connection
+accept()ors, that we can configure to handle normal TCP or SSL connections as transports, and handle protocols above them
+(like HTTP or any other we might like to). Out of the box, it supports HTTP, but it is essentially generic and extendable
+through behaviors (for example to support other protocols). A big drawback, though: documentation is scarce :( So you will need to browse through the source
+code to find the answers to your questions.</li>
+</ul>
+<h3>The code</h3>
+<p>
+So to start trying Cowboy, I decided to create a <a href="https://github.com/basho/rebar">rebar</a> application, which I 
+called "erws" (Erlang WebSocket, so much for my creative talent).
+</p>
+<p>
+The main module in this application is <b>erws_handler.erl</b>, but I'll show all the necessary files to have the complete
+application.
+</p>
+<p>
+When the application starts, it makes cowboy listens at port 10100 and dispatch connections to <b>erws_handler</b> as 
+HTTP requests (you will see how this is done in <b>erws_app</b>).
+</p>
+<p>
+erws_handler implements two behaviors (cowboy_http_handler and cowboy_http_websocket_handler). The first one is used to respond to common HTTP GET requests
+and start the websocket handshake on it, by sending the necessary headers to make the "upgrade" of the HTTP connection
+(as the <a href="http://datatracker.ietf.org/doc/rfc6455/?include_text=1">protocol</a> states). For us this is really
+quite easy, we just need to return a specific tuple in erws_handler:init/1 (see the code). The dirty work is actually
+done by cowboy through the module <a href="https://github.com/extend/cowboy/blob/master/src/cowboy_http_websocket.erl">cowboy_http_websocket</a>.
+</p>
+<p>
+Once this is done, and through the api that the <a href="https://github.com/extend/cowboy/blob/master/src/cowboy_http_websocket_handler.erl">cowboy_http_websocket_handler</a> behavior imposes,
+we will handle the incoming data as messages, very much like a common gen_server. 
+</p>
+<h3>erws_handler.erl</h3>
+<p>
+The main module, will handle and serve the requests.
+</p>
+<pre name="code" class="php">
+-module(erws_handler).
+-behaviour(cowboy_http_handler).
+-behaviour(cowboy_http_websocket_handler).
+
+% Behaviour cowboy_http_handler
+-export([init/3, handle/2, terminate/2]).
+
+% Behaviour cowboy_http_websocket_handler
+-export([
+    websocket_init/3, websocket_handle/3,
+    websocket_info/3, websocket_terminate/3
+]).
+
+% Called to know how to dispatch a new connection.
+init({tcp, http}, Req, _Opts) ->
+    lager:debug("Request: ~p", [Req]),
+    % "upgrade" every request to websocket,
+    % we're not interested in serving any other content.
+    {upgrade, protocol, cowboy_http_websocket}.
+
+% Should never get here.
+handle(Req, State) ->
+    lager:debug("Unexpected request: ~p", [Req]),
+    {ok, Req2} = cowboy_http_req:reply(404, [
+        {'Content-Type', <<"text/html">>}
+    ]),
+    {ok, Req2, State}.
+
+terminate(_Req, _State) ->
+    ok.
+
+% Called for every new websocket connection.
+websocket_init(_Any, Req, []) ->
+    lager:debug("New client"),
+    Req2 = cowboy_http_req:compact(Req),
+    {ok, Req2, undefined, hibernate}.
+
+% Called when a text message arrives.
+websocket_handle({text, Msg}, Req, State) ->
+    lager:debug("Received: ~p", [Msg]),
+    {reply,
+        {text, << "Responding to ", Msg/binary >>},
+        Req, State, hibernate
+    };
+
+% With this callback we can handle other kind of
+% messages, like binary.
+websocket_handle(_Any, Req, State) ->
+    {ok, Req, State}.
+
+% Other messages from the system are handled here.
+websocket_info(_Info, Req, State) ->
+    {ok, Req, State, hibernate}.
+
+websocket_terminate(_Reason, _Req, _State) ->
+    ok.
+</pre>
+<h3>index.html</h3>
+<p>
+This is the HTML page we're going to use as a websocket client. I've tried this in Chrome, but it should work
+on any browser with HTML5 capabilities. You can find the Websocket API <a href="http://dev.w3.org/html5/websockets/">here</a>.
+</p>
+<pre name="code" class="html">
+&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;script type="text/javascript"&gt;
+var ws = new Object;
+
+function send()
+{
+    ws.send("hello world!");
+    console.log('Message sent');
+}
+
+function open()
+{
+    if (!("WebSocket" in window)) {
+        alert("This browser does not support WebSockets");
+        return;
+    }
+    /* @todo: Change to your own server IP address */
+    ws = new WebSocket("ws://1.1.1.1:10100");
+    ws.onopen = function() {
+        console.log('Connected');
+    };
+    ws.onmessage = function (evt)
+    {
+        var received_msg = evt.data;
+        console.log("Received: " + received_msg);
+        var txt = document.createTextNode("
+            Simon says: " + received_msg
+        );
+        document.getElementById('msgs').appendChild(txt);
+    };
+    ws.onclose = function()
+    {
+        console.log('Connection closed');
+    };
+}
+&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="sse"&gt;
+   &lt;a href="javascript:open()">Open websocket connection&lt;/a&gt;&lt;br/&gt;
+   &lt;a href="javascript:send()">Send Message&lt;/a&gt;
+&lt;/div&gt;
+&lt;div id="msgs"&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<h3>erws_app.src</h3>
+<p>
+Our erws_app.src will be used by rebar to generate the application descriptor.
+</p>
+<p>
+<b>NOTE</b>: Be sure to add the "crypto" application. I spent quite a few minutes
+trying to figure out why the websocket connection was failing, and it turned out that I
+missed to include the crypto app, used by cowboy at the handshake stage of the websocket
+connection.
+</p>
+<pre name="code" class="php">
+{application, erws, [
+    {description, ""},
+    {vsn, "1"},
+    {registered, []},
+    {applications, [
+        kernel,stdlib,crypto,cowboy,
+        compiler,lager,syntax_tools
+    ]},
+    {mod, { erws_app, []}},
+    {env, []}
+]}.
+</pre>
+<h3>rebar.config</h3>
+<p>
+This is the project configuration file. Our dependencies are cowboy and lager
+(optional).
+</p>
+<pre name="code" class="php">
+% The next option is required so we can use lager.
+{erl_opts, [{parse_transform, lager_transform}]}.
+{lib_dirs,["deps"]}.
+% Our dependencies.
+{deps, [
+    {'cowboy', ".*", {
+        git, "git://github.com/extend/cowboy.git", "master"}
+    },
+    {'lager', ".*", {
+        git, "git://github.com/basho/lager.git", "master"}
+    }
+]}.
+</pre>
+<h3>erws_app.erl</h3>
+<p>
+Our application. This code configures cowboy to listen for and accept connections in the
+given port (with the given protocol), and then dispatch the requests to the given modules. 
+</p>
+<pre name="code" class="php">
+-module(erws_app).
+-behaviour(application).
+-export([start/2, stop/1]).
+
+start(_StartType, _StartArgs) ->
+    %% {Host, list({Path, Handler, Opts})}
+    %% Dispatch the requests (whatever the host is) to
+    %% erws_handler, without any additional options.
+    Dispatch = [{'_', [
+        {'_', erws_handler, []}
+    ]}],
+    %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
+    %% Listen in 10100/tcp for http connections.
+    cowboy:start_listener(erws_websocket, 100,
+        cowboy_tcp_transport, [{port, 10100}],
+        cowboy_http_protocol, [{dispatch, Dispatch}]
+    ),
+    erws_sup:start_link().
+
+stop(_State) ->
+    ok.
+</pre>
+<h3>erws_sup.erl</h3>
+<p>
+This is our top supervisor. In this case, it does absolutely nothing (pretty much like a human supervisor :D).
+</p>
+<pre name="code" class="php">
+-module(erws_sup).
+-behaviour(supervisor).
+-export([start_link/0]).
+-export([init/1]).
+
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+init([]) ->
+    {ok, { {one_for_one, 5, 10}, []} }.
+</pre>
+<h3>Conclusion</h3>
+<p>
+Although I'm not a big fan of dependencies (and/or using whatever frameworks are out there), Cowboy does a great job, and
+I'm sure that it will be even a better choice for more complex applications, where other kind of content could be served
+by HTTP(S) besides the websocket content.
+</p>
+<p>
+Overall, Cowboy lets you focus on the real deal (the features you need) without having to worry about more mundane
+tasks, like coding a pool of workers to handle connections, or (like in this particular case), the implementation
+details for the websocket protocol. With just a few lines of code, we can really put some magic into those dull
+webapps :)
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+              	<h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
+                  <li><a href="ci_jenkins_hudson_continuous_integration_php_phing.html">PHP Continuous integration, with Jenkins and Phing</a></li>
+                  <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
+                  <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
+                  <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
+                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
+                  <li><a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">Ding container: Using the Xml, Yaml, and Annotations drivers</a></li>
+                  <li><a href="ding_xml_yaml_di_dependency_injection.html">Dependency injection with Xml and Yaml in the Ding container</a></li>
+                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
