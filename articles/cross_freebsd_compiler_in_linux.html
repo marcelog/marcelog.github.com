@@ -259,9 +259,12 @@ cd objdir
 Build and install:
 </p>
 <pre name="code" class="php">
-gmake
+LD_LIBRARY_PATH=/usr/cross-freebsd/lib gmake
 gmake install
 </pre>
+<p>
+Changing the LD_LIBRARY_PATH is necessary so the gcc build wont fail when trying to use mpc and mpfr.
+</p>
 
 <H3><u>Step 5: Test the installation with a simple program</u></H3>
 <p>
@@ -273,6 +276,7 @@ int
 main(int argc, char *argv[])
 {
     fprintf(stdout, "Hello world\n");
+    return 0;
 }
 </pre>
 
