@@ -66,6 +66,7 @@ First, a couple of useful links:
 <ul>
 <li><u><a href="http://marcelog.github.com/Ding/">http://marcelog.github.com/Ding/</a></u>: The homepage, where you can find the user manual.</li>
 <li><u><a href="http://pear.marcelog.name">http://pear.marcelog.name/</a></u>: The PEAR channel</li>
+<li><u><a href="http://packagist.org/packages/marcelog/ding">http://packagist.org/packages/marcelog/ding</a></u>: Packagist home
 <li><u><a href="https://github.com/marcelog/Ding">https://github.com/marcelog/Ding/</a></u>: The GitHub repository</li>
 <li><u><a href="https://github.com/marcelog/Ding/tree/master/docs/examples">Full Ding examples</a></u></li>
 <li><u><a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/</a></u>: The CI server, containing the latest successful built artifacts, phar and pear packages.</li>
@@ -168,6 +169,23 @@ $ git clone git://github.com/marcelog/Ding.git
 When installed this way, you need to make sure you set the include path into the 
 <a href="https://github.com/marcelog/Ding/tree/master/src/mg">/src/mg</a> subdirectory inside the
 root tree, so the PSR-0 autoloader would load from the src/mg/Ding subdirectory.
+</p>
+<h3>Option E: Use composer</h3>
+<p>
+Just add the package "marcelog/ding":
+</p>
+<pre name="code" class="php">
+{
+    "require": {
+        "marcelog/ding": "dev-master"
+    }
+}
+</pre>
+<p>
+Note that since log4php is a dependency and does not have a composer
+installation available, you will need to add it to your own composer.json file.
+
+Packagist URL: <a href="http://packagist.org/packages/marcelog/ding">http://packagist.org/packages/marcelog/ding</a>
 </p>
 <h3>Instantiating the container</h3>
 <p>
