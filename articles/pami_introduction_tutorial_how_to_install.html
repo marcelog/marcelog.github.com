@@ -75,6 +75,7 @@ First, a couple of useful links:
 <ul>
 <li><u><a href="http://marcelog.github.com/PAMI">http://marcelog.github.com/PAMI/</a></u>: The homepage.</li>
 <li><u><a href="http://pear.marcelog.name">http://pear.marcelog.name/</a></u>: The PEAR channel</li>
+<li><u><a href="http://packagist.org/packages/marcelog/pami">http://packagist.org/packages/marcelog/pami</a></u>: Packagist home
 <li><u><a href="https://github.com/marcelog/PAMI">https://github.com/marcelog/PAMI/</a></u>: The GitHub repository</li>
 <li><u><a href="https://github.com/marcelog/PAMI/tree/master/docs/examples">Full PAMI examples</a></u></li>
 <li><u><a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/</a></u>: The CI server, containing the latest successful built artifacts, phar and pear packages.</li>
@@ -184,6 +185,24 @@ When installed this way, you need to make sure you set the include path into the
 <a href="https://github.com/marcelog/PAMI/tree/master/src/mg">/src/mg</a> subdirectory inside the
 root tree, so the PSR-0 autoloader would load from the src/mg/PAMI subdirectory.
 </p>
+<h3>Option E: Use composer</h3>
+<p>
+Just add the package "marcelog/pami":
+</p>
+<pre name="code" class="php">
+{
+    "require": {
+        "marcelog/pami": "dev-master"
+    }
+}
+</pre>
+<p>
+Note that since log4php is a dependency and does not have a composer
+installation available, you will need to add it to your own composer.json file.
+
+Packagist URL: <a href="http://packagist.org/packages/marcelog/pami">http://packagist.org/packages/marcelog/pami</a>
+</p>
+
 <h3>Let the fun begin!</h3>
 <p>
 In your <a href="http://www.asteriskguru.com/tutorials/manager_conf.html">manager.conf</a> file, create a user with
