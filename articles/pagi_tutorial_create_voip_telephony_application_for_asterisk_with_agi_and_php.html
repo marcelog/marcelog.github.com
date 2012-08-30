@@ -178,6 +178,24 @@ When installed this way, you need to make sure you set the include path into the
 <a href="https://github.com/marcelog/PAGI/tree/master/src/mg">/src/mg</a> subdirectory inside the
 root tree, so the PSR-0 autoloader would load from the src/mg/PAGI subdirectory.
 </p>
+<h3>Option E: Use composer</h3>
+<p>
+Just add the package "marcelog/pagi":
+</p>
+<pre name="code" class="php">
+{
+    "require": {
+        "marcelog/pagi": "dev-master"
+    }
+}
+</pre>
+<p>
+Note that since log4php is a dependency and does not have a composer
+installation available, you will need to add it to your own composer.json file.
+
+Packagist URL: <a href="http://packagist.org/packages/marcelog/pagi">http://packagist.org/packages/marcelog/pagi</a>
+</p>
+
 <h3>Setup asterisk dialplan</h3>
 <p>
 First of all, you've got to setup asterisk so it will run your agi application in a given extension. For example, we
