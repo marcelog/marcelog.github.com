@@ -294,6 +294,14 @@ use PAGI\Client\Impl\ClientImpl as PagiClient;
 $pagiClient = PagiClient::getInstance($pagiClientOptions);
 </pre>
 <p>
+<b>NOTE</b>: The client accepts an array with options. The available options are:
+</p>
+<ul>
+<li><u>log4php.properties</u>: Optional. If set, should contain the absolute path to the log4php.properties file</li>
+<li><u>stdin</u>: Optional. If set, should contain an already open stream from where the client will read data (useful to make it interact with fastagi servers or even text files to mock stuff when testing). If not set, stdin will be used by the client</li>
+<li><u>stdout</u>: Same as stdin but for the output of the client</li>
+</ul>
+<p>
 <b>NOTE</b>: Since AGI establishes the use of <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">stdin</a> and
 <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">stdout</a> for communication, you cant
 write anything that outputs to console directly (like echo's, or var_dump's). By default log4php will log to console, 
