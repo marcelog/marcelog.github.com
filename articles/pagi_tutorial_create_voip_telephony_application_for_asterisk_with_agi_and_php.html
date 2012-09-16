@@ -63,7 +63,7 @@ By the way, it turns out this is quite a long article, but just because I wanted
 offers, you can really skip the parts you are not interested in, it's kind of a "modular" reading.
 </p>
 <p>
-<b>NOTE</b>: Since version 1.10.0 PAGI comes with call flow nodes, which are *very* useful when creating ivr applications
+<b>NOTE</b>: Since version 1.11.0 PAGI comes with call flow nodes, which are *very* useful when creating ivr applications
 without having to manually use the PAGI client. You can find out more <a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">here</a>.
 </p>
 <h3>Getting it</h3>
@@ -109,17 +109,17 @@ bootstrap the pagi client:
 </p>
 <h3>Option A: Installing and using the PHAR distribution</h3>
 <p>
-You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.10.6, so the available artifact is named "PAGI-1.10.6.phar". Let's fetch it:
+You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.11.0, so the available artifact is named "PAGI-1.11.0.phar". Let's fetch it:
 </p>
 <pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.10.6.phar
+$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.11.0.phar
 </pre>
 <p>
 Let's see how to use it:
 </p>
 <pre name="code" class="php">
 // Include the phar file.
-require_once 'PAGI-1.10.6.phar';
+require_once 'PAGI-1.11.0.phar';
 
 // Set the include path to have pagi's phar first
 // (just to avoid having another installation in
@@ -133,11 +133,11 @@ That's it. You can now bootstrap the pagi client and do your thing (see below).
 </p>
 <h3>Option B: Installing the PEAR distribution manually</h3>
 <p>
-As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.10.6 is the latest version at the time of this writing):
+As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.11.0 is the latest version at the time of this writing):
 </p>
 <pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.10.6.tgz
-$ pear install PAGI-1.10.6.tgz
+$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.11.0.tgz
+$ pear install PAGI-1.11.0.tgz
 </pre>
 <h3>Option C: Installing via the PEAR Channel</h3>
 <p>
@@ -234,7 +234,7 @@ So, assuming your php binary is located in "/usr/bin/php" create the file /tmp/a
 <pre name="code" class="php">
 #!/usr/bin/php
 &lt;?php
-require_once 'PAGI-1.10.6.phar';  
+require_once 'PAGI-1.11.0.phar';  
 ini_set('include_path', implode(PATH_SEPARATOR, array(  
     'phar://pagi.phar', ini_get('include_path')  
 )));  
@@ -581,7 +581,7 @@ own ivr application can be itself a PAGIApplication, by extending it. This will 
 #!/usr/bin/php
 &lt;?php
 // Include the phar file.
-require_once 'PAGI-1.10.6.phar';
+require_once 'PAGI-1.11.0.phar';
 
 // Set the include path to have pagi's phar first
 // (just to avoid having another installation in
