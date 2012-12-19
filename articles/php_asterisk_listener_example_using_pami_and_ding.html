@@ -61,7 +61,7 @@ simple project that will help you get started using the asterisk manager interfa
 </p>
 <p>
 The goal for AsterTrace is to log into ami and capture every event sent by asterisk, process some (or not) and
-maybe log every one of them to some database. 
+maybe log every one of them to some database.
 </p>
 <p>
 AsterTrace uses Ding and PAMI. The first one as the container, and latter to communicate with AMI, so
@@ -113,7 +113,7 @@ src/mg/AsterTrace         ==> Main source directory
     ServerCommandDTO.php  ==> DTO to be used when dispatching events from the TCP server. The handlers will get this as the argument of the event.
     CoreShowChannels.php  ==> Event handler when a tcp client issues CoreShowChannels
   EventHandlers           ==> Event Handlers reside here. These are our listening beans.
-    DialListener.php     
+    DialListener.php
     DtmfListener.php
     EventListener.php
     PDOListener.php
@@ -164,7 +164,7 @@ conf/
       server-handlers                      ==> Beans that handle TCPClient actions.
         coreShowChannels.xml               ==> Handler for a TCP Client issuing a CoreShowChannels.
       handlers                             ==> Several "handlers" beans (error, signal, etc).
-        error-handler.xml                
+        error-handler.xml
         pami-handler.xml
         shutdown-handler.xml
         signal-handler.xml
@@ -243,7 +243,7 @@ And that is pretty much all we have to do :) the container takes care of the res
 <li>Listens-on: dial</li>
 <li>Bean definition: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/dial.xml">conf/support/event-listeners/dial.xml</a></li>
 <li>Statements: <a href="https://github.com/marcelog/AsterTrace/blob/master/conf/support/event-handlers/dial-pdo-mysql-statements.xml">conf/support/event-listeners/dial-pdo-mysql-statements.xml</a></li>
-<li>Behaviour: Will capture Dial (SubEvent Begin), Dial (SubEvent End), Hangup, and VarSet (for the variables ANSWEREDTIME and DIALEDTIME). This will save the new call on DialBegin, and save the status of the call on Hangup. The VarSets then will update the answered and dialed times. This will effectively give you a working CDR :)</li> 
+<li>Behaviour: Will capture Dial (SubEvent Begin), Dial (SubEvent End), Hangup, and VarSet (for the variables ANSWEREDTIME and DIALEDTIME). This will save the new call on DialBegin, and save the status of the call on Hangup. The VarSets then will update the answered and dialed times. This will effectively give you a working CDR :)</li>
 <li>Event handler method: onDial, onHangup, onVarSet</li>
 </ul>
 
@@ -328,6 +328,7 @@ events, or event the same). Everything can be done within extremely few lines of
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

@@ -65,7 +65,7 @@ method, the method <b>MUST</b> be a setter, like "setDependency()". From such a 
 <h4><b>Arguments</b></h4>
 <ul>
 <li><u>name</u>: A string. Optional. Specifies the name of the bean to be injected.
-</li> 
+</li>
 </ul>
 <h4><b>Examples</b></h4>
 <p>Using @Resource with properties: In the following example, both properties are injected with exactly the same
@@ -301,7 +301,7 @@ class MyBean
 {
     protected $oneRepository;
     protected $otherBeans;
-    
+
     /** @Inject */
     public function pleaseInjectMyRepository(IUserRepository $repository)
     {
@@ -323,7 +323,7 @@ class MyBean
 {
     protected $oneRepository;
     protected $dependency;
-    
+
     /** @Inject */
     public function __construct(IUserRepository $repository, IOtherInterface $dependency)
     {
@@ -347,11 +347,11 @@ class MyBean
     protected $dependency;
     protected $otherArgument;
     protected $aString;
-    
+
     /**
      * @Inject
-     * @Inject(name="otherArgument", type="SomeInterface[]") 
-     * @Value(name="aString", value="${user.property}") 
+     * @Inject(name="otherArgument", type="SomeInterface[]")
+     * @Value(name="aString", value="${user.property}")
      */
     public function __construct(
         IUserRepository $repository, IOtherInterface $dependency,
@@ -381,6 +381,7 @@ class MyBean
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

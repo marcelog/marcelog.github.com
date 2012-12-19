@@ -48,13 +48,18 @@
             <div class="mod simple article-list-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
+                <h2>Common Test: Code coverage on subdirectories</h2>
+                <div class="hr-1"><hr /></div>
+                <p>Sometimes its useful to organice your source files into subdirectories. Thing is, it's not
+that easy to create html reports for code coverage for them. Let's see why, and a possible
+solution for this. &nbsp;<a href="erlang_rebar_coverage_on_subdirectories.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Dealing with a failed configure when building a php extension</h2>
                 <div class="hr-1"><hr /></div>
                 <p>If you happen to get stuck when compiling a php pecl extension with a libtool error like &nbsp;<a href="phpize_configure_failed_php_extension_libtool.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Erlang Special Processes without behaviours</h2>
                 <div class="hr-1"><hr /></div>
                 <p>
-OTP has (in its <a href="http://www.erlang.org/doc/design_principles/des_princ.html">design principles</a>), things like <a href="http://learnyousomeerlang.com/what-is-otp#the-common-process-abstracted">behaviours</a>, <a href="http://www.erlang.org/doc/design_principles/applications.html" >applications</a>, 
+OTP has (in its <a href="http://www.erlang.org/doc/design_principles/des_princ.html">design principles</a>), things like <a href="http://learnyousomeerlang.com/what-is-otp#the-common-process-abstracted">behaviours</a>, <a href="http://www.erlang.org/doc/design_principles/applications.html" >applications</a>,
 <a href="http://www.erlang.org/doc/design_principles/release_structure.html">releases</a>, and <a href="http://www.erlang.org/doc/design_principles/sup_princ.html" >supervision trees</a>.
 If we zoom into the latter, we'll find <a href="http://www.erlang.org/doc/man/supervisor.html">supervisors</a>, which supervise <a href="http://www.erlang.org/doc/reference_manual/processes.html">processes</a>, that can also
 be supervisors themselves. &nbsp;<a href="erlang_special_processes_tutorial_handling_system_messages.html"><strong>Read More &raquo;</strong></a></p>
@@ -77,7 +82,7 @@ If you happen to want to clean, compile, run tests, etc in your project but not 
                 <div class="hr-1"><hr /></div>
                 <p>
 The <a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">last article</a> was about how to create
-call flow nodes for asterisk, using pagi and php, to easily create telephony applications. It's now time to add a layer on top of it, 
+call flow nodes for asterisk, using pagi and php, to easily create telephony applications. It's now time to add a layer on top of it,
 and create a complete call flow with several nodes. &nbsp;<a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>PHP Continuous integration, with Jenkins and Phing</h2>
                 <div class="hr-1"><hr /></div>
@@ -90,7 +95,7 @@ developing or auditing code, generating releases and deploying new versions, tra
                 <p>
 In the <a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">last article</a> I've talked about how to
 create telephony applications using nothing else than the standard pagi client. Also, in <a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">this article</a>
-I've shown how to unit test them, by using the mocked client pagi. Now, since version 1.10.0, PAGI comes with a neat feature, which is a small 
+I've shown how to unit test them, by using the mocked client pagi. Now, since version 1.10.0, PAGI comes with a neat feature, which is a small
 abstraction layer over the pagi client, called "Nodes". Also, the "NodeController" will orchestrate how those nodes interact with each other. Nodes are essentially call flow nodes. &nbsp;<a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Unit test your PHP IVR applications with PAGI</h2>
                 <div class="hr-1"><hr /></div>
@@ -143,13 +148,13 @@ away) our beans, and right before destructing it, as a way of setup-teardown or 
 beans. So that's what this article is all about. &nbsp;<a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>PAGI: Quick telephony applications using AGI and PHP</h2>
                 <div class="hr-1"><hr /></div>
-                <p><a href="http://marcelog.github.com/PAGI">PAGI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI: 
+                <p><a href="http://marcelog.github.com/PAGI">PAGI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI:
 Asterisk Gateway Interface</a>. AGI is a very simple protocol, and it has been implemented in a wide variety of languages, allowing to quickly create
-telephony applications, like <a href="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</a>'s, voicemails, prepaid telephony systems, etc.  
+telephony applications, like <a href="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</a>'s, voicemails, prepaid telephony systems, etc.
 If you want or need to create this kind of telephony applications using PHP, you will find PAGI very useful &nbsp;<a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Getting Started with the PAMI: PHP Asterisk Manager Interface = Easy Asterisk Monitoring</h2>
                 <div class="hr-1"><hr /></div>
-                <p><a href="http://marcelog.github.com/PAMI">PAMI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI: 
+                <p><a href="http://marcelog.github.com/PAMI">PAMI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI:
 Asterisk Manager Interface</a>. <a href="http://www.digium.com">Asterisk</a> is one of the hot topics in the IT world due to its broad acceptance and use case scenarios. &nbsp;<a href="pami_introduction_tutorial_how_to_install.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Installing and using the Ding DI Container</h2>
                 <div class="hr-1"><hr /></div>

@@ -65,7 +65,7 @@ You can find a similar article with a telephony application example for asterisk
 <p>
 Doctrine2 has proven to be a great thing to have around for your applications. I'd like to show how <a href="http://marcelog.github.com/Ding">Ding</a> can also
 be one of those good things to use in your projects. So in this example, we'll use Doctrine2 as the orm of a sample application, and use Ding as a
-container to provide the glue (events, aspect oriented programming, dependency injection, and inversion of control) throughout all of the code. 
+container to provide the glue (events, aspect oriented programming, dependency injection, and inversion of control) throughout all of the code.
   </p>
   <p>
 You can find the complete source code for this article at <a href="https://github.com/marcelog/Doctrine2-Ding-Example">GitHub.</a>
@@ -82,7 +82,7 @@ and aquirement of needed dependencies)</li>
 <li>Our resulting application will have 1 entity, the User.</li>
 <li>A "User" domain service, that can return a User given an id, and also can create a "User" with
 a given username and password.</li>
-<li>We will use an <a href="http://en.wikipedia.org/wiki/Event-driven_programming">event driven</a> (let's call our events, "domain events"), approach to 
+<li>We will use an <a href="http://en.wikipedia.org/wiki/Event-driven_programming">event driven</a> (let's call our events, "domain events"), approach to
 extend our application, in this case we will create a domain event "newUserCreated", dispatched for each "User" created in the system.</li>
 <li>A listener of "newUserCreated" that will log the username created via debug level.</li>
 <li>We will apply <a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">AOP</a> to create 2 aspects in the system, a "Profiler"
@@ -112,7 +112,7 @@ $user = $userDomainService->getById(1);
 | DEBUG | Dispatching event: dingShutdown
 </pre>
 <p>
-You can see the "Transactional" aspect managing the per-domain-service-method-call 
+You can see the "Transactional" aspect managing the per-domain-service-method-call
 transactions. Also, you can spot 2 transactions being made: one is for the call to createUser, and the
 other one is for the call to getById (we can see that because of the "Profiler" aspect accounting
 the time spent in each one of the calls). These calls are not nested, they are issued
@@ -124,7 +124,7 @@ Also, notice the "New user: john" message, logged by the event listener for the 
 </p>
 <h4><u>The code</u></h4>
 <p>
-Let's take a quick review of the resuling code first, the code is kind of self explanatory 
+Let's take a quick review of the resuling code first, the code is kind of self explanatory
 and will let you discover "the magic" behind it before I get into any gory details. If I can still have you interested after that, I'll show
 how to setup the container and the orm later :)
 </p>
@@ -134,7 +134,7 @@ The User entity can be something standard, you can find it <a href="https://gith
 <h4><u>Our beans</u></h4>
 <p>
 So whenever a User is persist()ed, we would have this bean listening for the domain
-event "newUserCreated". We declare beans with annotations like @Component, @Aspect, 
+event "newUserCreated". We declare beans with annotations like @Component, @Aspect,
 @Configuration, @Controller, etc:
 </p>
 <pre name="code" class="php">
@@ -434,14 +434,14 @@ pear.apache.org/log4php/Apache_log4php-2.1.0
 Also, let's add a new directory to the tree layout, the runtime directory:
 </p>
 <pre name="code" class="php">
-|~runtime/        
-| |~cache/        
-| | |~ding/       
-| | `~doctrine/   
+|~runtime/
+| |~cache/
+| | |~ding/
+| | `~doctrine/
 | |   |~hydrators/
-| |   `~proxies/  
-| |~db/           
-| `~log/          
+| |   `~proxies/
+| |~db/
+| `~log/
 </pre>
 <p>
 runtime/log will of course hold the log files. runtime/db will hold the database (I've used sqlite3 in this
@@ -463,7 +463,7 @@ $confDir = $myDir . '/config';
 $vendorsDir = $myDir . '/vendor';
 $srcDir = $myDir . '/src/php';
 
-// The ding autoloader needs to be registered. Any 
+// The ding autoloader needs to be registered. Any
 // PSR-0 compliant autoloader will also do fine.
 require_once 'Ding/Autoloader/Autoloader.php';
 Ding\Autoloader\Autoloader::register();
@@ -485,12 +485,12 @@ $annotationDirectories = array(
  *     be config/application.properties
  *   - Dont use any cache (you should have cache for production
  *     environments).
- *   - The container will have an additional properties file, 
+ *   - The container will have an additional properties file,
  *     specified also as config/application.properties
  *   - Bean providers: Not only we will use annotations in the
  *     classes "living" in the above specified directories, but also
  *     xml definitions residing in config/support/beans.xml.
- *   - Also, a single property is injected in the container, the 
+ *   - Also, a single property is injected in the container, the
  *     'config.dir' property will have the absolute path to our /config
  *     directory.
  */
@@ -687,6 +687,7 @@ marcelog@host ~/tmp/test $ bin/run.sh createUser john doe
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

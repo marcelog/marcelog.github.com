@@ -57,7 +57,7 @@ wiki of <a href="http://erlang.org.ar/">Erlang Argentina</a>.
 </p>
 <h3>Introduction</h3>
 <p>
-OTP has (in its <a href="http://www.erlang.org/doc/design_principles/des_princ.html">design principles</a>), things like <a href="http://learnyousomeerlang.com/what-is-otp#the-common-process-abstracted">behaviours</a>, <a href="http://www.erlang.org/doc/design_principles/applications.html" >applications</a>, 
+OTP has (in its <a href="http://www.erlang.org/doc/design_principles/des_princ.html">design principles</a>), things like <a href="http://learnyousomeerlang.com/what-is-otp#the-common-process-abstracted">behaviours</a>, <a href="http://www.erlang.org/doc/design_principles/applications.html" >applications</a>,
 <a href="http://www.erlang.org/doc/design_principles/release_structure.html">releases</a>, and <a href="http://www.erlang.org/doc/design_principles/sup_princ.html" >supervision trees</a>.
 If we zoom into the latter, we'll find <a href="http://www.erlang.org/doc/man/supervisor.html">supervisors</a>, which supervise <a href="http://www.erlang.org/doc/reference_manual/processes.html">processes</a>, that can also
 be supervisors themselves.
@@ -81,7 +81,7 @@ properties allows a process to fit right into supervision trees, and to support 
 <h3>What are they good for?</h3>
 <p>
 Knowing how a special process works (and how it should be implemented) is fun, and gives a little "low level" background (which is always good), but it's
-particular useful when we need a process to behave different than the standard provided behaviours (like gen_server, etc). There is a handful of cases where  
+particular useful when we need a process to behave different than the standard provided behaviours (like gen_server, etc). There is a handful of cases where
 coding your own special process is the best solution. But knowing about them means to be sure that your code wont violate the OTP design principles.
 </p>
 <p>
@@ -204,7 +204,7 @@ DOES NOT RETURN, and will invoke <b>system_code_change</b>, <b>system_terminate<
 </p>
 <p>
 <b>NOTE</b>: See that we don't call simpleproc:loop after calling sys:handle_system_msg/6, because this function
-will never return, but will call simpleproc:system_continue/3. The current process state will be passed from 
+will never return, but will call simpleproc:system_continue/3. The current process state will be passed from
 sys:handle_system_msg/6 to simpleproc:system_continue/3, which will return to the main loop.
 </p>
 <p>
@@ -221,7 +221,7 @@ debug messages in the console.
 </p>
 <p>
 The 4th argument in sys:handle_debug/4, is the system event we want to log. Actually, it's up to the user (us) to
-define system events, but usually incoming and outgoing messages are represented as tuples, in the form 
+define system events, but usually incoming and outgoing messages are represented as tuples, in the form
 {in,Msg[,From]} and {out,Msg,To}, respectively.
 </p>
 <p>
@@ -248,7 +248,7 @@ ok
 hi
 </pre>
 <p>
-In our case, we use {in, Msg} as the system event, which is standarized. 
+In our case, we use {in, Msg} as the system event, which is standarized.
 </p>
 <p>
 <b>NOTE</b>: The debug options are initialized in simpleproc:init/1, by calling <a href="http://www.erlang.org/doc/man/sys.html#debug_options-1">sys:debug_options/1</a>,
@@ -280,7 +280,7 @@ ok
 <h3>Conclusion</h3>
 <p>
 Well that wasn't so hard, was it? :D With a few lines of code, and (relatively) few concepts, we can now
-create our own processes, that support fault tolerance and high availability, and mainly, that really fit 
+create our own processes, that support fault tolerance and high availability, and mainly, that really fit
 into the normal activity of our OTP applications, just like a gen_server, gen_fsm, supervisor, etc. :) A skill
 useful in a very few scenarios, but nevertheless, will worth a million bucks when the moment comes!
 </p>
@@ -814,6 +814,7 @@ init_it2(GenMod, Starter, Parent, Name, Mod, Args, Options) ->
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
                   <li><a href="ci_jenkins_hudson_continuous_integration_php_phing.html">PHP Continuous integration, with Jenkins and Phing</a></li>

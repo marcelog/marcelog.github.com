@@ -53,7 +53,7 @@
                 <div class="hr-1"><hr /></div>
   <H3><u>Introduction</u></H3>
 <p>
-The <b>Asterisk Manager Interface</b> (<b>AMI</b>) protocol is a very simple protocol that allows you to 
+The <b>Asterisk Manager Interface</b> (<b>AMI</b>) protocol is a very simple protocol that allows you to
 communicate and manage your asterisk server, almost completely. It has support to edit/create asterisk configuration
 files and also manage the calls, clients, agents, dialplan, etc.
 </p>
@@ -64,7 +64,7 @@ quickly develop ami clients in an oop/event-driven fashion.
   <H3><u>Overview of the AMI Protocol</u></H3>
   <p>
 AMI is a plain text protocol, and it works by sending and receiving packets. Each packet consists in a series
-of text lines delimited by <b>\r\n</b>. And each packet is delimited by <b>\r\n\r\n</b>. 
+of text lines delimited by <b>\r\n</b>. And each packet is delimited by <b>\r\n\r\n</b>.
 AMI uses a tcp port configured in <b>manager.conf</b>. As soon as the connection is established, asterisk salutes you with something like:<br/>
 </p>
 <hr/>
@@ -155,7 +155,7 @@ any action. This events can be disabled via the <b>Event</b> action.<br/>
 An example:<br/>
 </p>
 <hr/>
-<p> 
+<p>
 Event: PeerStatus\r\n<br/>
 Privilege: system,all\r\n<br/>
 ChannelType: SIP\r\n<br/>
@@ -166,7 +166,7 @@ PeerStatus: Registered\r\n<br/>
 <hr/>
 <H4><u>Synchronous events</u></H4>
 <p>
-These events are used by asterisk whenever a response has a long payload to send. For example, when you 
+These events are used by asterisk whenever a response has a long payload to send. For example, when you
 ask for the dialplan lines, or the connected clients, or the status of all channels, etc.
 </p>
 <p>
@@ -201,7 +201,7 @@ EventList: Start
 </p>
 <hr/>
 <p>
-The same happens when you're trying to know when to consider a response as completed (all events received). You 
+The same happens when you're trying to know when to consider a response as completed (all events received). You
 should check for:
 </p>
 <hr/>
@@ -240,6 +240,7 @@ real nightmare).
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

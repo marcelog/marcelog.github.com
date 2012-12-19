@@ -73,7 +73,7 @@ use Ding\Container\IContainer;
 class UserService implements IContainerAware
 {
     private $container;
-    
+
     public function setContainer(IContainer $container)
     {
         $this->container = $container;
@@ -120,7 +120,7 @@ it programatically, and then with the XML, YAML, and Annotations drivers.
 <h3>Register a listener programatically</h3>
 <p>The container has the method eventListen() used to register a component as an event listener. Thus, by using a container instance, you could do:</p>
 <pre name="code" class="php">
-$container->eventListen('userCreated', 'aBeanName'); 
+$container->eventListen('userCreated', 'aBeanName');
 </pre>
 <h3>The annotations way</h3>
 <pre name="code" class="php">
@@ -173,6 +173,7 @@ application.
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

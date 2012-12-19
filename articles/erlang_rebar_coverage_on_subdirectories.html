@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Aspect Oriented Programming in PHP with Ding</title>
+<title>Common Test: Code coverage on subdirectories</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="php aop aspect oriented programming bean ding xml yaml annotation example tutorial"/>
-<meta name="description" content="This article is about how we can use aop in php using the ding container"/>
+<meta name="Keywords" content="erlang ct common_test common test rebar code html coverage source subdirectory subdirectories"/>
+<meta name="description" content="This article will describe how to use rebar to run common test and to generate html code coverage reports for files in subdirectories"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -32,147 +32,100 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Aspect Oriented Programming in PHP with Ding</div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Common Test: Code coverage on subdirectories</div>
   </div>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Aspect Oriented Programming in PHP with Ding</h2>
+                <h2>Common Test: Code coverage on subdirectories</h2>
                 <div class="hr-1"><hr /></div>
-<H3><u>Introduction</u></H3>
+<h3>Introduction</h3>
 <p>
-<a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">Aspect Oriented Programming</a> (just AOP from now on),
-is a very powerful tool we can use to implement the infamous <a href="http://en.wikipedia.org/wiki/Cross-cutting_concern">cross cutting
-concerns</a> we have in our applications (auditing, logging, security, etc). In this article, I'll show how we can easily use AOP in a very simple language like PHP, by using
-the <a href="http://marcelog.github.com/Ding/">Ding container</a>.
+Sometimes its useful to organice your source files into subdirectories. Thing is, it's not
+that easy to create html reports for code coverage for them. Let's see why, and a possible
+solution for this.
 </p>
-<h3>Useful links</h3>
-<ul>
-<li>Complete source code for this article at <a href="https://github.com/marcelog/Ding-Aop-Example">GitHub</a>.</li>
-<li><a href="http://marcelog.github.com/Ding/manual/toc.html#aop">AOP Section</a> of the ding manual.</li>
-</ul>
-<h3>How it works</h3>
+<h3>The situation</h3>
 <p>
-Ding uses 2 patterns to achieve AOP in PHP:
-</p>
-<ul>
-<li><a href="http://en.wikipedia.org/wiki/Interceptor_pattern">Interceptor Pattern</a></li>
-<li><a href="http://en.wikipedia.org/wiki/Proxy_pattern">Proxy Pattern</a></li>
-</ul>
-<p>
-The interceptor pattern is used to provide 2 kind of interceptions for methods: one to allow code
-to be executed before (and after) an intercepted method, and another one that only gets executed when
-the intercepted method throws an uncatched exception. Thus, when defining aspects and pointcuts, you will
-have to decide which one of them you will use. The general rule:
-</p>
-<ul>
-<li>Method Interceptors: Use them when you want your code to be run before (and after) the interesting method.</li>
-<li>Exception Interceptors: Only useful if you want to catch unhandled exceptions. Your code will be called only when
-the method throws an exception.</li>
-</ul>
-<p>
-When you call a method that is not intercepted, the call is just executed by PHP directly, nothing special
-there. But when calling a method of a bean that has 1 or more aspects applied to it, you are in fact calling
-a proxy method that will call a dispatcher. The dispatcher will call all the aspects in order, if all these aspects
-proceed with the call, the last method in this chain will be the original intercepted method.
+Typically, you would use <a href="https://github.com/basho/rebar">rebar</a> in your erlang project, to make it easier to get dependencies, compile, and run tests, either with <a href="http://www.erlang.org/doc/apps/common_test/index.html">common_test</a> or <a href="http://www.erlang.org/doc/apps/eunit/chapter.html">eunit</a>.
 </p>
 <p>
-The <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_Interceptor_IDispatcher.html#%5CDing%5CAspect%5CInterceptor%5CIDispatcher">IDispatcher</a> interface and the
-<a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_Interceptor_DispatcherImpl.html#%5CDing%5CAspect%5CInterceptor%5CDispatcherImpl">DispatcherImpl</a> implementation
-take care of handling and dispatching the chained calls to advices and original methods. This is automatically done by the container
-when it finds that a bean (or some beans) have any aspects associated with them.
-</p>
-<p>
-Each method call generates a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_MethodInvocation.html#%5CDing%5CAspect%5CMethodInvocation">MethodInvocation</a> object. This
-is the only argument that advices receive. Thus, your interceptor code, would look like (the names are
-just for illustrative purposes):
+Surely you will have your <a href="https://github.com/basho/rebar/blob/master/rebar.config.sample">rebar.config</a> file with at least the following entries:
 </p>
 <pre name="code" class="php">
-    public function methodInterceptor(MethodInvocation $invocation)
-    {
-        $originalInvocation = $invocation->getOriginalInvocation();
-        $originalArguments = $originalInvocation->getArguments();
-        $originalMethodName = $originalInvocation->getMethod();
-        $originalClassName = $originalInvocation->getClass();
+{eunit_opts, [verbose, {skip_deps, true}]}.
+{eunit_exclude_deps, true}.
+{cover_enabled, true}.
+</pre>
 
-        // Code to be run before calling the next method in the chain.
-        $result = $invocation->proceed('new', 'optional', 'arguments');
+<p>
+And of course, a <a href="http://www.erlang.org/doc/apps/common_test/cover_chapter.html#id78510">cover.spec</a> file in the directory of the application, similar to this:
+</p>
 
-        // Code to be run after the method has finished.
-        return $result;
-    }
+<pre name="code" class="php">
+{incl_app, myapp, details}.
+{excl_mods, myapp, [app_SUITE]}.
+{incl_dirs_r, ["src", "test"]}.
+{src_dirs, myapp, ["src", "test"]}.
+</pre>
 
-    public function exceptionInterceptor(MethodInvocation $invocation)
-    {
-        // Code to handle the exception that intercepted method threw
-        $exceptionThrown = $invocation->getException();
-    }
+<p>
+Then you can run common_test via rebar quite easily, like:
+</p>
+
+<pre name="code" class="php">
+$ rebar -v 3 skip_deps=true ct
+</pre>
+
+<p>
+All of this will allow you to run the tests and generate coverage reports, but
+you will notice that there aren't any html reports for the source files that
+"live" into subdirectories in your
+<b>src</b> directory.
+
+<h3>The reason why you won't get coverage reports in src subdirectories</h3>
+<p>
+The application that generates code coverage is actually shipped with erlang/otp, and it's
+called <a href="http://www.erlang.org/doc/man/cover.html">cover</a>. Common test uses it but,
+when referring to the <a href="http://www.erlang.org/doc/apps/common_test/cover_chapter.html">manual
+page</a>, there's the following note:
+</p>
+
+<p><i>
+  Note: Currently, for Common Test to be able to print code coverage HTML files for the modules included in the analysis, the source code files of these modules must be located in the same directory as the corresponding .beam files. This is a limitation that will be removed later.
+</i></p>
+
+<h3>Quick fix</h3>
+<p>
+So a kind of dirty solution is to add to your Makefile something along these lines:
+</p>
+<pre name="code" class="php">
+test: compile
+  @rm -rf ${CT_LOG}
+  @find ${APP_DIR}/src -type f -exec cp {} ${APP_DIR}/ebin \;
+  @find ${APP_DIR}/test -type f -exec cp {} ${APP_DIR}/ebin \;
+  ${REBAR} -v 3 skip_deps=true ct
+  @find ${APP_DIR}/ebin -type f -name "*.erl" -exec rm {} \;
 </pre>
 <p>
-And that is pretty much you need to add AOP to your projects :)
-</p>
-<h3>Proxies</h3>
-<p>
-In environments like the JVM, <a href="http://www.eclipse.org/aspectj/">AspectJ</a> manipulates the bytecode
-at runtime to achieve doing lots of cool things. In PHP we cant do that (or at least, I cant do that.. ). So
-we need to create a proxy, that will call the dispatcher instead of the original implementation.
-</p>
-<p>Unfortunately, we cant create proxies by using the native reflection api provided with PHP,
-so we only have one option: generate php code that will actually be a proxy class for the class of the bean where we want to apply
-our aspects. This is also done automatically by the container, by using the
-<a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_Proxy.html#%5CDing%5CAspect%5CProxy">Proxy</a> class.
+This will copy all source files (*.erl) into the <b>ebin</b> directory (where the .beam files are
+generated), run the tests, and then remove the source files, allowing common test to generate
+coverage reports for *all* the source files in <b>src</b> and its subdirectories.
 </p>
 <p>
-So for each bean that has aspects applied, ding generates the necessary proxies. These proxies can (and should) be
-cached. See the <a href="http://marcelog.github.com/Ding/manual/toc.html#config">configuration section of the container</a> in the
-ding manual to see how.
-</p>
-<h3>Defining Aspects and Pointcuts</h3>
-<p>
-When defining an <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_AspectDefinition.html#%5CDing%5CAspect%5CAspectDefinition">Aspect</a>, you will need:
-</p>
-<ul>
-<li>A bean, where the advice code is. Effectively, the code you want to be run and intercept the target methods with.</li>
-<li>Type of interception: method or exception.</li>
-<li>A <a href="http://php.net/pcre">PCRE</a> expression used to specify class names. All beans that match this class will have the aspects applied. This is kind of a "global"
-aspect definition, because it will trap all classes of a given name.</li>
-<li>You can avoid having the PCRE expression and declare the aspect right there inside the bean definition(s) you're interested in (vs. global aspects, that
-will apply to more beans if the class names matches).</li>
-</ul>
-<p>
-When defining a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_PointcutDefinition.html#%5CDing%5CAspect%5CPointcutDefinition">Pointcut</a>, you will need to specify:
-</p>
-<ul>
-<li>A PCRE expression that will be used to match method names.</li>
-<li>The name of the method to invoke when this pointcut matches.</li>
-</ul>
-<p>
-You can then associate pointcuts to aspects in the configuration files (if using xml or yaml). You can reuse
-aspect definitions and pointcut definitions as well.
-</p>
-<H3>Examples</H3>
-<p>
-In the <a href="https://github.com/marcelog/Ding-Aop-Example">github repository</a> for the source of this article, you can find an example with each one
-of the drivers,
-<a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/xml">XML</a>,
-<a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/yaml">YAML</a>,
-and <a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/annotations">Annotations</a>.
-</p>
-<H3><u>Conclusions</u></H3>
-<p>AOP is really great. Definitely not a silver bullet, but a tool that will just fit in certain
-ocassions.
+Still here? Go have some fun reaching that 100% now :)
 </p>
               </div>
             </div>
@@ -187,10 +140,9 @@ ocassions.
             <div class="mod simple">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-              	<h2>Articles</h2>
+                <h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
@@ -199,15 +151,17 @@ ocassions.
                   <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
                   <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
                   <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
-                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
                   <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
                   <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
                   <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
                   <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
                   <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
                   <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
                   <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
                   <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
                   <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
@@ -240,7 +194,7 @@ ocassions.
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>

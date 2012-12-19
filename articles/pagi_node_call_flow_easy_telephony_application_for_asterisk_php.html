@@ -55,8 +55,8 @@
 <p>
 In the <a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">last article</a> I've talked about how to
 create telephony applications using nothing else than the standard pagi client. Also, in <a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">this article</a>
-I've shown how to unit test them, by using the mocked client pagi. Now, since version 1.10.0, PAGI comes with a neat feature, which is a small 
-abstraction layer over the pagi client, called "Nodes". Also, the "NodeController" will orchestrate how those nodes interact with each other. Nodes are essentially call flow nodes. 
+I've shown how to unit test them, by using the mocked client pagi. Now, since version 1.10.0, PAGI comes with a neat feature, which is a small
+abstraction layer over the pagi client, called "Nodes". Also, the "NodeController" will orchestrate how those nodes interact with each other. Nodes are essentially call flow nodes.
 <p>
 These new features will allow you to implement complete call flows in no time, and maybe even without using the pagi client by yourself. In
 this article, I'll introduce the nodes by themselves (and how to unit test them), and will talk about the node controller in a <a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">latter article</a>.
@@ -153,7 +153,7 @@ $mainMenu
 <p>
 The above code will setup a node that will prompt the user with the sound
 "main-menu-prompt", will expect exactly 1 digit as input, and will give the user
-3 opportunities to enter a valid input. A timeout of 3 seconds is set to enter 
+3 opportunities to enter a valid input. A timeout of 3 seconds is set to enter
 the input. The input will be validated with just 1
 validation, named "standardOptionValidation", and if this validation fails, the
 sound file "invalid-option" will be played. If the user does not enter any input
@@ -166,7 +166,7 @@ last attempt.
 </p>
 <p>
 A note about validators: Validators can have an optional sound file to be played, but that's not
-mandatory at all. However, it *is* mandatory to return true to indicate success and false to 
+mandatory at all. However, it *is* mandatory to return true to indicate success and false to
 indicate a validation failure. You can configure as many validators as needed (by calling validateInputWith() several times)
 and they will be executed in order. The validator's execution will stop when any of them returns false (that is, only 1 failed
 validation is allowed).
@@ -223,7 +223,7 @@ $mainMenu = $pagiClient->createNode('mainMenu');
 
 // input on pre prompt messages will not interrupt the
 // prompt messages and will not be counted as user input.
-$mainMenu->dontAcceptPrePromptInputAsInput(); 
+$mainMenu->dontAcceptPrePromptInputAsInput();
 </pre>
 <p>
 If you would like to make the pre prompt messages not interruptable:
@@ -240,7 +240,7 @@ $mainMenu = $pagiClient->createNode('mainMenu');
 $mainMenu->addPrePromptMessage('myMessage');
 </pre>
 <p>
-Remember that pre prompt messages are dynamic. They are cleared (reset) after playing them, so 
+Remember that pre prompt messages are dynamic. They are cleared (reset) after playing them, so
 if you want to replay a pre prompt message, you have to add it yourself (probably in one of the callbacks allowed
 for a node, see below).
 </p>
@@ -285,14 +285,14 @@ $pagiClient->createNode('inputPin')
 </pre>
 <p>
 In this case, we are expecting between 10 and 12 digits for a valid PIN number. If the user
-enters 12 digits, no more digits will be expected. However, a valid PIN number may have 10 
+enters 12 digits, no more digits will be expected. However, a valid PIN number may have 10
 digits instead of 12. When the node is waiting for the 11th digit, the user may press the hash
 character (#), configured as the end of input digit, so he/she does not have to wait for
-the timeout to complete. Validators will only be run if the input length is above or equals to the minimum expected length. Otherwise, 
+the timeout to complete. Validators will only be run if the input length is above or equals to the minimum expected length. Otherwise,
 it is considered a failed input attempt.
 </p>
 <p>
-Also, a cancel digit is defined (the star digit, *). So the user can cancel the node. An additional 
+Also, a cancel digit is defined (the star digit, *). So the user can cancel the node. An additional
 behaviour is specified for the cancel digit (cancelWithInputRetriesInput()) that means that the node will
 be cancelled if the user presses the cancel digit without any previous input, but if there is any previous input,
 only the input attempt is cancelled.
@@ -527,7 +527,7 @@ $mockedNode->doBeforeValidInput(function (Node $node) {} );
 <p>
 These callbacks are useful (for example) to add some assertions in the pagi
 client, when you expect something to be done from outside the node. Suppose you
-issue a dial() when the node has valid input, you could then do: 
+issue a dial() when the node has valid input, you could then do:
 </p>
 <pre name="code" class="php">
 $mockedNode->doBeforeValidInput(function (Node $node) {
@@ -616,6 +616,7 @@ appropiately. This feature was very fun to write, and I hope it will be fun for 
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

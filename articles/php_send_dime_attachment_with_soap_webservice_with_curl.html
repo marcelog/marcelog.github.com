@@ -55,7 +55,7 @@
   <p>
 As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
 <b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
-support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to 
+support them either). Also, the <b>PEAR</b> soap implementation lacks enough documentation to
 make it work (at least, I couldn't from the client side ;))
 </p>
 <p>
@@ -63,7 +63,7 @@ In this article I'll show you my own solution, which is a little dirty but does 
 to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Obviously this can be
 refined a lot, but it may help you in dire, time-lacking situations ;)
 </p>
-  
+
 <H3><u>Example</u></H3>
 <p>
 So let's say you want to send a soap request with cero or more attachments, using DIME as
@@ -150,7 +150,7 @@ function send($url, $msg, $attachments = array())
 
 </pre>
 </p>
-  
+
 <H3><u>Using it</u></H3>
 <p>
 Now, how to use it:
@@ -190,6 +190,7 @@ that php gets a little better soap support sometime.
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

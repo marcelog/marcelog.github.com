@@ -141,7 +141,7 @@ beans: !!map
 <h4><u>Injecting php code</u></h4>
 <p>
 Of course, doing this is not recommended. But if you really need to, you can execute code
-and have the result injected as a property in your beans: 
+and have the result injected as a property in your beans:
 </p>
 <pre name="code" class="xml">
 &lt;beans&gt;
@@ -201,7 +201,7 @@ having a dependency on another bean (the collaborator). To achieve this:
   &lt;bean id="myOtherBeanName" class="MyCollaborator"/&gt;
   &lt;bean id="myBeanName" class="MyBean"&gt;
     &lt;property name="someProperty"&gt;
-      &lt;ref bean="myOtherBeanName"/&gt;  
+      &lt;ref bean="myOtherBeanName"/&gt;
     &lt;/property&gt;
   &lt;/bean&gt;
 &lt;/beans&gt;
@@ -227,7 +227,7 @@ globally. This is useful to cleanup your xml/yaml files. These are called inner 
 &lt;beans&gt;
   &lt;bean id="myBeanName" class="MyBean"&gt;
     &lt;property name="someProperty"&gt;
-      &lt;bean class="MyCollaborator"/&gt;  
+      &lt;bean class="MyCollaborator"/&gt;
     &lt;/property&gt;
   &lt;/bean&gt;
 &lt;/beans&gt;
@@ -249,7 +249,7 @@ Being a bean definition themselves, you can have setter and constructor injectio
 </p>
 <h4><u>Injecting arrays</u></h4>
 <p>
-You can also inject arrays with values, specifying an optional key for each entry. In the following example, an associative array is 
+You can also inject arrays with values, specifying an optional key for each entry. In the following example, an associative array is
 injected, with several different values. Note how you can combine the syntax we saw above (remember, the array keys are completely optional):
 </p>
 <pre name="code" class="xml">
@@ -267,17 +267,17 @@ injected, with several different values. Note how you can combine the syntax we 
       &lt;/entry&gt;
       &lt;entry key="key4"&gt;
         &lt;ref bean="otherBean"/&gt;
-      &lt;/entry&gt;  
+      &lt;/entry&gt;
       &lt;entry key="key5"&gt;
         &lt;eval&gt;&lt;![CDATA[ return "Some evaluated code"; ]]>&lt;/eval&gt;
-      &lt;/entry&gt;  
+      &lt;/entry&gt;
       &lt;entry key="key6"&gt;
         &lt;array&gt;
           &lt;entry&gt;
             &lt;value&gt;${aValue}&lt;/value&gt;
           &lt;/entry&gt;
         &lt;/array&gt;
-      &lt;/entry&gt;  
+      &lt;/entry&gt;
     &lt;/property&gt;
 &lt;/beans&gt;
 </pre>
@@ -289,7 +289,7 @@ beans: !!map
     properties: !!map
       someProperty:
         value: !!map
-          key1: 
+          key1:
             value: aLiteralValue
           key2:
             value: ${user.name}
@@ -347,13 +347,13 @@ beans: !!map
 constructors, so I wont go over it. Just try the same syntax as with setter injection :)</p>
 <h3>Method Injection</h3>
 <p>Method injection allows you to override a method in a given bean. In this case, the method "createDependency" in the bean
-"myBeanName" will be overriden (by the container) with an implementation that returns the bean "dependencyName". 
+"myBeanName" will be overriden (by the container) with an implementation that returns the bean "dependencyName".
 </p>
 <pre name="code" class="xml">
 &lt;beans&gt;
   &lt;bean id="dependencyName" class="MyOtherBean" scope="prototype"/&gt;
   &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;lookup-method name="createDependency" bean="dependencyName"/&gt; 
+    &lt;lookup-method name="createDependency" bean="dependencyName"/&gt;
   &lt;/bean&gt;
 &lt;/beans&gt;
 </pre>
@@ -388,6 +388,7 @@ cool to have, too.
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

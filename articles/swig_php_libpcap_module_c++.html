@@ -83,13 +83,13 @@ necessary code to create an extension in lots of "target languages" (like PHP, P
 The <a href="http://www.swig.org/Doc2.0/SWIGDocumentation.html">Online SWIG manual</a> explains why it was born and all the available features and languages.
 </p>
 <p>
-Basically speaking, you feed SWIG an <a href="http://www.swig.org/Doc2.0/SWIGDocumentation.html#Introduction_nn5">"interface file"</a> that tells swig what and 
+Basically speaking, you feed SWIG an <a href="http://www.swig.org/Doc2.0/SWIGDocumentation.html#Introduction_nn5">"interface file"</a> that tells swig what and
 how do you want to expose the C/C++ code to the scripting language, and then it will autogenerate the needed C/C++ files that will be the
-"glue" between your code and the target language. 
+"glue" between your code and the target language.
 </p>
 <h3>SimplePcap (PHP side)</h3>
 <p>
-NOTE: A "complete" php sniffer that dumps the packets like tcpdump is included as an example in the 
+NOTE: A "complete" php sniffer that dumps the packets like tcpdump is included as an example in the
 <a href="https://github.com/marcelog/SimplePcap/blob/master/example/sniff.php">GitHub repository</a> for the source code.
 </p>
 <p>This is how you can use SimplePcap from PHP to list all available devices:</p>
@@ -170,7 +170,7 @@ SimplePcap has a static method, <b>findAllDevs()</b> that calls <b>pcap_findalld
 nothing more than a standard C++ <b>map&lt;string, string&gt;</b>.
 </p>
 <p>
-A typemap(out) exists (more on typemaps later) for deviceList, that 
+A typemap(out) exists (more on typemaps later) for deviceList, that
 will transform it to a php associative array, where the key is the name of the interface and the value is the interface
 description (<b>pcap_t.name</b> and <b>pcap_t.description</b> respectively).
 </p>
@@ -186,7 +186,7 @@ Once you get the SimplePcap instance, the method <b>get()</b> can be used to get
 <p>
 I did not use pcap_loop() intentionally, I thought it would be better here to let the php client have control. Besides, I would like to
 have Closures passed as callbacks when using pcap_loop(), and I haven't done anything yet towards that goal. Maybe for the
-next article! Also, I couldn't find out how to translate the exceptions from C++ to PHP exceptions (the ones you see 
+next article! Also, I couldn't find out how to translate the exceptions from C++ to PHP exceptions (the ones you see
 <a href="https://github.com/marcelog/SimplePcap/blob/master/include/Exception.h">here</a>, which are custom SimplePcap exceptions, and not
 mappable into SWIG_* exceptions).
 </p>
@@ -194,7 +194,7 @@ mappable into SWIG_* exceptions).
 <H3>The SWIG interface file</H3>
 <p>
 Here's the <a href="https://github.com/marcelog/SimplePcap/blob/master/SimplePcap.i">interface file</a> I'm using for the
-extension. 
+extension.
 </p>
 <p>
 You will notice code between %{ ... %}. The code between those tokens will be inserted directly into the
@@ -244,6 +244,7 @@ to be run in many languages, this is definitely an excellent library to try!
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

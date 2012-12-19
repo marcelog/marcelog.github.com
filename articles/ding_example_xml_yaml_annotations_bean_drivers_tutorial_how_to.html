@@ -61,16 +61,16 @@ beans. So that's what this article is all about.
 So ding is basically about beans (aka components). The <a href="http://marcelog.github.com/Ding/manual/toc.html">ding manual</a> contains a little more information about beans and about the whole container. What you will find
 here is kind of a "hands-on" approach to it.
 </p>
-<p>  
+<p>
 The idea here is to put your code in your components (beans) following the
 <a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle</a>, and let the container take care of the
 rest (like injecting dependencies or maybe even choosing which dependencies to inject and where). So lots of your actual real code will become declarative
-stuff, that the container interprets and acts upon. As a result, your code will end up containing only the lines of code that are the true value of the 
+stuff, that the container interprets and acts upon. As a result, your code will end up containing only the lines of code that are the true value of the
 application. Also, your code will become more testable, because you will no longer need to programatically get your dependencies.
 </p>
 <p>
 So that's how it works: code your components. Then, define (declare) your dependencies to the container. When your components are needed, they will be
-injected with any dependencies they might need. 
+injected with any dependencies they might need.
 </p>
 <H3>Declaring your beans</H3>
 <p>
@@ -158,6 +158,7 @@ To get right into dependency injection, continue with <a href="ding_xml_yaml_di_
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

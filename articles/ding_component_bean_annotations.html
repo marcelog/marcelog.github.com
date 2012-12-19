@@ -54,11 +54,11 @@
 <h3>About components</h3>
 <p>
 Everything shown here using annotations, is also available by using the XML and YAML bean definition providers, so you are
-free to use any of the 3 drivers (XML, YAML, Annotations) to define your beans and mix them anyway you like or need to. See 
+free to use any of the 3 drivers (XML, YAML, Annotations) to define your beans and mix them anyway you like or need to. See
 <a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">the manual</a> for details on how to use xml and yaml.
 </p>
 <p>
-One more thing :) These annotations are used to define the components, the annotations that are specifically designed to 
+One more thing :) These annotations are used to define the components, the annotations that are specifically designed to
 describe the component's injections and dependencies are a subject of <a href="http://marcelog.github.com/articles/ding_component_bean_annotations_di_dependency_injection.html">another article</a>, so this one wont get too long.
 </p>
 <h3>@Component and @Named</h3>
@@ -75,7 +75,7 @@ extend the definition of @Component, inheriting its options and available extra 
 <ul>
 <li><u>name</u>: A string or array of strings. Optional. Specifies a given name for the bean, and its aliases.</li>
 <li><u>primary</u>: A boolean. Optional. If "true", when injecting by type (like @Inject) this will tell the container to choose this bean when multiple candidates are available. "false" by default.
-</li> 
+</li>
 </ul>
 <h4><b>Examples</b></h4>
 <p>Here he have a named component, with 3 names:</p>
@@ -149,7 +149,7 @@ class MyConfigClass
 }
 </pre>
 <h3>@Bean</h3>
-<p>This annotation can be used in any method(s) inside any classes annotated as a component (like @Configuration, 
+<p>This annotation can be used in any method(s) inside any classes annotated as a component (like @Configuration,
 @Component, @Named, @Aspect, @Controller, etc), it will tell the container to use that particular component as a
 factory bean of the given bean name. @Bean methods accepts every annotation that a @Component accepts, like @Scope,
 @Singleton, @Prototype, @ListensOn, etc. If the argument "name" is omitted, the name of the bean is the name of the
@@ -234,7 +234,7 @@ class MyComponent
     public function init()
     {
     }
-      
+
     public function destroy()
     {
     }
@@ -258,7 +258,7 @@ class MyComponent
     public function init()
     {
     }
-    /** @PreDestroy */  
+    /** @PreDestroy */
     public function destroy()
     {
     }
@@ -267,7 +267,7 @@ class MyComponent
 <h3>@ListensOn</h3>
 <p>This annotation tells ding that the given bean will listen for the specified event names. Can be used at the class level and in @Bean methods.</p>
 <p>When one of the events is dispatched through the container (let's say event1 as an example), ding will try to find a method named onEvent1(). The event
-data will be sent as an argument. See 
+data will be sent as an argument. See
 <a href="http://marcelog.github.com/Ding/manual/toc.html#events">the manual</a> for details on using event driven programming with ding.</p>
 <h4><b>Arguments</b></h4>
 <ul>
@@ -322,6 +322,7 @@ class MyComponent
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

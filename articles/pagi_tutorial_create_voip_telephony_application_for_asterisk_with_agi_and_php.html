@@ -53,9 +53,9 @@
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
 <p>
-<a href="http://marcelog.github.com/PAGI">PAGI</a> (not to be confused with <a href="http://phpagi.sourceforge.net/">phpagi</a>) is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI: 
+<a href="http://marcelog.github.com/PAGI">PAGI</a> (not to be confused with <a href="http://phpagi.sourceforge.net/">phpagi</a>) is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI:
 Asterisk Gateway Interface</a>. AGI is a very simple protocol, and it has been implemented in a wide variety of languages, allowing to quickly create
-telephony applications, like <a href="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</a>'s, voicemails, prepaid telephony systems, etc.  
+telephony applications, like <a href="http://en.wikipedia.org/wiki/Interactive_voice_response">IVR</a>'s, voicemails, prepaid telephony systems, etc.
 If you want or need to create this kind of telephony applications using PHP, you will find PAGI very useful.
 </p>
 <p>
@@ -175,7 +175,7 @@ can clone the repository:
 $ git clone git://github.com/marcelog/PAGI.git
 </pre>
 <p>
-When installed this way, you need to make sure you set the include path into the 
+When installed this way, you need to make sure you set the include path into the
 <a href="https://github.com/marcelog/PAGI/tree/master/src/mg">/src/mg</a> subdirectory inside the
 root tree, so the PSR-0 autoloader would load from the src/mg/PAGI subdirectory.
 </p>
@@ -234,10 +234,10 @@ So, assuming your php binary is located in "/usr/bin/php" create the file /tmp/a
 <pre name="code" class="php">
 #!/usr/bin/php
 &lt;?php
-require_once 'PAGI-1.11.0.phar';  
-ini_set('include_path', implode(PATH_SEPARATOR, array(  
-    'phar://pagi.phar', ini_get('include_path')  
-)));  
+require_once 'PAGI-1.11.0.phar';
+ini_set('include_path', implode(PATH_SEPARATOR, array(
+    'phar://pagi.phar', ini_get('include_path')
+)));
 </pre>
 <p>
 Or this one, if you're using the source or pear distributions:
@@ -264,11 +264,11 @@ users, this was just an example.
 </p>
 <p>
 If you want to have a little better structure for the project (with configurable
-php installation and php.ini files), or just dont like to hardcode the php interpreter there (good for you!), 
+php installation and php.ini files), or just dont like to hardcode the php interpreter there (good for you!),
 you might want to take a look at <a href="file:///H:/src/sts/MainWeb/articles/creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">this article</a>.
 </p>
 <h3>The PAGI Client</h3>
-<p> 
+<p>
 The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_IClient.html#%5CPAGI%5CClient%5CIClient">pagi client</a> is the central player
 here, it will handle all the communication with asterisk during the call. Actually, as you can see, this is just an interface. An abstract implementation
 exists (the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Client/AbstractClient.php">AbstractClient</a>) that implements the AGI commands
@@ -277,7 +277,7 @@ declared in the IClient interface, *but* it leaves the implementation details fo
 <p>
 Specifically, this lets you use the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Client/Impl/ClientImpl.php">standard client implementation</a>, or something like <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/AsyncAgi/AsyncClientImpl.php">pami's async agi client</a>,
 suitable for <a href="http://www.moythreads.com/wordpress/2007/12/24/asterisk-asynchronous-agi/">async agi</a> applications. You can read more about pami
-<a href="http://marcelog.github.com/PAMI/">here</a>. 
+<a href="http://marcelog.github.com/PAMI/">here</a>.
 </p>
 <p>
 In this case, we're going to use the standard pagi client implementation.
@@ -304,13 +304,13 @@ $pagiClient = PagiClient::getInstance($pagiClientOptions);
 <p>
 <b>NOTE</b>: Since AGI establishes the use of <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">stdin</a> and
 <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">stdout</a> for communication, you cant
-write anything that outputs to console directly (like echo's, or var_dump's). By default log4php will log to console, 
+write anything that outputs to console directly (like echo's, or var_dump's). By default log4php will log to console,
 so let's first configure it to log to a file (instead of the default, which is log to console). This will allow us to have a logger inside the application
 and avoid messing up the AGI communication.
 <p>
 You can configure log4php on your own
 (see <a href="http://logging.apache.org/log4php/docs/configuration.html">this</a>) or have pagi
-do it on its own, by passing an option to the client with the log4php configuration (just as we did above, 
+do it on its own, by passing an option to the client with the log4php configuration (just as we did above,
 in this case, an .ini file, but you can use xml). A sample log4php.properties ini file:
 </p>
 <pre name="code" class="php">
@@ -344,7 +344,7 @@ that pagi issues, is returned as an <a href="http://ci.marcelog.name:8080/job/PA
 implemented in <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_ResultDecorator.html#%5CPAGI%5CClient%5CResult%5CResultDecorator">ResultDecorator</a>, effectively
 implementing the <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a> to return the result of the operation. This is so, because sometimes
 you only want to play a file, sometimes you just want to read digits, and sometimes you want to play AND read input from the user, and you might need to check the result
-of one or all the operations. See the 
+of one or all the operations. See the
 <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">API documentation</a> for all the results available, in the namespace PAGI\Client\Result.
 You should check the api documentation for the method you are using to see what kind of result is available (ExecResult, RecordResult, FaxResult, PlayResult, etc). Do not be freighten! It's quite easy to use them. See below.
 </p>
@@ -479,7 +479,7 @@ $asteriskLogger->debug($cdr->getAnswerLength());
 </pre>
 <h3>Working with the Caller ID's</h3>
 <p>
-In order to get and set caller id values, you can access the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallerId_ICallerId.html#%5CPAGI%5CCallerId%5CICallerId">ICallerId</a> interface: 
+In order to get and set caller id values, you can access the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallerId_ICallerId.html#%5CPAGI%5CCallerId%5CICallerId">ICallerId</a> interface:
 </p>
 <pre name="code" class="php">
 $clid = $pagiClient->getCallerId();
@@ -538,13 +538,13 @@ $spool = CallSpoolImpl::getInstance(array(
 ));
 </pre>
 <p>
-The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDialDescriptor">dial descriptor</a> is an abstraction over dial strings, so you dont have to code them yourself. Currently, 
+The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDialDescriptor">dial descriptor</a> is an abstraction over dial strings, so you dont have to code them yourself. Currently,
 PAGI supports <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_SIPDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CSIPDialDescriptor">SIPDialDescriptor</a> and
-<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DAHDIDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDAHDIDialDescriptor">DAHDIDialDescriptor</a>. 
+<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DAHDIDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDAHDIDialDescriptor">DAHDIDialDescriptor</a>.
 </p>
 <p>
-This example will then issue a dial to <b>SIP/myDevice@myProvider</b> with the caller id "123". When the call is answered, it will go to 
-context "campaignContext", in the priority 1 of the extension 555. There are many options you can use in the 
+This example will then issue a dial to <b>SIP/myDevice@myProvider</b> with the caller id "123". When the call is answered, it will go to
+context "campaignContext", in the priority 1 of the extension 555. There are many options you can use in the
 <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallSpool_CallFile.html#%5CPAGI%5CCallSpool%5CCallFile">CallFile</a>, like custom
 variables, timeouts, etc.
 </p>
@@ -593,7 +593,7 @@ ini_set('include_path', implode(PATH_SEPARATOR, array(
 use PAGI\Application\PAGIApplication;
 use PAGI\Client\Impl\ClientImpl as PagiClient;
 
-class MyPagiApplication extends PAGIApplication 
+class MyPagiApplication extends PAGIApplication
 {
     protected $agi;
     protected $asteriskLogger;
@@ -667,6 +667,7 @@ Enough writing already, right? Go make your own ivr applications now :)
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

@@ -59,7 +59,7 @@ for the code that use <b>global</b> php <b>functions</b>. How can you mock them?
 technique to allow you to <b>mock global php functions</b>. This will
 require your code to use <b>namespaces</b>, available since <b>PHP 5.3</b>.
 </p>
-  
+
 <H3><u>Classical example</u></H3>
 <p>
 Suppose this is the code you'd like to test, a file called SomeClass.php:
@@ -71,8 +71,8 @@ class SomeClass
     public function doSomething()
     {
         // Notice how the global function "socket_create" is called without
-        // the leading backslash (relative instead of absolute call in a 
-        // namespaced environment). This will let us later mock the call 
+        // the leading backslash (relative instead of absolute call in a
+        // namespaced environment). This will let us later mock the call
         // by taking advantage of the relative-to-the-namespace call.
         $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if ($socket === false) {
@@ -191,6 +191,7 @@ levels possible, which is a novelty in the php language :) now go get that 100%!
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

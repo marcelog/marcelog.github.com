@@ -53,7 +53,7 @@
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
 <p>
-<a href="http://marcelog.github.com/PAMI">PAMI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI: 
+<a href="http://marcelog.github.com/PAMI">PAMI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI:
 Asterisk Manager Interface</a>. <a href="http://www.digium.com">Asterisk</a> is one of the hot topics in the IT world due to its broad acceptance and use case scenarios.
 </p>
 <p>
@@ -181,7 +181,7 @@ can clone the repository:
 $ git clone git://github.com/marcelog/PAMI.git
 </pre>
 <p>
-When installed this way, you need to make sure you set the include path into the 
+When installed this way, you need to make sure you set the include path into the
 <a href="https://github.com/marcelog/PAMI/tree/master/src/mg">/src/mg</a> subdirectory inside the
 root tree, so the PSR-0 autoloader would load from the src/mg/PAMI subdirectory.
 </p>
@@ -246,13 +246,13 @@ In order to get the client instance and open the connection, you need to provide
  * Read timeout in milliseconds
  */
 $pamiClientOptions = array(
-    'host' => '127.0.0.1',      
-    'scheme' => 'tcp://',       
-    'port' => 9999,             
-    'username' => 'admin',      
-    'secret' => 'mysecret',     
-    'connect_timeout' => 10000, 
-    'read_timeout' => 10000     
+    'host' => '127.0.0.1',
+    'scheme' => 'tcp://',
+    'port' => 9999,
+    'username' => 'admin',
+    'secret' => 'mysecret',
+    'connect_timeout' => 10000,
+    'read_timeout' => 10000
 );
 
 use PAMI\Client\Impl\ClientImpl as PamiClient;
@@ -270,7 +270,7 @@ Easy, isn't it?
 <h3>Listening for events</h3>
 <p>
 In order to get events, you need to register an event listener. There are 3 possible ways to register an event
-listener, all of them using the registerEventListener() method of the IClient implementation, and 
+listener, all of them using the registerEventListener() method of the IClient implementation, and
 your listener will receive <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Message/Event/EventMessage.php">EventMessage</a> objects.
 </p>
 <p>
@@ -342,13 +342,13 @@ use PAMI\Message\Event\EventMessage;
 use PAMI\Listener\IEventListener;
 
 $pamiClientOptions = array(
-    'host' => '127.0.0.1',      
-    'scheme' => 'tcp://',       
-    'port' => 9999,             
-    'username' => 'admin',      
-    'secret' => 'mysecret',     
-    'connect_timeout' => 10000, 
-    'read_timeout' => 10000     
+    'host' => '127.0.0.1',
+    'scheme' => 'tcp://',
+    'port' => 9999,
+    'username' => 'admin',
+    'secret' => 'mysecret',
+    'connect_timeout' => 10000,
+    'read_timeout' => 10000
 );
 
 $pamiClient = new PamiClient($pamiClientOptions);
@@ -448,7 +448,7 @@ log4php.rootLogger = DEBUG, default
 <p>
 PAMI is simple and straightforward. I hope you have fun using it, just as I had when
 writing it! A component like this can open a lot of new possibilities to your cli and
-webapp applications. 
+webapp applications.
 </p>
               </div>
             </div>
@@ -466,6 +466,7 @@ webapp applications.
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>

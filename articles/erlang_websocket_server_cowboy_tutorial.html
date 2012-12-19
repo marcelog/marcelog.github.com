@@ -60,7 +60,7 @@ wiki of <a href="http://erlang.org.ar/">Erlang Argentina</a>.
 Out of curiosity, and because some of my own projects needed it, I decided to go ahead and try writing a <a href="http://www.websocket.org/">websocket</a>
 server in erlang. After evaluating some of the available options (so I dont have to implement the whole websocket RFC
 -and their different drafts/versions- myself), I chose the Cowboy framework. This article tries to show my conclusions after
-the experience. 
+the experience.
 </p>
 <p>
 Note that I dont have that much experience using Cowboy, so I'd really like to know whatever comment you may think of that
@@ -80,7 +80,7 @@ This was the most tempting option to me, because it would've been great to use <
 is really popular (specially in <a href="https://nodejs.org/">NodeJS</a>), and also because one of the authors
 (<a href="https://github.com/ferd">Frederic Trottier-Hebert</a>) is also the author of <a href="http://learnyousomeerlang.com/">LearnYouSomeErlang</a>.
 Unfortunately, the authors decided to not add any more features beyond those provided by socket.io 0.6.x (socket.io is
-now in the 0.9.x version) due to not being ok with internal changes to the socket.io code. So this pretty much 
+now in the 0.9.x version) due to not being ok with internal changes to the socket.io code. So this pretty much
 killed this one.
 </li>
 <li><b><a href="https://github.com/mochi/mochiweb">MochiWeb</a></b>: This one is incredible popular, and allows you to quickly create HTTP servers
@@ -92,7 +92,7 @@ it if all the other options failed.</li>
 <li><b><a href="https://github.com/ostinelli/misultin">Misultin</a></b>: It's a library used to handle HTTP requests in an
 easy way. I didn't use this one because the author himself says (in the project README file), that he stopped
 further development because of the increased interest/attention and development on mochiweb and cowboy.</li>
-<li><b><a href="https://github.com/extend/cowboy">Cowboy</a></b>: It has quite a different (and interesting) approach, 
+<li><b><a href="https://github.com/extend/cowboy">Cowboy</a></b>: It has quite a different (and interesting) approach,
 because handling HTTP requests is just a part of the framework. Cowboy is actually more like a generic pool of connection
 accept()ors, that we can configure to handle normal TCP or SSL connections as transports, and handle protocols above them
 (like HTTP or any other we might like to). Out of the box, it supports HTTP, but it is essentially generic and extendable
@@ -101,7 +101,7 @@ code to find the answers to your questions.</li>
 </ul>
 <h3>The code</h3>
 <p>
-So to start trying Cowboy, I decided to create a <a href="https://github.com/basho/rebar">rebar</a> application, which I 
+So to start trying Cowboy, I decided to create a <a href="https://github.com/basho/rebar">rebar</a> application, which I
 called "erws" (Erlang WebSocket, so much for my creative talent).
 </p>
 <p>
@@ -109,7 +109,7 @@ The main module in this application is <b>erws_handler.erl</b>, but I'll show al
 application.
 </p>
 <p>
-When the application starts, it makes cowboy listens at port 10100 and dispatch connections to <b>erws_handler</b> as 
+When the application starts, it makes cowboy listens at port 10100 and dispatch connections to <b>erws_handler</b> as
 HTTP requests (you will see how this is done in <b>erws_app</b>).
 </p>
 <p>
@@ -121,7 +121,7 @@ done by cowboy through the module <a href="https://github.com/extend/cowboy/blob
 </p>
 <p>
 Once this is done, and through the api that the <a href="https://github.com/extend/cowboy/blob/master/src/cowboy_http_websocket_handler.erl">cowboy_http_websocket_handler</a> behavior imposes,
-we will handle the incoming data as messages, very much like a common gen_server. 
+we will handle the incoming data as messages, very much like a common gen_server.
 </p>
 <h3>erws_handler.erl</h3>
 <p>
@@ -289,7 +289,7 @@ some BC break changes.
 <h3>erws_app.erl</h3>
 <p>
 Our application. This code configures cowboy to listen for and accept connections in the
-given port (with the given protocol), and then dispatch the requests to the given modules. 
+given port (with the given protocol), and then dispatch the requests to the given modules.
 </p>
 <pre name="code" class="php">
 -module(erws_app).
@@ -358,6 +358,7 @@ webapps :)
               	<h2>Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
                   <li><a href="ci_jenkins_hudson_continuous_integration_php_phing.html">PHP Continuous integration, with Jenkins and Phing</a></li>
