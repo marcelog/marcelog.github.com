@@ -1,0 +1,598 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Persisting your entities in erlang</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content=""/>
+<meta name="description" content=""/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+    <div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Persisting your entities in Erlang</div>
+  </div>
+  <div class="main-outer">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Persisting your entities in Erlang</h2>
+                <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
+<p>
+In this article, I'll describe <a href="https://github.com/marcelog/epers/">epers</a>, which is a
+small project I've been working on. It's currently a "small" project, but quite ambitious, and the idea
+is to try some "new" ideas and concepts in the erlang we do every day.
+</p>
+<p>
+epers stands for "<b>erlang persistence</b>". As the name suggests, it tries to
+make it easy to use databases in erlang programs, to make it a little more
+agile, and (humbly) offer a nice adapter for several databases, hiding their
+implementation details (and the api of the library/framework/driver used to
+communicate with them).<br/>
+<br/>
+To achieve this, it aims to offer a somewhat consistant api to define and work
+with your model, while at the same, not coupling your code too tightly to it.
+<br/>
+<h3>Getting it</h3>
+<p>
+You can find epers at <a href="https://github.com/marcelog/epers/">GitHub</a>.
+</p>
+<h3>Current status</h3>
+<p>
+Epers is a young project, and it's open to, (and looking for) more contributors and users :)
+</p>
+<p>
+Currently, only the <a href="http://www.mongodb.org/">MongoDB</a> and <a href="http://www.mysql.com/">MySQL</a> repositories are
+implemented, and <a href="http://www.sqlite.org/">SQLite</a>, <a href="http://redis.io/">Redis</a> are in progress.
+</p>
+<p>
+Planned to have are: <a href="http://www.erlang.org/doc/man/mnesia.html">Mnesia</a>.
+</p>
+<h3>Full example</h3>
+<p>
+For the impatient, there's a complete example (a blog website) <a href="https://github.com/marcelog/epers/tree/master/examples/blog">here</a>.
+</p>
+<h3>General overview</h3>
+<p>
+The "programming model" that epers offers, forces you to write code that
+completely decouples state from the code that handles behavior, and the code
+that accesses a database. And maybe even make your code portable across different
+database engines. This has a few advantages, to name a few:
+</p>
+<ul>
+ <li>Your code will be less coupled to the database in use.</li>
+ <li>You might be able to easily change and combine different databases in your
+ project without changing your code much.</li>
+ <li>Your code will be more testable.</li>
+ <li>It will be easier to modify your code for new features.</li>
+</ul>
+<p>
+So let's start by defining some concepts used in epers.
+</p>
+<h3>A preview</h3>
+<p>
+Your main entry point to epers is the <a href="https://github.com/marcelog/epers/blob/master/src/epers.erl">epers</a> module. So if you want to skip
+some reading and go straight to the code, remember that you should have
+everything needed in this module, and should not need to call any other
+modules by yourself.
+</p>
+<p>
+From the epers module, you can call:
+</p>
+<ul>
+ <li><i>create_schema/0</i>: Creates the schema needed for your entities in the databases
+ you have configured (more details below).</li>
+ <li><i>find/2</i>: Fetches an entity by id.</li>
+ <li><i>find_by/2</i>: Fetches entities by certain conditions.</li>
+ <li><i>find_by/4</i>: As <i>find_by/2</i>, but accepts limit and offset for pagination.</li>
+ <li><i>find_one/2</i>: Finds the first entity that matches the given criteria.</li>
+ <li><i>persist/2</i>: Persists an entity, creating it or updating it. Returns the new
+ entity state (with an updated id if it was generated).</li>
+ <li><i>delete/2</i>: Deletes an entity of the given type.</li>
+ <li><i>delete_all/1</i>: Deletes all entities of the given type.</li>
+</ul>
+
+<h3>Basic usage</h3>
+<p>
+Once you have your entities and your repositories properly configured (see
+below), you can use them right away. Let's say we want to create a new user:
+</p>
+<pre name="code" class="erlang">
+    NewUser = epers:persist(mywebsite_user, User).
+    % NewUser contains a new id if it was generated.
+</pre>
+<p>
+Let's delete it:
+</p>
+<pre name="code" class="erlang">
+    epers:delete(mywebsite_user, Id).
+</pre>
+<p>
+Getting by id:
+</p>
+<pre name="code" class="erlang">
+    User = epers:find(mywebsite_user, Id).
+</pre>
+<p>
+Getting by age:
+</p>
+<pre name="code" class="erlang">
+    Users = epers:find_by(mywebsite_user, [{age, Age}]).
+</pre>
+<p>
+Same as above but paginated:
+</p>
+<pre name="code" class="erlang">
+    Users = epers:find_by(mywebsite_user, [{age, Age}], Limit, Offset).
+</pre>
+<p>
+Finding one by email:
+</p>
+<pre name="code" class="erlang">
+    User = epers:find_one(mywebsite_user, [{email, Email}]).
+</pre>
+<h3>Concepts</h3>
+<p>
+Let's go over a few key concepts of epers.
+</p>
+<h3>Entities</h3>
+<p>
+epers works with "<b>entities</b>". An entity is, conceptually speaking, "something"
+in your software that needs to be persisted, has its own business rules, has
+state, and has behavior. In plain epers-ish, this means erlang modules that
+implements the <a href="https://github.com/marcelog/epers/blob/master/src/epers_doc.erl">epers_doc</a> behavior.
+</p>
+<h3>Example</h3>
+<p>
+<i>Users</i> in a website, can be represented and implemented into the erlang module
+<i>mywebsite_user</i>:
+</p>
+<pre name="code" class="erlang">
+    -module(mywebsite_user).
+    -behavior(epers_doc).
+
+    epers_sleep(State) ->
+      ...
+
+    epers_wakeup(Fields) ->
+      ...
+
+    epers_schema() ->
+      ...
+</pre>
+<p>
+Don't worry about the <i>epers_</i> functions, we'll see more about them later.
+</p>
+
+<h3>State</h3>
+<p>
+The state in your entities is the actual data that needs to be persisted. Since
+you completely manage the details for it, it can be anything you want: a record,
+a proplist, or anything else. We'll see the details in a moment. For now, let's
+say it's a proplist:
+</p>
+
+<h3>Example</h3>
+<pre name="code" class="erlang">
+    [
+      {id, 1}, {name, "Peter"}, {lastname, "Cantropus"},
+      {age, 45}, {email, "peteca@host.com"}
+    ]
+</pre>
+<h3>Behavior</h3>
+<p>
+The behavior of your entites is represented by code. With epers, the functions
+you write in the modules (that represent your entities), are the behavior. The
+behavior will usually need the current state to actually work, and it will
+receive the state so it can act upon it.<br/>
+<br/>
+Usually, if the behavior has a side effect (like changing the state of the
+entity), it will return a new "state" that you can save for later use (this is
+actually because of the referential transparency feature in erlang, and of
+course, that there are no objects in erlang that can encapsulate both behavior
+and state at the same time).
+</p>
+<h3>Example</h3>
+<p>
+Let's say you have a story that states something like:<br/>
+<br/>
+<b><i>As a user, I want to change my email address, so I can...</i></b>
+<br/>
+<br/>
+You would write (in the <i>mywebsite_user</i> module):</br>
+<br/>
+<pre name="code" class="erlang">
+    change_email(State, NewEmail) ->
+      set(State, email, NewEmail).
+</pre>
+<p>
+The <i>set/3</i> function can be something like:
+</p>
+<pre name="code" class="erlang">
+    set(State, Field, Value) ->
+      lists:keystore(Field, 1, State, {Field, Value}).
+</pre>
+<h3>Business Rules</h3>
+<p>
+The business rules are what your entities can or can't do. The behavior is
+shaped by the business rules, and they should be enforced by throwing errors or
+reporting them somehow. You will usually have these as "requirements",
+"specs", "stories", etc.
+</p>
+<h3>Example</h3>
+<p>
+If <b><i>A user can't change his/her email if age > 40</i></b>, you could rewrite
+<i>change_email/2</i> like this:
+</p>
+<pre name="code" class="erlang">
+    change_email(State, NewEmail) ->
+      Age = get(State, age),
+      if
+        Age > 40 -> throw(cant_change_email_if_over_40);
+        _ -> set(State, email, NewEmail)
+      end.
+</pre>
+<p>
+The <i>get/2</i> function can be something like:
+</p>
+<pre name="code" class="erlang">
+      get(State, Field) ->
+        proplists:get_value(Field, State).
+</pre>
+<h3>The epers_doc behavior</h3>
+<p>
+Note that, in the example code shown so far, there's almost nothing that couples
+it to epers. So, if you regret using epers at some particular point of your
+development, it would not be *that* hard to do it :)<br/>
+<br/>
+Anyway, the <a href="https://github.com/marcelog/epers/blob/master/src/epers_doc.erl">epers_doc</a>
+behavior states that you have to implement the following functions, (which are
+basically adapters, translators, or bridges, needed to translate from and to
+your state representation into <a href="https://github.com/marcelog/epers/blob/master/include/epers_doc.hrl">#epers_doc{}</a>:
+</h3>
+<h3>epers_schema/0</h3>
+<p>
+Is called when <i>epers:create_schema/0</i> is called. This
+should return the schema for your entity. Example:
+</p>
+<pre name="code" class="erlang">
+    epers_schema() ->
+      epers:new_schema(?MODULE, [
+        epers:new_field(id, integer, [not_null, auto_increment, id]),
+        epers:new_field(name, string, [{length, 128}, not_null]),
+        epers:new_field(lastname, string, [{length, 128}, not_null]),
+        epers:new_field(age, integer, [index]),
+        epers:new_field(email, string, [{length, 64}, not_null, unique])
+      ]).
+</pre>
+<h3>Defining a schema</h3>
+<p>
+To create an <i>#epers_schema{}</i>, call <i>epers:new_schema/2</i>. The 1st argument is the
+name of the entity (will directly translate into tables, collections, etc), and
+the 2nd argument is a list of <i>#epers_field{}</i>, which are created by calling
+<i>epers:new_field/2</i> and <i>epers:new_field/3</i>. The 1st argument is the name of
+the field (automatically translated into columns, fields, etc), and the 2nd
+and 3rd arguments are the type and extra attributes for the field.<br/>
+<br/>
+Different database implementations might support different types and attributes,
+the default types for epers are:
+</p>
+<ul>
+ <li>integer</li>
+ <li>string</li>
+ <li>text</li>
+ <li>binary</li>
+</ul>
+<p>
+And the default attributes are:
+</p>
+<ul>
+ <li>auto_increment: mysql supports this, but other drivers might not.</li>
+ <li>not_null</li>
+ <li>{length, Length}</li>
+ <li>id: This is required in 1 of the fields of your entities. It will tell epers
+ that this particular field can be used to identify your entities.</li>
+ <li>unique</li>
+ <li>index</li>
+</ul>
+<p>
+This level of abstraction is what kind of makes possible to isolate your code
+from the database details (except for when you use custom repos or when using
+types or attributes that are only available to one of the database engines and
+not all).
+</p>
+<h3>epers_wakeup/1</h3>
+<p>
+Called when epers fetches an entity from the database
+and needs your code to generate the proper entity state from that raw data. You
+<b>get a proplist</b> and you <b>must return your own representation</b> for the entity state (a
+record, a proplist, etc).
+</p>
+<h3>epers_sleep/1</h3>
+<p>
+Is the reverse operation of <i>epers_wakeup/1</i>. It will be called
+when epers is about to persist your entity. You <b>receive your own representation
+of a state</b>, and you <b>must return a proplist</b> with the fields and records that you
+want to persist.
+</p>
+<h3>Repositories</h3>
+<p>
+Repositores in epers are in charge of dealing with the details of how entities
+are persisted or fetched. Epers come with a
+<a href="https://github.com/marcelog/epers/blob/master/src/epers_repo.erl">default implementation</a> of a repo that lets you persist (insert/update) and do basic queries.<br/>
+<br/>
+Repositories are configured somewhere in your application configuration, and
+then associated to entities like this:
+</p>
+<pre name="code" class="erlang">
+    {epers, [
+      {repositories, [
+        {my_repo_name, module_with_implementation, [
+          proplists with specific options
+        ]},
+      ]}
+      {docs, [
+        {my_entity, my_repo_name},
+      ]}
+    ]}
+</pre>
+<p>
+This is needed so epers knows which repo to call when persisting or querying
+entities. This also allows you to change repo implementations easily, and
+hopefully, without needing to change code.
+</p>
+<h3>Example</h3>
+<p>
+Let's say we want to setup a mysql repository (with the default implementation)
+for our <i>ebsite_user</i> entity:
+</p>
+<pre name="code" class="erlang">
+    {epers, [
+      {repositories, [
+        {users_repo, epers_repo_mysql, [
+          {username, "root"},
+          {password, "pass"},
+          {host, "127.0.0.1"},
+          {port, 3306},
+          {database, "users"}
+        ]}
+      ]},
+      {docs, [
+        {mywebsite_user, users_repo}
+      ]}
+    ]}
+</pre>
+<p>
+It's possible that if you are using the default implementation of a repo
+(any of the modules <i>epers_repo_*</i> modules) you can change implementations
+without changing your code, and only reconfiguring your application. Let's see
+how would the configuration look like to use mongodb:
+</p>
+<pre name="code" class="erlang">
+    {epers, [
+      {repositories, [
+        {users_repo, epers_repo_mongo, [
+          {username, "root"},
+          {password, "pepe"},
+          {host, "127.0.0.1"},
+          {port, 27017},
+          {database, "blog"}
+        ]}
+      ]},
+      {docs, [
+        {mywebsite_user, users_repo}
+      ]}
+    ]}
+</pre>
+<p>
+Which is pretty much the same as mysql :)
+</p>
+<h3>Default repositories</h3>
+<p>
+The default repositories support the following api:
+</p>
+<ul>
+  <li><i>create_schema/2</i>: Creates the schema for the given entity type.</li>
+  <li><i>persist/2</i>: Persist (create or update) the given entity.</li>
+  <li><i>find_by/3</i>: Finds all entities with a given criteria.</li>
+  <li><i>find_by/5</i>: Finds all entities that match a given criteria, paginated.</li>
+  <li><i>delete/3</i>: Delete entities of a given type and that match the given
+  criteria.</li>
+  <li><i>delete_all/2</i>: Delete all entities of a type in this repo.</li>
+  <li><i>call/4</i>: If you have a custom repo implementation, this is the way to
+  call a custom function.</li>
+</ul>
+<h3>Custom repositories</h3>
+<p>
+Sooner or later you will need to do some more complex queries to your database,
+and the default repo implementations wont help you much. For these special
+situations, you can write your own repo implementation.<br/>
+<br/>
+Since epers does not offer a query language of its own, you wont be able to
+use any abstraction over the database. Thus, you will lock that repo features
+to one of the already existant drivers.<br/>
+<br/>
+Let's say that you want to extend the default repo implementation for
+mywebsite_user, to add a count, and you choose to use mysql for this. You can
+write the following <i>mywebsite_user_repo</i> module:
+</p>
+<pre name="code" class="erlang">
+    -module(blog_post_repo).
+
+    -include_lib("emysql/include/emysql.hrl").
+    -include_lib("epers_doc.hrl").
+
+    -extends(epers_repo_mysql).
+
+    total_users(DocName, State) ->
+      Sql = "SELECT COUNT(1) FROM `" ++ atom_to_list(DocName) ++ "`",
+      Result = epers_repo_mysql:execute(Sql, State),
+      case Result of
+        #result_packet{rows=[[N]]} -> {ok, {raw, N}, State};
+        _ -> {ok, error, State}
+      end.
+</pre>
+<p>
+And you can access it by calling:
+</p>
+<pre name="code" class="erlang">
+    epers:call(mywebsite_user, total_users).
+</pre>
+<p>
+Epers will locate the repo implementation for the entity <i>mywebsite_user</i> and
+call the <i>total_users</i> function.<br/>
+<br/>
+Because of the <i>extends</i> directive, your repo will contain all the default
+repo features, like persist, find, etc.
+</p>
+<h3>Passing arguments</h3>
+<p>
+You can all:
+</p>
+<pre name="code" class="erlang">
+    epers:call(mywebsite_user, crazy_query, [Arg1, Arg2, Arg3]).
+</pre>
+<p>
+This will invoke the function crazy_query(Arg1, Arg2, Arg3) on your custom
+repo.
+</p>
+<h3>What's next?</h3>
+<p>
+Lots of improvements are possible, like an own Query Language, that can be used to
+code queries portable across different database engines, more repositories, etc.
+</p>
+<p>
+Now give it a try, and stay tuned for the future versions :) All feedback is welcome!
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
+                  <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
+                  <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
+                  <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
+                  <li><a href="ci_jenkins_hudson_continuous_integration_php_phing.html">PHP Continuous integration, with Jenkins and Phing</a></li>
+                  <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="ding_component_bean_annotations.html">Ding bean annotations</a></li>
+                  <li><a href="swig_php_libpcap_module_c++.html">Sniffing in PHP using libpcap: Thank you SWIG!</a></li>
+                  <li><a href="ding_component_bean_annotations_di_dependency_injection.html">Ding annotations for dependency injection</a></li>
+                  <li><a href="ding_bean_lifecycle_init_destroy_post_construct.html">Hooks into the bean lifecycle in the Ding container</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="php_mock_global_functions_for_unit_tests_with_phpunit.html">Mocking Global Php 5.3 Functions Using Namespaces</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="ding_php_aop_aspect_oriented_programming.html">Aspect Oriented Programming in PHP with Ding</a></li>
+                  <li><a href="php_asterisk_listener_example_using_pami_and_ding.html">Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</a></li>
+                  <li><a href="php_send_dime_attachment_with_soap_webservice_with_curl.html">Using DIME With SOAP And PHP</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html"> Creating isolated environments for PHP applications with PEAR dependencies</a></li>
+                  <li><a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">Writing PHP applications with Doctrine2 as ORM and Ding as DI container</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="ding_how_to_install_configure_tutorial_introduction.html">Installing and using the Ding DI Container</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
+                  <li><a href="ding_event_listen_dispatch_bean.html">Dispatching and listening for events in the Ding container</a></li>
+                  <li><a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">Ding container: Using the Xml, Yaml, and Annotations drivers</a></li>
+                  <li><a href="ding_xml_yaml_di_dependency_injection.html">Dependency injection with Xml and Yaml in the Ding container</a></li>
+                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushErlang.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
