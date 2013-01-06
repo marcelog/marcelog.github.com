@@ -92,8 +92,8 @@ we want to dispatch events to the <i>my_event_bus</i> gen_event reference.
 </p>
 <p>
 Note that there wont be any events dispatched for the missing entities. So in
-the end, you specifically estipulate for what entities you'd like to receive
-events, and  the specific event manager where these events will be dispatched
+the end, you specifically estipulate what entities you'd like to receive
+events for, and  the specific event manager where these events will be dispatched
 to.
 </p>
 <p>
@@ -154,6 +154,13 @@ handle_event({blog_post, updated, [Entity]}, State) ->
   {ok, State};
 ...
 </pre>
+<h3>Conclusion</h3>
+<p>
+Having this feature in epers allows you to create alerts, trigger specific
+jobs, maybe even create tweets, or notify web clients through websockets that
+something interesting happened in the system, without much effort, so it's
+kind of a cool thing to have around and I hope you enjoy it :)
+</p>
               </div>
             </div>
             <div class="mod view-more">
