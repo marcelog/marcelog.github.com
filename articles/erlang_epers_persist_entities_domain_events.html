@@ -1,10 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Common Test: Code coverage on subdirectories</title>
+<title>Epers, Erlang, and Domain Events when persisting your entities</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="erlang ct common_test common test rebar code html coverage source subdirectory subdirectories"/>
-<meta name="description" content="This article will describe how to use rebar to run common test and to generate html code coverage reports for files in subdirectories"/>
+<meta name="Keywords" content="erlang persistence domain events entities gen_event"/>
+<meta name="description" content="This article describes how to receive and handle the domain events 
+fired by epers whenever something interesting occurs with an entity."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +40,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Common Test: Code coverage on subdirectories</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Epers, Erlang, and Domain Events when persisting your entities</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -49,84 +50,110 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Common Test: Code coverage on subdirectories</h2>
+                <h2>Epers, Erlang, and Domain Events when persisting your entities</h2>
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
 <p>
-Sometimes its useful to organice your source files into subdirectories. Thing is, it's not
-that easy to create html reports for code coverage for them. Let's see why, and a possible
-solution for this.
-</p>
-<h3>The situation</h3>
-<p>
-Typically, you would use <a href="https://github.com/basho/rebar">rebar</a> in your erlang project, to make it easier to get dependencies, compile, and run tests, either with <a href="http://www.erlang.org/doc/apps/common_test/index.html">common_test</a> or <a href="http://www.erlang.org/doc/apps/eunit/chapter.html">eunit</a>.
+In the <a href="erlang_persistence_entities.html">last article</a>, I presented 
+<a href="https://github.com/marcelog/epers">epers</a>, a small project intended to 
+help build erlang applications that need to persist entities to a database.
 </p>
 <p>
-Surely you will have your <a href="https://github.com/basho/rebar/blob/master/rebar.config.sample">rebar.config</a> file with at least the following entries:
+In this new article, I'll describe the built-in <a href="http://martinfowler.com/eaaDev/DomainEvent.html">
+domain events</a> available in the framework.
 </p>
-<pre name="code" class="php">
-{eunit_opts, [verbose, {skip_deps, true}]}.
-{eunit_exclude_deps, true}.
-{cover_enabled, true}.
-</pre>
-
+<h3>How it works</h3>
 <p>
-And of course, a <a href="http://www.erlang.org/doc/apps/common_test/cover_chapter.html#id78510">cover.spec</a> file in the directory of the application, similar to this:
+Whenever epers is requested to do certain operations and if they succeed, an event 
+will be dispatched using <a href="http://www.erlang.org/doc/man/gen_event.html#notify-2">
+gen_event:notify/2</a>.
 </p>
-
-<pre name="code" class="php">
-{incl_app, myapp, details}.
-{excl_mods, myapp, [app_SUITE]}.
-{incl_dirs_r, ["src", "test"]}.
-{src_dirs, myapp, ["src", "test"]}.
-</pre>
-
 <p>
-Then you can run common_test via rebar quite easily, like:
+You should start your own event manager (by using any
+of <a href="http://www.erlang.org/doc/man/gen_event.html#start_link-0">start_link/0</a>, <a href="http://www.erlang.org/doc/man/gen_event.html#start_link-1">start_link/1</a>, <a href="http://www.erlang.org/doc/man/gen_event.html#start-0">start/0</a>, <a href="http://www.erlang.org/doc/man/gen_event.html#start-1">start/1</a>), register whatever event handlers you need, and epers will always
+try to dispatch the interesting events through it, but wont fail if it's not present.
 </p>
-
-<pre name="code" class="php">
-$ rebar -v 3 skip_deps=true ct
-</pre>
-
+<h3>Configuring epers</h3>
 <p>
-All of this will allow you to run the tests and generate coverage reports, but
-you will notice that there aren't any html reports for the source files that
-"live" into subdirectories in your
-<b>src</b> directory.
-
-<h3>The reason why you won't get coverage reports in src subdirectories</h3>
-<p>
-The application that generates code coverage is actually shipped with erlang/otp, and it's
-called <a href="http://www.erlang.org/doc/man/cover.html">cover</a>. Common test uses it but,
-when referring to the <a href="http://www.erlang.org/doc/apps/common_test/cover_chapter.html">manual
-page</a>, there's the following note:
+The event manager (i.e: gen_event process) reference to be used goes straight
+into the epers configuration. Let's look at the example <a href="https://github.com/marcelog/epers/blob/master/examples/blog/blog.config">
+blog.config</a> file, in the example application shipped with epers. You will notice something like:
 </p>
-
-<p><i>
-  Note: Currently, for Common Test to be able to print code coverage HTML files for the modules included in the analysis, the source code files of these modules must be located in the same directory as the corresponding .beam files. This is a limitation that will be removed later.
-</i></p>
-
-<h3>Quick fix</h3>
-<p>
-So a kind of dirty solution is to add to your Makefile something along these lines:
-</p>
-<pre name="code" class="php">
-test: compile
-  @rm -rf ${CT_LOG}
-  @find ${APP_DIR}/src -type f -exec cp {} ${APP_DIR}/ebin \;
-  @find ${APP_DIR}/test -type f -exec cp {} ${APP_DIR}/ebin \;
-  ${REBAR} -v 3 skip_deps=true ct
-  @find ${APP_DIR}/ebin -type f -name "*.erl" -exec rm {} \;
+<pre name="code" class="erlang">
+  ...
+  {events, [
+    {blog_post, my_event_bus}
+  ]},
+  ...
 </pre>
 <p>
-This will copy all source files (*.erl) into the <b>ebin</b> directory (where the .beam files are
-generated), run the tests, and then remove the source files, allowing common test to generate
-coverage reports for *all* the source files in <b>src</b> and its subdirectories.
+This simple line of configuration states that for the entity <i>blog_post</i>
+we want to dispatch events to the <i>my_event_bus</i> gen_event reference.
 </p>
 <p>
-Still here? Go have some fun reaching that 100% now :)
+Note that there wont be any events dispatched for the missing entities. So in
+the end, you specifically estipulate for what entities you'd like to receive
+events, and  the specific event manager where these events will be dispatched
+to.
 </p>
+<p>
+As the gen_event manual states, an event manager reference can be any of:
+</p>
+<ul>
+  <li>a pid()</li>
+  <li>Name (an atom(), if the event manager was registered with {local, Name})</li>
+  <li>{global, GlobalName}</li>
+  <li>{Name, Node}
+</ul>
+<h3>Available domain events</h3>
+<p>
+All events are dispatched including the entity name (<i>user</i>, <i>blog_post</i>, etc), and
+a list of terms that are additional arguments for the event. Here's a complete
+list:
+</p>
+<ul>
+  <li><b>schema_created</b>: Dispatched by <i>epers:create_schema</i>, without
+    arguments (<b>[]</b>).</li>
+  <li><b>created</b>: Dispatched by <i>epers:persist</i> when persisting new
+    entities. <b>[Entity]</b> is sent along as arguments, containing a proplist
+    with all the current properties.</li>
+  <li><b>updated</b>: Dispatched by <i>epers:persist</i> when persisting an
+    already existant entity. <b>[Entity]</b> is sent along as arguments, containing a proplist
+    with all the current properties.</li>
+  <li><b>deleted</b>: Dispatched by <i>epers:delete</i> when deleting an
+    entity.  <b>[Id]</b> is sent along as arguments.</li>
+  <li><b>deleted_all</b>: Dispatched by <i>epers:delete_all</i>.
+</ul>
+<h3>Handling domain events</h3>
+<p>
+A complete example is available with the example application, <a href="https://github.com/marcelog/epers/tree/master/examples/blog/src/blog_event_handler.erl">here</a>.
+The interesting bits of code are:
+</p>
+<pre name="code" class="erlang">
+...
+handle_event({blog_post, schema_created, []}, State) ->
+  lager:info("The blog post schema has been created"),
+  {ok, State};
+
+handle_event({blog_post, deleted, [Id]}, State) ->
+  lager:info("The blog post ~p has been deleted", [Id]),
+  {ok, State};
+
+handle_event({blog_post, deleted_all, []}, State) ->
+  lager:info("All blog posts entries have been deleted"),
+  {ok, State};
+
+handle_event({blog_post, created, [Entity]}, State) ->
+  Id = proplists:get_value(id, Entity),
+  lager:info("Blog post ~p created", [Id]),
+  {ok, State};
+
+handle_event({blog_post, updated, [Entity]}, State) ->
+  Id = proplists:get_value(id, Entity),
+  lager:info("Blog post ~p updated", [Id]),
+  {ok, State};
+...
+</pre>
               </div>
             </div>
             <div class="mod view-more">
@@ -143,9 +170,9 @@ Still here? Go have some fun reaching that 100% now :)
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="erlang_epers_persist_entities_domain_events.html">Epers, Erlang, and Domain Events when persisting your entities</a></li>
-                  <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
                   <li><a href="erlang_persistence_entities.html">Persisting your entities in Erlang</a></li>
+                  <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
                   <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
                   <li><a href="erlang_rebar_generate_code_coverage_eunit_tests.html">How to generate code coverage for eunit tests when using rebar</a></li>
@@ -180,7 +207,7 @@ Still here? Go have some fun reaching that 100% now :)
 
 <!-- config SyntaxHighlighter -->
 <script src='../dphighlighter/shCore.js' type='text/javascript'></script>
-<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushErlang.js' type='text/javascript'></script>
 <script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
 <script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
 <script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>

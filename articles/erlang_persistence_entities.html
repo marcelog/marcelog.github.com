@@ -99,6 +99,8 @@ database engines. This has a few advantages, to name a few:
  project without changing your code much.</li>
  <li>Your code will be more testable.</li>
  <li>It will be easier to modify your code for new features.</li>
+ <li>Some domain events are natively supported, allowing your app to react to them. This is
+   actually covered in <a href="erlang_epers_persist_entities_domain_events.html">this article</a>.</li>
 </ul>
 <p>
 So let's start by defining some concepts used in epers.
@@ -490,6 +492,11 @@ You can all:
 This will invoke the function crazy_query(Arg1, Arg2, Arg3) on your custom
 repo.
 </p>
+<h3>Built-in domain events</h3>
+<p>
+Since this article is a little too long already, this subject is covered in depth
+<a href="erlang_epers_persist_entities_domain_events.html">here</a>.
+</p>
 <h3>What's next?</h3>
 <p>
 Lots of improvements are possible, like an own Query Language, that can be used to
@@ -514,6 +521,7 @@ Now give it a try, and stay tuned for the future versions :) All feedback is wel
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="erlang_epers_persist_entities_domain_events.html">Epers, Erlang, and Domain Events when persisting your entities</a></li>
                   <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
                   <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
                   <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
