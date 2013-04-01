@@ -114,18 +114,18 @@ bootstrap the pami client:
 <p><b>NOTE</b>:Be sure that your PHP version is not 5.3.9 or 5.3.10, beacuse they had a bug in stream_get_line() that will prevent PAMI from working correctly. Please use a different 5.3 or 5.4 version. If you really need a patch, just email me or see <a href="https://github.com/marcelog/PAMI/blob/master/README.PHP-5.3.9-and-5.3.10">this</a>.</p>
 <h3>Option A: Installing and using the PHAR distribution</h3>
 <p>
-You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.70.0, so the available artifact is named "PAMI-1.70.0.phar". Let's fetch it:
+You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.70.1, so the available artifact is named "PAMI-1.70.1.phar". Let's fetch it:
 </p>
 
 <pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/PAMI-1.70.0.phar
+$ wget http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/PAMI-1.70.1.phar
 </pre>
 <p>
 Let's see how to use it:
 </p>
 <pre name="code" class="php">
 // Include the phar file.
-require_once 'PAMI-1.70.0.phar';
+require_once 'PAMI-1.70.1.phar';
 
 // Set the include path to have pami's phar first
 // (just to avoid having another installation in
@@ -139,11 +139,11 @@ That's it. You can now bootstrap the pami client and do your thing (see below).
 </p>
 <h3>Option B: Installing the PEAR distribution manually</h3>
 <p>
-As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.70.0 is the latest version at the time of this writing):
+As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.70.1 is the latest version at the time of this writing):
 </p>
 <pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/PAMI-1.70.0.tgz
-$ pear install PAMI-1.70.0.tgz
+$ wget http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/PAMI-1.70.1.tgz
+$ pear install PAMI-1.70.1.tgz
 </pre>
 <h3>Option C: Installing via the PEAR Channel</h3>
 <p>
