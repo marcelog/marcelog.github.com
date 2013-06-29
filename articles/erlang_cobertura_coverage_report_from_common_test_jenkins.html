@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Common Test: Generating JUnit style xml reports for Jenkins</title>
+<title>Common Test: Cobertura Coverage report for Jenkins using covertool</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="junit surefire format erlang common test ct common_test jenkins publish test  report"/>
-<meta name="description" content="How to easily add junit/surefire style reports to your erlang projects, by using common test and how to publish them with jenkins, generating nice reports with the common test hook cth_surefire."/>
+<meta name="Keywords" content="cobertura xml format erlang common test ct common_test jenkins publish test code coverage report covertool"/>
+<meta name="description" content="How to integrate cover code coverage reports with jenkins, by using covertool to generate cobertura style reports for your erlang projects."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Common Test: Generating JUnit style xml reports for Jenkins</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Common Test: Cobertura Coverage report for Jenkins using covertool</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -49,35 +49,61 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Common Test: Generating JUnit style xml reports for Jenkins</h2>
+                <h2>Common Test: Cobertura Coverage report for Jenkins using covertool</h2>
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
-  <p>
-JUnit/Surefire -style reports are very useful, because you can make <a href="http://jenkins-ci.org/">Jenkins</a> use them to display
-nice reports for <b>erlang projects</b>. Fortunately, since <a href="https://github.com/erlang/otp/commit/11908525cfd1f048296ef3718a367d7c34e7cdb4">Mar 20th</a>, the default common test distribution comes with a <a href="https://github.com/erlang/otp/blob/maint/lib/common_test/src/cth_surefire.erl">cth_surefire</a> hook (see more about <a href="http://www.erlang.org/doc/apps/common_test/ct_hooks_chapter.html">common test hooks</a>) that will generate what we need.
-</p>
-<h3>Using it</h3>
 <p>
-To enable it, we just need to specify the <b>-ct_hooks cth_surefire</b> option when running ct. If you're using rebar, add something like this to your rebar.config file:
+Aside from what the <a href="http://www.erlang.org/doc/man/cover.html">cover application</a> can offer in terms of code coverage reports,
+we can also get some "nicer" graphs for our <b>erlang projects</b>, integrated with <a href="http://jenkins-ci.org">Jenkins</a>, by using <a href="https://github.com/idubrov/covertool">covertool</a> to convert the coverage information into the <a href="http://cobertura.sourceforge.net/">cobertura</a> format.
+
+<h3>Setting up covertool</h3>
+<p>If you're using <a href="https://github.com/basho/rebar">rebar</a>, then you can just add
+  covertool as a dependency (here's the <a href="https://github.com/idubrov/covertool">repo</a>). If not, you can clone the repo by yourself. Either way, (manually or through your own Makefile), run make at the top level directory afterwards. You will end up with an executable file named <b>covertool</b>
+</p>
+<pre name="code" class="php">
+$ ls -las deps/covertool/covertool
+40 -rwxr-xr-x  1 user  group  19739 Jun 28 23:26 deps/covertool/covertool
+</pre>
+
+<h3>Exporting cover data</h3>
+<p>
+You will need to make the cover application export its data. If you're using rebar, just add
+this to your <b>cover.spec</b> file:
 </p>
 <pre name="code" class="erlang">
-{ct_extra_params, "-ct_hooks cth_surefire -logdir logs/ct"}.
+{export, "logs/cover.data"}.
 </pre>
 <p>
-After the tests are run, you should see a <b>junit_report.xml</b> file, inside your
-logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
+  Otherwise, you can use <a href="http://www.erlang.org/doc/man/cover.html#export-1">cover:export/1</a>, either manually or from your own build scripts.
 </p>
-<h3>Publishing the results in Jenkins</h3>
+<h3>Sample run</h3>
 <p>
-  Just add a <b>Post build action</b>, the <b>Publish JUnit test result report</b>:
+This will create a <b>coverage.xml</b> xml file that you can publish from Jenkins.
 </p>
-<a href="publish_common_test_junit_report_jenkins.png"><img width="580" src="publish_common_test_junit_report_jenkins.png"/></a>
-
-<h3>Sample report</h3>
+<pre name="code" class="php">
+$ covertool -output logs/coverage.xml -cover logs/cover.data -src src -appname my_app
+</pre>
 <p>
-<b>NOTE</b>: Test suite names are intentionally obfuscated.
+<b>NOTE</b>: It's highly recommended that you setup a rebar hook or a Makefile target to run
+this right after your common tests are run.
 </p>
-<a href="cth_surefire_example.png"><img width="580" src="cth_surefire_example.png"/></a>
+<h3>Publishing in Jenkins</h3>
+<p>
+Install the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Cobertura+Plugin">Cobertura Plugin</a>, from the <b>Manage Jenkins -> Manage plugins</b> section:
+</p>
+<a href="jenkins_cobertura_plugin_install.png"><img width="580" src="jenkins_cobertura_plugin_install.png"/></a>
+<p>
+  This will add a new <b>Post Build Action</b> that you can add to your job, which is the <b>Publish Cobertura Coverage Report</b>:
+</p>
+<a href="cobertura_plugin_publish_covertool.png"><img width="580" src="cobertura_plugin_publish_covertool.png"/></a>
+<p>After your job builds, you will see a new link on the left, the <b>Coverage Report</b> link, if you
+  click on it, you should see something similar to this:
+</p>
+<a href="cobertura_example_covertool.png"><img width="580" src="cobertura_example_covertool.png"/></a>
+<p>
+On the left, the name of the "packages" appear (in this case, several packages appear because the source
+tree has subdirectories), and you can navigate through them, see the files in them, and also click on the files to see the source and the actual lines covered. Nice!
+</p>
               </div>
             </div>
             <div class="mod view-more">
@@ -94,7 +120,7 @@ logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="erlang_cobertura_coverage_report_from_common_test_jenkins.html">Common Test: Cobertura Coverage report for Jenkins using covertool</a></li>
+                  <li><a href="erlang_test_report_in_junit_format_common_test_publish_jenkins.html">Common Test: Generating JUnit style xml reports for Jenkins</a></li>
                   <li><a href="erlang_epers_persist_entities_domain_events.html">Epers, Erlang, and Domain Events when persisting your entities</a></li>
                   <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
                   <li><a href="erlang_persistence_entities.html">Persisting your entities in Erlang</a></li>
