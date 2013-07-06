@@ -52,6 +52,9 @@
                 <h2>Common Test: Generating JUnit style xml reports for Jenkins</h2>
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
+<p>
+<b>UPDATE</b>: There's an example <a href="https://github.com/marcelog/jenkins_erlang_rebar_example">at github</a> with a template for a complete otp/rebar application, being builded <a href="http://ci.marcelog.name/job/jenkins_erlang_rebar_example/">at this jenkins</a>.
+</p>
   <p>
 JUnit/Surefire -style reports are very useful, because you can make <a href="http://jenkins-ci.org/">Jenkins</a> use them to display
 nice reports for <b>erlang projects</b>. Fortunately, since <a href="https://github.com/erlang/otp/commit/11908525cfd1f048296ef3718a367d7c34e7cdb4">Mar 20th</a>, the default common test distribution comes with a <a href="https://github.com/erlang/otp/blob/maint/lib/common_test/src/cth_surefire.erl">cth_surefire</a> hook (see more about <a href="http://www.erlang.org/doc/apps/common_test/ct_hooks_chapter.html">common test hooks</a>) that will generate what we need.
