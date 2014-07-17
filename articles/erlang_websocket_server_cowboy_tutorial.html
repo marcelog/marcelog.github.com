@@ -130,59 +130,46 @@ The main module, will handle and serve the requests.
 <pre name="code" class="php">
 -module(erws_handler).
 -behaviour(cowboy_http_handler).
--behaviour(cowboy_http_websocket_handler).
-
-% Behaviour cowboy_http_handler
--export([init/3, handle/2, terminate/2]).
-
-% Behaviour cowboy_http_websocket_handler
+-behaviour(cowboy_websocket_handler).
+-export([init/3, handle/2, terminate/3]).
 -export([
     websocket_init/3, websocket_handle/3,
     websocket_info/3, websocket_terminate/3
 ]).
 
-% Called to know how to dispatch a new connection.
-init({tcp, http}, Req, _Opts) ->
-    lager:debug("Request: ~p", [Req]),
-    % "upgrade" every request to websocket,
-    % we're not interested in serving any other content.
-    {upgrade, protocol, cowboy_http_websocket}.
+init({tcp, http}, _Req, _Opts) ->
+  {upgrade, protocol, cowboy_websocket}.
 
-% Should never get here.
+
 handle(Req, State) ->
-    lager:debug("Unexpected request: ~p", [Req]),
-    {ok, Req2} = cowboy_http_req:reply(404, [
-        {'Content-Type', <<"text/html">>}
-    ]),
+    lager:debug("Request not expected: ~p", [Req]),
+    {ok, Req2} = cowboy_http_req:reply(404, [{'Content-Type', <<"text/html">>}]),
     {ok, Req2, State}.
 
-terminate(_Req, _State) ->
-    ok.
 
-% Called for every new websocket connection.
-websocket_init(_Any, Req, []) ->
-    lager:debug("New client"),
-    Req2 = cowboy_http_req:compact(Req),
-    {ok, Req2, undefined, hibernate}.
+websocket_init(_TransportName, Req, _Opts) ->
+    lager:debug("init websocket"),
+    {ok, Req, undefined_state}.
 
-% Called when a text message arrives.
 websocket_handle({text, Msg}, Req, State) ->
-    lager:debug("Received: ~p", [Msg]),
-    {reply,
-        {text, << "Responding to ", Msg/binary >>},
-        Req, State, hibernate
-    };
+    lager:debug("Got Data: ~p", [Msg]),
+    {reply, {text, << "responding to ", Msg/binary >>}, Req, State, hibernate };
 
-% With this callback we can handle other kind of
-% messages, like binary.
+
 websocket_handle(_Any, Req, State) ->
-    {ok, Req, State}.
+    {reply, {text, << "whut?">>}, Req, State, hibernate }.
 
-% Other messages from the system are handled here.
+websocket_info({timeout, _Ref, Msg}, Req, State) ->
+    {reply, {text, Msg}, Req, State};
+
 websocket_info(_Info, Req, State) ->
+    lager:debug("websocket info"),
     {ok, Req, State, hibernate}.
 
 websocket_terminate(_Reason, _Req, _State) ->
+    ok.
+
+terminate(_Reason, _Req, _State) ->
     ok.
 </pre>
 <h3>index.html</h3>
@@ -268,23 +255,19 @@ connection.
 This is the project configuration file. Our dependencies are cowboy and lager
 (optional).
 </p>
-<p>
-<b>NOTE</b>: We use tag 0.6.1 of cowboy source code because from then on it has
-some BC break changes.
-</p>
 <pre name="code" class="php">
-% The next option is required so we can use lager.
 {erl_opts, [{parse_transform, lager_transform}]}.
 {lib_dirs,["deps"]}.
-% Our dependencies.
+
 {deps, [
-    {'cowboy', ".*", {
-        git, "git://github.com/extend/cowboy.git", {tag, "0.6.1"}}
-    },
     {'lager', ".*", {
         git, "git://github.com/basho/lager.git", "master"}
+    },
+    {'cowboy', ".*", {
+        git, "git://github.com/extend/cowboy.git", {tag, "0.9.0"}}
     }
 ]}.
+
 </pre>
 <h3>erws_app.erl</h3>
 <p>
@@ -297,19 +280,15 @@ given port (with the given protocol), and then dispatch the requests to the give
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    %% {Host, list({Path, Handler, Opts})}
-    %% Dispatch the requests (whatever the host is) to
-    %% erws_handler, without any additional options.
-    Dispatch = [{'_', [
-        {'_', erws_handler, []}
-    ]}],
-    %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
-    %% Listen in 10100/tcp for http connections.
-    cowboy:start_listener(erws_websocket, 100,
-        cowboy_tcp_transport, [{port, 10100}],
-        cowboy_http_protocol, [{dispatch, Dispatch}]
-    ),
-    erws_sup:start_link().
+  Dispatch = cowboy_router:compile([
+      {'_', [
+        {"/", cowboy_static, {priv_file, erws, "index.html"}},
+        {"/websocket", erws_handler, []}
+      ]}
+    ]),
+    {ok, _} = cowboy:start_http(http, 100, [{port, 8080}],
+        [{env, [{dispatch, Dispatch}]}]),
+      erws_sup:start_link().
 
 stop(_State) ->
     ok.
