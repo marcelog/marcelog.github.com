@@ -283,10 +283,10 @@ will define (in a very simple way) how US Postal codes are written. So we start 
 (available at github at <a href="https://github.com/marcelog/ex_abnf_example/blob/master/priv/postal_code.abnf">https://github.com/marcelog/ex_abnf_example/blob/master/priv/postal_code.abnf</a>):
 </p>
 <p>
-The only differences from the original grammar posted in the wiki are:
+The are only 2 differences from the original grammar posted in the wiki, they are:
 <ul>
   <li>The syntax <b>=/</b> used to define incremental alternatives for a rule, is currently not supported
-    by ex_abnf. However, we can rewrite that as "alternative1 / alternative2 / alternative3".</li>
+    by ex_abnf. However, we can rewrite that as "alternative1 / alternative2 / alternative3". This is used in the rule <b>name-part</b>.</li>
   <li>The original grammar has an ambiguity in the definition for the rule <b>name-part</b>, so it is rewritten to
     require at least one name before the suffix.</li>
 </ul>
