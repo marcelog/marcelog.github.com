@@ -1,0 +1,539 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>ABNF Grammars in Elixir</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="ex_abnf abnf grammars elixir erlang"/>
+<meta name="description" content="This article is about how to parse and use ABNF grammars in elixir"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!-- <li><a href="../about.html"><span>About</span></a></li> -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+    <div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  ABNF Grammars in Elixir</div>
+  </div>
+  <div class="main-outer">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>ABNF Grammars in Elixir</h2>
+                <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
+<p>
+<a href="https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_Form"><b>ABNF grammars</b></a> are widely used in the Internet today.
+They serve as the basic building blocks for a lot of highly used protocols, like <a href="https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol"><b>HTTP</b></a>,
+<a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol"><b>SIP</b></a>, <a href="https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol"><b>SMTP</b></a>,
+<a href="https://en.wikipedia.org/wiki/File_Transfer_Protocol"><b>FTP</b></a>, etc. And they are also very useful to design <a href="https://en.wikipedia.org/wiki/Domain-specific_language">DSLs</a>
+(Domain Specific Language).
+</p>
+<p>
+In this article we'll learn how to use a tool called <a href="https://github.com/marcelog/ex_abnf"><b>ex_abnf</b></a> to quickly
+<b>create grammar parsers using the <a href="http://elixir-lang.org">Elixir</a> language.</b>
+</p>
+<h3>What is ABNF</h3>
+<p>
+ABNF is defined in the <a href="https://tools.ietf.org/html/rfc2234"><b>RFC2234</b></a>, which is obsoleted by
+<a href="https://tools.ietf.org/html/rfc4234"><b>RFC4234</b></a> which in turn is obsoleted by the
+<a href="https://tools.ietf.org/html/rfc5234"><b>RFC5234</b></a>. There's also an update in the
+<a href="https://tools.ietf.org/html/rfc7405"><b>RFC7405</b></a>
+</p>
+<p>
+ABNF is a notation based on <a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form"><b>Backus Naur Form (BNF)</b></a> and its purpose is to be used
+to define <a href="https://en.wikipedia.org/wiki/Context-free_grammar"><b>Context Free Grammars</b></a>. ABNF is usually the
+syntax of (some.. ) languages and (lot of) protocols.
+</p>
+<p>
+The ABNF specification defines how to write a set of <i>rules</i> so a parser can reduce a set of given <i>input symbols</i> into something
+that our code can use. For example, a rule named "email-address" could defined as:
+</p>
+<pre name="code" class="php">
+email-address = local-part "@" domain-part
+local-part = 1*ALPHA ; And this is a comment, by the way
+domain-part = 1*ALPHA *("." 1*ALPHA)
+ALPHA = %x41-5A / %x61-7A ; Upper and lower case ASCII letters (A-Z, a-z)
+</pre>
+<p>
+and is telling us that an <u>"email address"</u> is composed of a <u>"local part"</u>, followed by the <u>"@"</u> symbol and then followed by
+the <u>"domain part"</u>.
+</p>
+<p>
+  Also, there are some other rules involved, for example the rule <b>ALPHA</b> defines a range of allowed
+characters that serve as the basis for the other rules. We can also specify how many <i>repetitions</i> we'd like for a given rule,
+by using the <u>*</u> symbol, in this case "1*ALPHA" means <u>"at least 1 ALPHA, but as many as needed"</u>.
+</p>
+<p>
+The <u>"domain-part"</u> rule is telling us that a domain name is composed of one or more ALPHA characters, followed by
+<i>zero or more</i> of a group, that is composed of a dot followed by at least one ALPHA character. This means that allowed values are:
+"domain", "domain.com", "sub.domain.com", etc.
+</p>
+<p>
+Our code could then parse the input <u>"user@domain.com"</u> and give us a map structure like:
+</p>
+<pre name="code" class="php">
+%{
+  user: "user",
+  domain: "domain.com"
+}
+</pre>
+<p>
+In the same way the input could be something very complex, like a <a href="https://tools.ietf.org/html/rfc3261#page-12">SIP INVITE</a> request, or
+an <a href="http://tools.ietf.org/html/rfc7230#page-8">HTTP REQUEST</a>, etc.
+</p>
+<h3>What is ex_abnf</h3>
+<p>
+<a href="https://github.com/marcelog/ex_abnf"><b>ex_abnf</b></a> is a library for <b>elixir</b> that you can use in
+your own applications and/or libraries to <b>parse ABNF grammars</b> in a very simple way. You can also write your own code
+inside the grammar so you can reduce/transform the parsed input into something else more useful (like structs, etc).
+</p>
+<p>
+The idea behind <b>ex_abnf</b> is to let you focus your efforts in implementing the language or protocol in question, instead of
+writing the parser.
+</p>
+<p>
+<b>ex_abnf</b> implements the latest definition (<b>RFC5234</b>) (with <b>erratas #3076, and #2968</b>), and <b>RFC7405</b>.
+</p>
+<p>
+<b>ex_abnf</b> has been used in wide set of propietary solutions and there are also some projects that use it, like:
+<ul>
+  <li><a href="https://github.com/marcelog/ex_rfc3986">ex_rfc3986</a>: A library for elixir that parses URIs as defined in the <a href="http://tools.ietf.org/html/rfc3986">RFC3986</a></li>
+  <li><a href="https://github.com/marcelog/ex_rfc3966">ex_rfc3966</a>: A library for elixir that parses TEL URIs as defined in the <a href="http://tools.ietf.org/html/rfc3966">RFC3966</a></li>
+</ul>
+</p>
+<h3>Installing</h3>
+<p>
+<b>ex_abnf</b> is available on github at <a href="https://github.com/marcelog/ex_abnf">https://github.com/marcelog/ex_abnf</a> but it is also available
+at <a href="https://hex.pm/"><b>hex.pm</b></a> at <a href="https://hex.pm/packages/ex_abnf">https://hex.pm/packages/ex_abnf</a>.
+</p>
+<p>
+To use it in your application just add to your <b>mix.exs</b> file:
+</p>
+<pre name="code" class="php">
+def deps do
+  [{:ex_abnf, "~> 0.2.5"}]
+end
+</pre>
+<h3>How it works</h3>
+<p>
+<b>ex_abnf</b> is an <i>interpreter</i> instead of a <i>code generator</i>. The difference is that tools like <b>lex</b> and <b>yacc</b> will generate
+code that will parse a given input, while <b>ex_abnf</b> will only <i>generate a structure</i> that represents the grammar, and
+then will apply a logic so that applying this structure to a given input will return the desired result, in an efficient way.
+</p>
+<p>
+The first step is to load a file by using the <b>ABNF.load_file/1</b> function, that will accept
+a string with the path to a text file where the ABNF grammar is. This text file consists of two sections:
+  <ul>
+  <li>Optional code section</li>
+  <li>Grammar</li>
+  </ul>
+</p>
+<p>
+<b>NOTE:</b>The grammar file (as defined in the RFC) <b>MUST</b> have <u>newlines in the DOS format (\r\n)</u>.
+</p>
+<p>
+When <b>ex_abnf</b> parses the grammar file, it <u>will automatically put all the code that it finds into a dynamically created
+module</u>, so all the code is precompiled, and also the optional code section is very useful to declare helper functions or "require" any other modules
+that are used from other pieces of code inside the grammar. For example, our previous example could also be written as:
+</p>
+<pre name="code" class="php">
+!!!
+# This is how you can write the optional code section.
+require Logger
+
+def normalize(input) do
+  String.downcase to_string(input)
+end
+!!!
+
+; And the grammar follows afterwards
+email-address = local-part "@" domain-part !!!
+  [user, _, domain] = string_values
+  Logger.debug "Howdy!"
+  {:ok, %{state | completed: true}, %{
+    user: normalize(user),
+    domain: normalize(domain)
+  }}
+!!!
+
+local-part = 1*ALPHA
+
+domain-part = 1*ALPHA *("." 1*ALPHA)
+
+ALPHA = %x41-5A / %x61-7A ; Upper and lower case ASCII letters (A-Z, a-z)
+</pre>
+<p>
+Once the file is loaded and parsed, a structure will be returned that you can later on use to
+apply the grammar to an input with the function <b>ABNF.apply/4</b>:
+</p>
+<pre name="code" class="php">
+grammar = ABNF.load_file "/tmp/mail.abnf"
+optional_initial_state = %{completed: false}
+result = ABNF.apply(
+  grammar,
+  "email-address",
+  'user@domain.com',
+  optional_initial_state
+)
+</pre>
+<p>
+The arguments for the function are:
+<ul>
+  <li>The <u>grammar</u> obtained after calling <b>ABNF.load_file/1</b></li>
+  <li>The name of the rule to use (in this case <b>email-address</b>)</li>
+  <li>The input (as a char list)</li>
+  <li>An optional last argument used as "state". The state will be passed from rule to rule and must be
+    returned in every rule result (you will notice that in the code for the rule "email-address" we return
+    {:ok, state, something}, "state" is precisely this variable)</li>
+</ul>
+</p>
+<p>
+The result is a structure like:
+</p>
+<pre name="code" class="php">
+%ABNF.CaptureResult{
+  input: 'user@domain.com',
+  rest: [],
+  state: %{completed: true},
+  string_text: 'user@domain.com',
+  string_tokens: ['user', '@', 'domain.com'],
+  values: [
+    %{
+      domain: "domain.com",
+      user: "user"
+    }
+  ]
+}
+</pre>
+<p>
+Where:
+<ul>
+  <li><b>input</b>: Is the original input for the rule.</li>
+  <li><b>rest</b>: What the rule couldn't parse, the leftovers, in this case everything was parsed.
+  <li><b>state</b>: The state after the parsing is done.
+  <li><b>string_text</b>: The value for this rule as text, what got parsed.</li>
+  <li><b>string_tokens</b>: Same as above, but for each component of the rule (in this case the rule is composed of three elements, "local-part", "@", and "domain-part").</li>
+  <li><b>values</b>: The values for this rule, in this case only one value is returned that is a map structure with
+    the parsed elements.</li>
+</ul>
+</p>
+<h3>Your reduce code: What you get</h3>
+<p>
+You might have noticed that we used some variables in the code for the rule "email-address". <b>ex_abnf</b> makes
+some variables available in those code chunks, these are:
+<ul>
+  <li><b>state</b>: The "global state". This is initially what you pass as the last argument to the call to
+    <b>ABNF.apply/4</b>, and is <u>nil</u> by default. It must be always returned, however by your code.</li>
+  <li><b>rule</b>: This is the "text value" for the current rule.</li>
+  <li><b>string_values</b>: This is a list where each element represents, in order, the "text value" of each one of the
+    tokens that compose the current rule.</li>
+  <li><b>values</b>: As above, but as a deep nested list of lists. The nesting level will highly depend on
+    how the grammar is defined (groups, repetitions, etc).</li>
+</ul>
+</p>
+<h3>Your reduce code: What you give</h3>
+<p>
+From your code you can return 4 different things:
+<ul>
+  <li><u>{:ok, state, value}</u>: The parsing continues, the given state is used for the next rules, and the returned value is the one specified by <b>"value"</b>.</li>
+  <li><u>{:ok, state}</u>: The parsing continues, the given state is used for the next rules, and the returned result is the value of the predefined variable <b>"rule"</b>.</li>
+  <li><u>{:error, some_error}</u>: The parsing is aborted, and the given error is returned ad result.</li>
+  <li><u>throw or raise an error</u></li>
+</ul>
+</p>
+<h3>Example application: US Postal Address Parser</h3>
+<p>
+<b>NOTE:</b> All the code presented here is available at <b>GitHub</b> at: <a href="https://github.com/marcelog/ex_abnf_example">https://github.com/marcelog/ex_abnf_example</a>.
+</p>
+<p>
+Let's jump right into it by implementing a grammar parser for the grammar given as an example in the
+<a href="https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_Form#Example">ABNF wiki</a> entry. This grammar
+will define (in a very simple way) how US Postal codes are written. So we start by creating our grammar file
+(available at github at <a href="https://github.com/marcelog/ex_abnf_example/blob/master/priv/postal_code.abnf">https://github.com/marcelog/ex_abnf_example/blob/master/priv/postal_code.abnf</a>):
+</p>
+<p>
+The only differences from the original grammar posted in the wiki are:
+<ul>
+  <li>The syntax <b>=/</b> used to define incremental alternatives for a rule, is currently not supported
+    by ex_abnf. However, we can rewrite that as "alternative1 / alternative2 / alternative3".</li>
+  <li>The original grammar has an ambiguity in the definition for the rule <b>name-part</b>, so it is rewritten to
+    require at least one name before the suffix.</li>
+</ul>
+</p>
+<p>
+Here is the grammar file that includes a little bit of everything to achieve a complete parsing:
+</p>
+<pre name="code" class="php">
+!!!
+###
+# These are some helper functions and macros used throughout the parser
+###
+require Logger
+
+def get_val(token) do
+  case :lists.flatten(token) do
+    [] -> nil
+    r -> hd r
+  end
+end
+
+defmacro to_s() do
+  quote do
+    _ = var!(string_values)
+    _ = var!(values)
+    state = var!(state)
+    rule = var!(rule)
+    {:ok, state, to_string(rule)}
+  end
+end
+!!!
+
+; This grammar is taken from
+; https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_Form#Example
+postal-address   = name-part street zip-part !!!
+  _ = rule
+  _ = string_values
+  [name, street, zip] = values
+  {:ok, state, %{
+    name: get_val(name),
+    street: get_val(street),
+    zip: get_val(zip)
+  }}
+!!!
+
+name-part        = personal-part SP *(personal-part SP) [suffix] CRLF !!!
+  _ = rule
+  _ = values
+  # Remove CRLF and get the name
+  [_|name] = Enum.reverse string_values
+  name = to_string Enum.reverse(name)
+  {:ok, state, name}
+!!!
+
+personal-part    = first-name / (initial ".") !!! to_s !!!
+
+first-name       = *ALPHA !!! to_s !!!
+
+initial          = ALPHA !!! to_s !!!
+
+last-name        = *ALPHA !!! to_s !!!
+
+suffix           = ("Jr." / "Sr." / 1*("I" / "V" / "X")) !!! to_s !!!
+
+street           = [apt SP] house-num SP street-name CRLF !!!
+  _ = rule
+  _ = string_values
+  [apt, house, _, street, _] = values
+  apt = get_val apt
+  house = get_val house
+  street = get_val street
+  {:ok, state, %{
+    apartment: apt,
+    house: house,
+    street: street
+  }}
+!!!
+
+apt              = 1*4DIGIT !!!
+  _ = values
+  _ = string_values
+  {apt, ""} = Integer.parse to_string(rule)
+  {:ok, state, apt}
+!!!
+
+house-num        = 1*8(DIGIT / ALPHA) !!! to_s !!!
+
+street-name      = 1*VCHAR !!! to_s !!!
+
+zip-part         = town-name "," SP state 1*2SP zip-code CRLF !!!
+  _ = rule
+  _ = string_values
+  [town, _, _, st, _, zip, _] = values
+  town = get_val town
+  st = get_val st
+  zip = get_val zip
+  {:ok, state, %{
+    town: town,
+    state: st,
+    zip: zip
+  }}
+!!!
+
+town-name        = 1*(ALPHA / SP) !!! to_s !!!
+
+state            = 2ALPHA !!! to_s !!!
+
+zip-code         = 5DIGIT ["-" 4DIGIT] !!!
+  _ = rule
+  _ = values
+  [code, extended] = string_values
+  {code, ""} = Integer.parse to_string(code)
+  extended = case extended do
+    [] -> nil
+    [?-|extended] ->
+      {extended, ""} = Integer.parse to_string(extended)
+      extended
+  end
+  {:ok, state, %{
+    code: code,
+    extended: extended
+  }}
+!!!
+
+DIGIT = %x30-39 ; Decimal digits (0-9)
+ALPHA = %x41-5A / %x61-7A ; Upper and lower case ASCII letters (A-Z, a-z)
+VCHAR = %x21-7E  ; visible (printing) characters
+SP = %x20 ; space
+CRLF = CR LF ; Internet standard newline
+CR = %x0D ; carriage return
+LF = %x0A ; linefeed
+</pre>
+<p>
+A <a href="https://github.com/marcelog/ex_abnf_example/blob/master/test/ex_abnf_example_test.exs">simple test</a> shows us a simple use case:
+</p>
+<pre name="code" class="php">
+input = 'John M. Doe Jr.\r\n4 6th 18ave\r\nMiami, FL 33166-1234\r\n'
+result = ABNFApp.init |> ABNFApp.parse(input, "postal-address")
+</pre>
+<p>
+The first element in <b>result.values</b> will then be:
+</p>
+<pre name="code" class="php">
+%{
+      name: "John M. Doe Jr.",
+      street: %{
+        apartment: 4,
+        house: "6th",
+        street: "18ave"
+      },
+      zip: %{
+        town: "Miami",
+        state: "FL",
+        zip: %{
+          code: 33166,
+          extended: 1234
+        }
+      }
+    }
+</pre>
+<h3>Conclusion</h3>
+<p>
+<b>ex_abnf</b> (although a very simple tool in its inner workings) has been tested with protocols like SDP, SIP, and others. It has proven to be
+really useful to just copy'n'paste the grammar from a RFC an have a protocol working in a matter
+of minutes, hours, of days, but most important, that time is used to implement the protocol or language itself
+instead of the parser. Hopefully it will be useful for you too! :)
+</p>
+<p>
+Don't hesitate to open pull requests or issues with any suggestions, bug reports, or improvements needed!
+</p>
+
+
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Related Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="erlang_test_report_in_junit_format_common_test_publish_jenkins.html">Common Test: Generating JUnit style xml reports for Jenkins</a></li>
+                  <li><a href="erlang_epers_persist_entities_domain_events.html">Epers, Erlang, and Domain Events when persisting your entities</a></li>
+                  <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
+                  <li><a href="erlang_persistence_entities.html">Persisting your entities in Erlang</a></li>
+                  <li><a href="erlang_rebar_coverage_on_subdirectories.html">Common Test: Code coverage on subdirectories</a></li>
+                  <li><a href="erlang_rebar_run_eunit_skip_dependencies.html">How to skip compile and eunit test for dependencies in rebar, for elang developers</a></li>
+                  <li><a href="erlang_special_processes_tutorial_handling_system_messages.html">Erlang Special Processes without behaviours</a></li>
+                  <li><a href="erlang_websocket_server_cowboy_tutorial.html">Erlang Websocket Server using Cowboy</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushErlang.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>

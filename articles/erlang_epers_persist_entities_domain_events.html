@@ -4,7 +4,7 @@
 <title>Epers, Erlang, and Domain Events when persisting your entities</title>
 <meta name="Author" content="Marcelo Gornstein"/>
 <meta name="Keywords" content="erlang persistence domain events entities gen_event"/>
-<meta name="description" content="This article describes how to receive and handle the domain events 
+<meta name="description" content="This article describes how to receive and handle the domain events
 fired by epers whenever something interesting occurs with an entity."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
@@ -54,8 +54,8 @@ fired by epers whenever something interesting occurs with an entity."/>
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
 <p>
-In the <a href="erlang_persistence_entities.html">last article</a>, I presented 
-<a href="https://github.com/marcelog/epers">epers</a>, a small project intended to 
+In the <a href="erlang_persistence_entities.html">last article</a>, I presented
+<a href="https://github.com/marcelog/epers">epers</a>, a small project intended to
 help build erlang applications that need to persist entities to a database.
 </p>
 <p>
@@ -64,7 +64,7 @@ domain events</a> available in the framework.
 </p>
 <h3>How it works</h3>
 <p>
-Whenever epers is requested to do certain operations and if they succeed, an event 
+Whenever epers is requested to do certain operations and if they succeed, an event
 will be dispatched using <a href="http://www.erlang.org/doc/man/gen_event.html#notify-2">
 gen_event:notify/2</a>.
 </p>
@@ -177,6 +177,7 @@ kind of a cool thing to have around and I hope you enjoy it :)
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
+                  <li><a href="abnf_grammars_in_elixir.html">ABNF Grammars in Elixir</a></li>
                   <li><a href="erlang_cobertura_coverage_report_from_common_test_jenkins.html">Common Test: Cobertura Coverage report for Jenkins using covertool</a></li>
                   <li><a href="erlang_test_report_in_junit_format_common_test_publish_jenkins.html">Common Test: Generating JUnit style xml reports for Jenkins</a></li>
                   <li><a href="erlang_persistence_entities.html">Persisting your entities in Erlang</a></li>
