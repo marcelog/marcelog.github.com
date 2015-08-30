@@ -48,6 +48,15 @@
             <div class="mod simple article-list-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
+                <h2>Compiling and Installing WebRTC2SIP</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+A lot of sources around the Internet explain how to <b>compile and install</b> <a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> so one can have <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a> as the signaling protocol in
+a <a href="http://www.webrtc.org/"><b>webrtc</b></a> application, mostly in conjunction with <a href="http://www.asterisk.org"><b>Asterisk</b></a> and/or <a href="http://www.freeswitch.org"><b>FreeSWITCH</b></a>.
+Most of the time those instructions are outdated or incomplete, so here is the updated way of <b>installing webrtc2sip</b> and its dependencies, using <b>Amazon Linux</b> in an
+<b>EC2 instance</b> inside <b>AWS</b>, altough I'm pretty sure this could also be used for any <b>CentOS</b> like OS.
+&nbsp;<a href="installing_webrtc2sip_in_amazon_linux_in_aws.html"><strong>Read More &raquo;</strong></a></p>
+
                 <h2>Installing DaemonTools in Amazon Linux (or CentOS like OS)</h2>
                 <div class="hr-1"><hr /></div>
 <p>
@@ -68,8 +77,9 @@ In this article we'll learn how to use a tool called <a href="https://github.com
                 <h2>Starting WebRTC2SIP as a service without screen or console</h2>
                 <div class="hr-1"><hr /></div>
                 <p>
-<a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> is a much needed tool nowadays to enable <a href="http://www.webrtc.org/"><b>webrtc</b></a> in your
-web applications and sites and used with <a href="http://www.asterisk.org"><b>Asterisk</b></a> and/or <a href="http://www.freeswitch.org"><b>FreeSWITCH</b></a>
+<a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> is a much needed tool created by the <a href="http://doubango.org/">Doubango</a> guys, to enable the use of
+ <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a> as the signaling protocol in a <a href="http://www.webrtc.org/"><b>webrtc</b></a>
+ application, and used with <a href="http://www.asterisk.org"><b>Asterisk</b></a> and/or <a href="http://www.freeswitch.org"><b>FreeSWITCH</b></a>
 mostly. Unfortunately this handy tool can't be <b>started as a service</b> as it is, since it will always start and read from
 standard input for commands (as of today, the only command available seems to be <b>quit</b>).
 &nbsp;<a href="starting_webrtc2sip_as_service.html"><strong>Read More &raquo;</strong></a></p>
