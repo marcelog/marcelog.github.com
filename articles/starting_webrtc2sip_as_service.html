@@ -99,6 +99,43 @@ Or (by specifying the new option), without a console, like:
 <pre name="code" class="php">
 webrtc2sip --config=/etc/webrtc2sip/config.xml --without-console
 </pre>
+<h3>Using it from within daemontools</h3>
+<p>
+If you use <a href="http://cr.yp.to/daemontools.html/">daemontools</a> (you can find how to install it
+in this article titled <a href="install_daemon_tools_centos_amazon_linux.html">"Installing DaemonTools in Amazon Linux (or CentOS like OS)"</a>), these
+sample scripts will help you run webrtc2sip when the system boots.
+</p>
+<p>
+Create a user for it, with:
+</p>
+<pre name="code" class="php">
+adduser  -U -s /bin/false -M webrtc2sip
+</pre>
+<p>
+Then create the following files with the following content for each one:
+</p>
+<h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
+<pre name="code" class="php">
+#!/bin/bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/command
+exec 2>&1
+mkdir -p /var/log/webrtc2sip
+chown -R webrtc2sip /var/log/webrtc2sip
+exec envuidgid webrtc2sip multilog t s10485760 n5 '!tai64nlocal' /var/log/webrtc2sip
+</pre>
+<h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
+<pre name="code" class="php">
+#!/bin/bash
+mkdir -p /var/run/webrtc2sip
+chown -R webrtc2sip /var/run/webrtc2sip
+exec 2>&1
+cd /opt/webrtc2sip/sbin
+exec setuidgid webrtc2sip envdir /etc/service/webrtc2sip/env ./webrtc2sip --without-console
+</pre>
+<h3>Create the directory /etc/service/webrtc2sip/env (mode 0700)</h3>
+<p>
+No contents needed for this one.
+</p>
 <p>
 Enjoy!
 </p>
