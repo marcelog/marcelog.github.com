@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Starting WebRTC2SIP as a service without screen or console</title>
+<title>Installing DaemonTools in Amazon Linux (or CentOS like OS)</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="This article explains how to start webrtc2sip as a service without using screen so it can be monitored. This is a patch to add an argument to webrtc2sip to optionally disable the console."/>
-<meta name="description" content="This article explains how to start webrtc2sip as a service without using screen so it can be monitored. This is a patch to add an argument to webrtc2sip to optionally disable the console."/>
+<meta name="Keywords" content="This article explains how to install daemon tools from Daniel J. Bernstein in a modern Amazon Linux EC2 instance and/or any CentOS like linux distribution."/>
+<meta name="description" content="This article explains how to install daemon tools from Daniel J. Bernstein in a modern Amazon Linux EC2 instance and/or any CentOS like linux distribution."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -32,76 +32,123 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Starting WebRTC2SIP as a service without screen or console</div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Installing DaemonTools in Amazon Linux (or CentOS like OS)</div>
   </div>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Starting WebRTC2SIP as a service without screen or console.</h2>
+                <h2>Installing DaemonTools in Amazon Linux (or CentOS like OS).</h2>
                 <div class="hr-1"><hr /></div>
   <H3><u>Introduction</u></H3>
 <p>
-<a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> is a much needed tool nowadays to enable <a href="http://www.webrtc.org/"><b>webrtc</b></a> in your
-web applications and sites and used with <a href="http://www.asterisk.org"><b>Asterisk</b></a> and/or <a href="http://www.freeswitch.org"><b>FreeSWITCH</b></a>
-mostly.
+<a href="http://cr.yp.to/daemontools.html/"><b>DaemonTools</b></a> is an excellent piece of software created by <a href="https://en.wikipedia.org/wiki/Daniel_J._Bernstein">Daniel J. Bernstein</a>, and composed of several tools
+used to launch and monitor processes in a unix environment. They are fast, reliable, and are my favourites whenever I get to wear the devops hat to setup a new server. Sadly, there's no default package
+available for distros like Amazon Linux or CentOS, so here are the steps involved for setting them up manually.
+</p>
+<h3>Downloading</h3>
+<pre name="code" class="php">
+# cd /usr/src
+# wget http://cr.yp.to/daemontools/daemontools-0.76.tar.gz
+# tar -xzvf daemontools-0.76.tar.gz
+</pre>
+<h3>Patching for newest distributions</h3>
+<p>
+In modern operating distros, you will get the following error if you try to compile it right away:
 </p>
 <p>
-Unfortunately this handy tool can't be <b>started as a service</b> as it is, since it will always start and read from
-standard input for commands (as of today, the only command available seems to be <b>quit</b>).
+<b>
+/usr/bin/ld: errno: TLS definition in /lib64/libc.so.6 section .tbss mismatches non-TLS reference in envdir.o<br/>
+/lib64/libc.so.6: could not read symbols: Bad value<br/>
+collect2: error: ld returned 1 exit status<br/>
+make: *** [envdir] Error 1<br/>
+</b>
 </p>
 <p>
-A lot of folks have resorted <a href="https://code.google.com/p/webrtc2sip/issues/detail?id=80#c2"><b>to use screen to start webrtc2sip as a service</b></a>. This
-solution might for some people, but it is a kludgy way to get around this.
-</p>
-<p>
-So I've made <a href="https://gist.github.com/marcelog/47ef364b43c67f9f359d">this simple <b>patch available</b> as a gist</a> that adds a <b>new option</b> to
-<b>webrtc2sip</b> that can be used at startup: <b>--without-console</b>.
-</p>
-<p>
-To apply the patch just download the gist to your local copy of the <a href="https://webrtc2sip.googlecode.com/svn/trunk/"><b>webrtc2sip svn repo</b></a>:
+So if that's your case, apply the following patch like this:
 </p>
 <pre name="code" class="php">
-svn co https://webrtc2sip.googlecode.com/svn/trunk/ webrtc2sip
-cd webrtc2sip
-wget https://gist.githubusercontent.com/marcelog/47ef364b43c67f9f359d/raw/c80727107d0f468d878329d97a50b114463e8331/webrtc2sip_optional_console.diff
-patch -p0 < webrtc2sip_optional_console.diff
+# echo gcc -O2 -include /usr/include/errno.h > admin/daemontools-0.76/src/conf-cc
 </pre>
+<h3>Compiling and installing</h3>
 <p>
-Then continue building as usual:
+After uncompressing and patching, we can start <b>compiling daemontools</b>:
+<pre name="code" class="php">
+# cd admin/daemontools-0.76/
+# package/install
+</pre>
+<h3>Setting it up</h3>
+<p>
+Once built and installed, we need to start the <b>svscan</b> process when the
+system starts so it can monitor and start our services. This is a simple way to
+make <a href="http://upstart.ubuntu.com/">UpStart</a> start svscan on boot:
 </p>
 <pre name="code" class="php">
-export PREFIX=/opt/webrtc2sip
-./autogen.sh
-LDFLAGS=-ldl ./configure --prefix=$PREFIX
-make
-make install
+# echo "start on runlevel [12345]" > /etc/init/svscan.conf
+# echo "respawn" >> /etc/init/svscan.conf
+# echo "exec /command/svscanboot" >> /etc/init/svscan.conf
+# initctl reload-configuration
+# initctl start svscan
+# ln -s /service /etc/service
 </pre>
 <p>
-After that you can start webrtc2sip normally with console:
-<pre name="code" class="php">
-webrtc2sip --config=/etc/webrtc2sip/config.xml
-</pre>
+That's it! You can start writing your service scripts in <b>/etc/service</b>.
+</p>
+<h3>Service Example</h3>
 <p>
-Or (by specifying the new option), without a console, like:
+Let's say we want <a href="http://jenkins-ci.org"><b>Jenkins</b></a> to be started
+and monitored by daemontools. We would create a the following files and directories in a
+temporary directory (let's say <b>/tmp</b>):
+<ul>
+  <li>/tmp/jenkins/log/run (mode 0700)</li>
+  <li>/tmp/jenkins/env/JAVA_HOME (mode 0600)</li>
+  <li>/tmp/jenkins/run (mode 0700)</li>
+</ul>
+</p>
+<p>
+The <b>env/JAVA_HOME</b> file would contain the path to where the JVM is installed:
 </p>
 <pre name="code" class="php">
-webrtc2sip --config=/etc/webrtc2sip/config.xml --without-console
+/usr/java
 </pre>
+<p>
+The <b>log/run</b> file could look like:
+</p>
+<pre name="code" class="php">
+#!/bin/bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/command
+exec 2>&1
+mkdir -p /home/jenkins/log
+chown -R jenkins:jenkins /home/jenkins/log
+exec envuidgid jenkins multilog t s10485760 n5 '!tai64nlocal' /home/jenkins/log
+</pre>
+<p>
+And the <b>run</b> file would look like:
+</p>
+<pre name="code" class="php">
+#!/bin/bash
+exec 2>&1
+exec setuidgid jenkins envdir /etc/service/jenkins/env /usr/java/bin/java -Xmx2048m  -XX:MaxPermSize=2048m -Dhudson.plugins.git.GitSCM.verbose="true" -jar /home/jenkins/jenkins.war --httpPort=4433 --httpsPort=-1 --httpListenAddress=127.0.0.1 --logfile=/home/jenkins/log/jenkins.log
+</pre>
+<p>
+Once we create all the files, we can just <b>mv /tmp/jenkins /etc/service</b> and Jenkins will be started instantaneously by
+daemontools without further delay.
+</p>
 <p>
 Enjoy!
 </p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -118,7 +165,7 @@ Enjoy!
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a></li>
+                  <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
                   <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
                   <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
@@ -146,7 +193,7 @@ Enjoy!
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>
