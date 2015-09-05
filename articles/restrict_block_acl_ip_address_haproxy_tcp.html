@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Starting WebRTC2SIP as a service without screen or console</title>
+<title>Using ACL by IP Address in HaProxy TCP Mode</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="This article explains how to start webrtc2sip as a service without using screen so it can be monitored. This is a patch to add an argument to webrtc2sip to optionally disable the console."/>
-<meta name="description" content="This article explains how to start webrtc2sip as a service without using screen so it can be monitored. This is a patch to add an argument to webrtc2sip to optionally disable the console."/>
+<meta name="Keywords" content="This article explains how to setup haproxy with tcp mode and an acl rule based on ip address to restrict access to specific ip addresses"/>
+<meta name="description" content="This article explains how to setup haproxy with tcp mode and an acl rule based on ip address to restrict access to specific ip addresses"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -32,112 +32,59 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Starting WebRTC2SIP as a service without screen or console</div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using ACL by IP Address in HaProxy TCP Mode</div>
   </div>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Starting WebRTC2SIP as a service without screen or console.</h2>
+                <h2>Using ACL by IP Address in HaProxy TCP Mode</h2>
                 <div class="hr-1"><hr /></div>
   <H3><u>Introduction</u></H3>
 <p>
-<a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> is a much needed tool created by the <a href="http://doubango.org/">Doubango</a> guys, to enable the use of
- <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a> as the signaling protocol in a <a href="http://www.webrtc.org/"><b>webrtc</b></a>
- application, used with <a href="http://www.asterisk.org"><b>Asterisk</b></a> and/or <a href="http://www.freeswitch.org"><b>FreeSWITCH</b></a>
-mostly. If you want to know how to actually compile and install it, please refer to the article titled <a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a>.
+<a href="http://www.haproxy.org/"><b>haproxy</b></a> is an awesome <b>load balancer</b> for <b>TCP</b> and
+<b>HTTP</b> connections. Let's see how to add some simple security rules based on the <b>source IP address</b>.
+</p>
+<h3>Configuration</h3>
+<p>
+HaProxy supports different <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4-mode">modes</a>,
+in this case we're going to look at the <b>TCP mode</b> so we can <b>restrict access by IP address</b>.
 </p>
 <p>
-Unfortunately this handy tool can't be <b>started as a service</b> as it is, since it will always start and read from
-standard input for commands (as of today, the only command available seems to be <b>quit</b>).
+For this, we're going to use a simple <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#7.1"><b>ACL</b></a> to check the source IP address
+against a <b>whitelist</b> of known IP addresses, and then use the <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4-tcp-request%20connection"><b>tcp-request connection reject</b></a> action to
+block access to unknown IP addresses. If the ACL allows the connection, we then use <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4-use_backend"><b>use_backed</b></a> to proceed
+to the real backend server.
 </p>
 <p>
-A lot of folks have resorted <a href="https://code.google.com/p/webrtc2sip/issues/detail?id=80#c2"><b>to use screen to start webrtc2sip as a service</b></a>. This
-solution might work for some people, but it is a kludgy way to get around this.
-</p>
-<p>
-So I've made <a href="https://gist.github.com/marcelog/47ef364b43c67f9f359d">this simple <b>patch available</b> as a gist</a> that adds a <b>new option</b> to
-<b>webrtc2sip</b> that can be used at startup: <b>--without-console</b>.
-</p>
-<p>
-To apply the patch just download the gist to your local copy of the <a href="https://webrtc2sip.googlecode.com/svn/trunk/"><b>webrtc2sip svn repo</b></a>:
+The configuration is actually pretty simple, and here's a small snippet that will show the concept in a
+<a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4"><b>frontend</b></a> section:
 </p>
 <pre name="code" class="php">
-svn co https://webrtc2sip.googlecode.com/svn/trunk/ webrtc2sip
-cd webrtc2sip
-wget https://gist.githubusercontent.com/marcelog/47ef364b43c67f9f359d/raw/c80727107d0f468d878329d97a50b114463e8331/webrtc2sip_optional_console.diff
-patch -p0 < webrtc2sip_optional_console.diff
+frontend www
+  bind *:80
+  mode tcp
+  acl network_allowed src 1.1.1.1 2.2.2.2
+  tcp-request connection reject if !network_allowed
+  use_backend my_backend_server
 </pre>
 <p>
-Then continue building as usual:
-</p>
-<pre name="code" class="php">
-export PREFIX=/opt/webrtc2sip
-./autogen.sh
-LDFLAGS=-ldl ./configure --prefix=$PREFIX
-make
-make install
-</pre>
-<p>
-After that you can start webrtc2sip normally with console:
-<pre name="code" class="php">
-webrtc2sip --config=/etc/webrtc2sip/config.xml
-</pre>
-<p>
-Or (by specifying the new option), without a console, like:
-</p>
-<pre name="code" class="php">
-webrtc2sip --config=/etc/webrtc2sip/config.xml --without-console
-</pre>
-<h3>Using it from within daemontools</h3>
-<p>
-If you use <a href="http://cr.yp.to/daemontools.html/">daemontools</a> (you can find how to install it
-in this article titled <a href="install_daemon_tools_centos_amazon_linux.html">"Installing DaemonTools in Amazon Linux (or CentOS like OS)"</a>), these
-sample scripts will help you run webrtc2sip when the system boots.
+A simple <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#7.2"><b>ACL Condition</b></a>
+will negate the list, so the TCP connection is closed if the source ip address is not there.
 </p>
 <p>
-Create a user for it, with:
-</p>
-<pre name="code" class="php">
-adduser  -U -s /bin/false -M webrtc2sip
-</pre>
-<p>
-Then create the following files with the following content for each one:
-</p>
-<h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
-<pre name="code" class="php">
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/command
-exec 2>&1
-mkdir -p /var/log/webrtc2sip
-chown -R webrtc2sip /var/log/webrtc2sip
-exec envuidgid webrtc2sip multilog t s10485760 n5 '!tai64nlocal' /var/log/webrtc2sip
-</pre>
-<h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
-<pre name="code" class="php">
-#!/bin/bash
-mkdir -p /var/run/webrtc2sip
-chown -R webrtc2sip /var/run/webrtc2sip
-exec 2>&1
-cd /opt/webrtc2sip/sbin
-exec setuidgid webrtc2sip envdir /etc/service/webrtc2sip/env ./webrtc2sip --without-console
-</pre>
-<h3>Create the directory /etc/service/webrtc2sip/env (mode 0700)</h3>
-<p>
-No contents needed for this one.
-</p>
-<p>
+As you can see this is pretty straightforward, and it's also a pretty expressive configuration too.
 Enjoy!
 </p>
               </div>
@@ -156,8 +103,8 @@ Enjoy!
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatised daily mysql backups to S3 buckets</a></li>
+                  <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
                   <li><a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a></li>
                   <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
@@ -187,7 +134,7 @@ Enjoy!
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>
