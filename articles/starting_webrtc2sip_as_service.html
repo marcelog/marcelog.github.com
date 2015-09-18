@@ -124,7 +124,7 @@ mkdir -p /var/log/webrtc2sip
 chown -R webrtc2sip /var/log/webrtc2sip
 exec envuidgid webrtc2sip multilog t s10485760 n5 '!tai64nlocal' /var/log/webrtc2sip
 </pre>
-<h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
+<h3>/etc/service/webrtc2sip/run (mode 0700)</h3>
 <pre name="code" class="php">
 #!/bin/bash
 mkdir -p /var/run/webrtc2sip
