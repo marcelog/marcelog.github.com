@@ -228,6 +228,14 @@ make samples
 ln -s /usr/asterisk-13.6.0 /usr/asterisk
 </pre>
 
+<h3>Add library paths to /etc/profile</h3>
+<p>You might want to add this to your <b>/etc/profile</b> so the correct libraries will be used in your shell:</p>
+<pre name="code" class="php">
+export LD_LIBRARY_PATH=/usr/libjansson-2.7/lib:/usr/pjproject-2.4/lib:/usr/openssl-1.0.2d/lib:/usr/libsrtp-1.5.2/lib:/usr/local/lib
+PATH=$PATH:/usr/asterisk/sbin
+PATH=$PATH:/command
+export PATH
+</pre>
 <h3>Setup /usr/asterisk/etc/asterisk/sip.conf</h3>
 <p>
 In the <b>general</b> section of your <a href="http://doxygen.asterisk.org/trunk/Config_sip.html">sip.conf</a> file set:
