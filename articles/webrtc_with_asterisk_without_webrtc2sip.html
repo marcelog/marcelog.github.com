@@ -331,7 +331,7 @@ chmod 700 log/run
 <pre name="code" class="php">
 #!/bin/bash
 mkdir -p /var/run/asterisk
-chown -R nginx /var/run/asterisk
+chown -R asterisk /var/run/asterisk
 exec 2>&1
 exec setuidgid root envdir /etc/service/asterisk/env /usr/asterisk/sbin/asterisk -f
 </pre>
