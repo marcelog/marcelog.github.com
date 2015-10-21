@@ -401,13 +401,26 @@ In the <b>Expert</b> section:
   <li>Set "Password": 100</li>
   <li>Set "Realm": your-web-domain.net</li>
 </ul>
+<h3>Using self signed certificates</h3>
+<p>If you're using self signed certificates and notice an error in your javascript console like this one</p>
+<p>
+<b>...failed: WebSocket opening handshake was canceled</b>
+</p>
+<p>
+You have to manually add the certificate to the browser's trusted vault. To do this manually point your browser
+to https://your-web-domain.net:8089/ws and confirm the security exception. That should solve the issue and you should
+be able to connect to the websocket port from SIPML5.
+</p>
 <h3>Conclusion</h3>
 <p>
 This will hopefully save you some hours of despair and debugging :) And also get rid of a
 "moving part" in your webrtc ecosystem, so you can connect directly all your softphones, voip providers, and
 webrtc applications to your asterisk installation.
 </p>
-
+<h3>Thanks To</h3>
+<p>
+<a href="https://twitter.com/RosSantoro1">Rosario Santoro</a> for his helpful tips and comments for the article.
+</p>
 
               </div>
             </div>
