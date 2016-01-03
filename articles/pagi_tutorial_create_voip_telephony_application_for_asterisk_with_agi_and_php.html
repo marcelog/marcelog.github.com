@@ -75,133 +75,17 @@ First, a couple of useful links:
 <ul>
 <li><u><a href="https://github.com/marcelog/Pagi-App-And-Test-Example">Example application</a></u>: Complete IVR application skeleton, including unit tests.</li>
 <li><u><a href="http://marcelog.github.com/PAGI">http://marcelog.github.com/PAGI/</a></u>: The homepage.</li>
-<li><u><a href="http://pear.marcelog.name">http://pear.marcelog.name/</a></u>: The PEAR channel</li>
 <li><u><a href="http://packagist.org/packages/marcelog/pagi">http://packagist.org/packages/marcelog/pagi</a></u>: Packagist home
-<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">API documentation</a></u></li>
+<li><u><a href="http://pagi.readthedocs.org/en/latest/ApiIndex/">API documentation</a></u></li>
 <li><u><a href="https://github.com/marcelog/PAGI">https://github.com/marcelog/PAGI/</a></u>: The GitHub repository</li>
-<li><u><a href="https://github.com/marcelog/PAGI/tree/master/docs/examples">Full PAGI examples</a></u></li>
-<li><u><a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/</a></u>: The CI server, containing the latest successful built artifacts, phar and pear packages.</li>
-<li><u><a href="http://pear.apache.org/log4php/">http://pear.apache.org/log4php/</a></u>: The <a href="http://logging.apache.org/log4php/">log4php</a> pear channel.</li>
+<li><u><a href="https://github.com/marcelog/PAGI/tree/master/doc/examples">Full PAGI examples</a></u></li>
 <li><u><a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI Protocol article</a></u></li>
 </ul>
 </p>
-<h3>A brief parenthesis: Installing log4php (only needed if installing manually or using the phar)</h3>
+<h3>Installing</h3>
 <p>
-Unless you are installing PAGI via the pear channel, you need to install a dependency first. PAGI uses <a href="http://logging.apache.org/log4php/">log4php</a> as its logging system, so let's install log4php via the pear channel:
+PAGI is available via composer, please see <a href="https://github.com/marcelog/PAGI">the repo README file</a> for instructions on how to use it.
 </p>
-<p>
-Please also see the <a href="http://logging.apache.org/log4php/install.html">official installation guide</a> of log4php.
-</p>
-<pre name="code" class="php">
-$ pear channel-discover pear.apache.org/log4php
-$ pear install pear.apache.org/log4php/Apache_log4php-2.1.0
-</pre>
-<p>
-<b><u>Make sure</u></b> the directory "log4php" inside the log4php distribution is in your include path when
-using PAGI. If you get this error:
-</p>
-<pre name="code" class="php">
-PHP Fatal error:  Class 'Logger' not found
-</pre>
-<p>
-You need to include the logphp subdirectory correctly in your include_path.
-</p>
-<p>
-You can download and install PAGI in a number of ways, let's first examine them and then see how to
-bootstrap the pagi client:
-</p>
-<h3>Option A: Installing and using the PHAR distribution</h3>
-<p>
-You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.11.0, so the available artifact is named "PAGI-1.11.0.phar". Let's fetch it:
-</p>
-<pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.11.0.phar
-</pre>
-<p>
-Let's see how to use it:
-</p>
-<pre name="code" class="php">
-// Include the phar file.
-require_once 'PAGI-1.11.0.phar';
-
-// Set the include path to have pagi's phar first
-// (just to avoid having another installation in
-// the include_path loading first).
-ini_set('include_path', implode(PATH_SEPARATOR, array(
-    'phar://pagi.phar', ini_get('include_path')
-)));
-</pre>
-<p>
-That's it. You can now bootstrap the pagi client and do your thing (see below).
-</p>
-<h3>Option B: Installing the PEAR distribution manually</h3>
-<p>
-As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.11.0 is the latest version at the time of this writing):
-</p>
-<pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAGI/lastSuccessfulBuild/artifact/build/PAGI-1.11.0.tgz
-$ pear install PAGI-1.11.0.tgz
-</pre>
-<h3>Option C: Installing via the PEAR Channel</h3>
-<p>
-A pear channel is available <a href="http://pear.marcelog.name/">here</a>. If you want to use it, just:
-</p>
-<pre name="code" class="php">
-$ pear channel-discover pear.marcelog.name
-$ pear install marcelog/PAGI
-</pre>
-<p>
-Either way, to use it, make sure log4php is in your include path. PAGI will already be, since it's installed
-via pear:
-</p>
-<pre name="code" class="php">
-/*
- * If you have a PSR-0 compatible autoloader, you wont
- * need this, just make sure your autoloader is
- * bootstrapped. If you don't, PAGI comes with its own
- * PSR-0 autoloader, this can also be used for your own
- * benefit since you wont need any other autoloader if
- * your tree honors PSR-0.
- */
-require_once 'PAGI/Autoloader/Autoloader.php';
-PAGI\Autoloader\Autoloader::register();
-</pre>
-<p>
-That's it!
-</p>
-<h3>Option D: Getting the source, installing from github</h3>
-<p>
-You can download the <a href="https://github.com/marcelog/PAGI/zipball/master">ZIP</a> file from github, and also, you
-can clone the repository:
-</p>
-<pre name="code" class="php">
-$ git clone git://github.com/marcelog/PAGI.git
-</pre>
-<p>
-When installed this way, you need to make sure you set the include path into the
-<a href="https://github.com/marcelog/PAGI/tree/master/src/mg">/src/mg</a> subdirectory inside the
-root tree, so the PSR-0 autoloader would load from the src/mg/PAGI subdirectory.
-</p>
-<h3>Option E: Use composer</h3>
-<p>
-Just add the package "marcelog/pagi":
-</p>
-<pre name="code" class="php">
-{
-    "require": {
-        "marcelog/pagi": "dev-master"
-    },
-    "repositories": [
-    {
-      "type": "pear",
-      "url": "http://pear.apache.org/log4php/"
-    }]
-}
-</pre>
-<p>
-Packagist URL: <a href="http://packagist.org/packages/marcelog/pagi">http://packagist.org/packages/marcelog/pagi</a>
-</p>
-
 <h3>Setup asterisk dialplan</h3>
 <p>
 First of all, you've got to setup asterisk so it will run your agi application in a given extension. For example, we
@@ -237,19 +121,7 @@ So, assuming your php binary is located in "/usr/bin/php" create the file /tmp/a
 <pre name="code" class="php">
 #!/usr/bin/php
 &lt;?php
-require_once 'PAGI-1.11.0.phar';
-ini_set('include_path', implode(PATH_SEPARATOR, array(
-    'phar://pagi.phar', ini_get('include_path')
-)));
-</pre>
-<p>
-Or this one, if you're using the source or pear distributions:
-</p>
-<pre name="code" class="php">
-#!/usr/bin/php
-&lt;?php
-require_once 'PAGI/Autoloader/Autoloader.php';
-PAGI\Autoloader\Autoloader::register();
+require_once 'vendor/autoload.php';
 </pre>
 <p>
 The first line is the <a href="http://en.wikipedia.org/wiki/Shebang_(Unix)">shebang</a> line that will make /usr/bin/php the interpreter for the
@@ -268,17 +140,17 @@ users, this was just an example.
 <p>
 If you want to have a little better structure for the project (with configurable
 php installation and php.ini files), or just dont like to hardcode the php interpreter there (good for you!),
-you might want to take a look at <a href="file:///H:/src/sts/MainWeb/articles/creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">this article</a>.
+you might want to take a look at <a href="creating_php_cli_standalone_portable_applications_with_pear_dependencies.html">this article</a>.
 </p>
 <h3>The PAGI Client</h3>
 <p>
-The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_IClient.html#%5CPAGI%5CClient%5CIClient">pagi client</a> is the central player
+The <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-IClient/">pagi client</a> is the central player
 here, it will handle all the communication with asterisk during the call. Actually, as you can see, this is just an interface. An abstract implementation
-exists (the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Client/AbstractClient.php">AbstractClient</a>) that implements the AGI commands
+exists (the <a href="https://github.com/marcelog/PAGI/blob/master/src/PAGI/Client/AbstractClient.php">AbstractClient</a>) that implements the AGI commands
 declared in the IClient interface, *but* it leaves the implementation details for managing the I/O to its subclasses.
 </p>
 <p>
-Specifically, this lets you use the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Client/Impl/ClientImpl.php">standard client implementation</a>, or something like <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/AsyncAgi/AsyncClientImpl.php">pami's async agi client</a>,
+Specifically, this lets you use the <a href="https://github.com/marcelog/PAGI/blob/master/src/PAGI/Client/Impl/ClientImpl.php">standard client implementation</a>, or something like <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/AsyncAgi/AsyncClientImpl.php">pami's async agi client</a>,
 suitable for <a href="http://www.moythreads.com/wordpress/2007/12/24/asterisk-asynchronous-agi/">async agi</a> applications. You can read more about pami
 <a href="http://marcelog.github.com/PAMI/">here</a>.
 </p>
@@ -290,44 +162,29 @@ In this case, we're going to use the standard pagi client implementation.
 This is as easy as:
 </p>
 <pre name="code" class="php">
-$pagiClientOptions = array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-);
 use PAGI\Client\Impl\ClientImpl as PagiClient;
-$pagiClient = PagiClient::getInstance($pagiClientOptions);
+$pagiClient = PagiClient::getInstance(array());
 </pre>
 <p>
 <b>NOTE</b>: The client accepts an array with options. The available options are:
 </p>
 <ul>
-<li><u>log4php.properties</u>: Optional. If set, should contain the absolute path to the log4php.properties file</li>
 <li><u>stdin</u>: Optional. If set, should contain an already open stream from where the client will read data (useful to make it interact with fastagi servers or even text files to mock stuff when testing). If not set, stdin will be used by the client</li>
 <li><u>stdout</u>: Same as stdin but for the output of the client</li>
 </ul>
 <p>
-<b>NOTE</b>: Since AGI establishes the use of <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">stdin</a> and
+<b>NOTE</b>: AGI establishes the use of <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">stdin</a> and
 <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">stdout</a> for communication, you cant
-write anything that outputs to console directly (like echo's, or var_dump's). By default log4php will log to console,
-so let's first configure it to log to a file (instead of the default, which is log to console). This will allow us to have a logger inside the application
-and avoid messing up the AGI communication.
-<p>
-You can configure log4php on your own
-(see <a href="http://logging.apache.org/log4php/docs/configuration.html">this</a>) or have pagi
-do it on its own, by passing an option to the client with the log4php configuration (just as we did above,
-in this case, an .ini file, but you can use xml). A sample log4php.properties ini file:
-</p>
+write anything that outputs to console directly (like echo's, or var_dump's). That's why you can set your own logger in the client like this:
 <pre name="code" class="php">
-log4php.appender.default = LoggerAppenderDailyFile
-log4php.appender.default.layout = LoggerLayoutPattern
-log4php.appender.default.layout.ConversionPattern = "%d{ISO8601} [%p] %c: %m%n"
-log4php.appender.default.file = /tmp/log.log
-log4php.rootLogger = DEBUG, default
+$pagiClient->setLogger($logger);
 </pre>
+<p>
+The logger must be a <a href="http://www.php-fig.org/psr/psr-3/">PSR-3</a> compatible logger.
+</p>
 <h3>Checkpoint #1: A basic application</h3>
 <pre name="code" class="php">
-$pagiClientOptions = array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-);
+$pagiClientOptions = array();
 use PAGI\Client\Impl\ClientImpl as PagiClient;
 $pagiClient = PagiClient::getInstance($pagiClientOptions);
 $pagiClient->answer();
@@ -336,19 +193,19 @@ $pagiClient->hangup();
 </pre>
 <p>
 Now dial into your asterisk, you should listen to the numbers "one", "two", and "three". From now on, I'll mention <b>some</b>
-if the many things you can do through the pagi client, you should refer to the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_IClient.html#%5CPAGI%5CClient%5CIClient">IClient interface</a> to see all the available
+if the many things you can do through the pagi client, you should refer to the <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-IClient/">IClient interface</a> to see all the available
 stuff!
 </p>
 <h3>The decorated Results</h3>
 <p>
 Sometimes you want the user to input 1 digit, or many digits, or let him/her interrupt the messages played, or do something
 if no input is received, or any kind of logic associated with playing and reading simultaneously. Every result from an agi command
-that pagi issues, is returned as an <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_IResult.html#%5CPAGI%5CClient%5CResult%5CIResult">IResult</a>. This is then
-implemented in <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_ResultDecorator.html#%5CPAGI%5CClient%5CResult%5CResultDecorator">ResultDecorator</a>, effectively
+that pagi issues, is returned as an <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-IResult/">IResult</a>. This is then
+implemented in <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-ResultDecorator/">ResultDecorator</a>, effectively
 implementing the <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a> to return the result of the operation. This is so, because sometimes
 you only want to play a file, sometimes you just want to read digits, and sometimes you want to play AND read input from the user, and you might need to check the result
 of one or all the operations. See the
-<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/">API documentation</a> for all the results available, in the namespace PAGI\Client\Result.
+<a href="http://pagi.readthedocs.org/en/latest/ApiIndex/">API documentation</a> for all the results available, in the namespace PAGI\Client\Result.
 You should check the api documentation for the method you are using to see what kind of result is available (ExecResult, RecordResult, FaxResult, PlayResult, etc). Do not be freighten! It's quite easy to use them. See below.
 </p>
 <h3>Playing a sound file</h3>
@@ -363,7 +220,7 @@ Where:
 </ul>
 </p>
 <p>
-$result will be a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_PlayResult.html#%5CPAGI%5CClient%5CResult%5CPlayResult">PlayResult</a> that
+$result will be a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-PlayResult/">PlayResult</a> that
 you can use to get information about what happened while the file was playing.
 </p>
 <pre name="code" class="php">
@@ -400,8 +257,8 @@ Where:
 </ul>
 </p>
 <p>
-In the case of waitDigit(), the result is a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_DigitReadResult.html#%5CPAGI%5CClient%5CResult%5CDigitReadResult">DigitReadResult</a>, and
-the others return a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_PlayResult.html#%5CPAGI%5CClient%5CResult%5CPlayResult">PlayResult</a>.
+In the case of waitDigit(), the result is a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-DigitReadResult/">DigitReadResult</a>, and
+the others return a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-PlayResult/">PlayResult</a>.
 </p>
 <h3>Playing indication tones</h3>
 <p>
@@ -431,7 +288,7 @@ $pagiClient->setMusic(false);
 <h3>Logging through asterisk</h3>
 <p>
 In case you want to log stuff through the asterisk logger (so your messages get to the asterisk console or
-general asterisk log files), you can use the <a href="https://github.com/marcelog/PAGI/blob/master/src/mg/PAGI/Logger/Asterisk/IAsteriskLogger.php">AsteriskLogger</a> interface, remember
+general asterisk log files), you can use the <a href="https://github.com/marcelog/PAGI/blob/master/src/PAGI/Logger/Asterisk/IAsteriskLogger.php">AsteriskLogger</a> interface, remember
 that when logging through asterisk, you might need to tweak your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+logger.conf">logger.conf</a> file:
 </p>
 <pre name="code" class="php">
@@ -446,7 +303,7 @@ $asteriskLogger->warn("A WARNING priority message");
 <h3>Manipulating the channel variables</h3>
 <p>
 When AGI handshake starts, the server (asterisk) sends a couple of <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+Standard+Channel+Variables">channel variables</a>.
-The pagi client offers the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_ChannelVariables_IChannelVariables.html#%5CPAGI%5CChannelVariables%5CIChannelVariables">IChannelVariables</a>
+The pagi client offers the <a href="http://pagi.readthedocs.org/en/latest/PAGI-ChannelVariables-IChannelVariables/">IChannelVariables</a>
 interface to access them:
 </p>
 <pre name="code" class="php">
@@ -470,7 +327,7 @@ $spoolDir = $channelVariables->getDirectorySpool();
 </pre>
 <h3>Manipulating the CDR (Call Detail Record)</h3>
 <p>
-Pagi offers the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CDR_ICDR.html#%5CPAGI%5CCDR%5CICDR">ICDR</a> interface to interact with
+Pagi offers the <a href="http://pagi.readthedocs.org/en/latest/PAGI-CDR-ICDR/">ICDR</a> interface to interact with
 the cdr's, by setting custom values and retrieving the ones set by asterisk itself:
 </p>
 <pre name="code" class="php">
@@ -482,7 +339,7 @@ $asteriskLogger->debug($cdr->getAnswerLength());
 </pre>
 <h3>Working with the Caller ID's</h3>
 <p>
-In order to get and set caller id values, you can access the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallerId_ICallerId.html#%5CPAGI%5CCallerId%5CICallerId">ICallerId</a> interface:
+In order to get and set caller id values, you can access the <a href="http://pagi.readthedocs.org/en/latest/PAGI-CallerId-ICallerId/">ICallerId</a> interface:
 </p>
 <pre name="code" class="php">
 $clid = $pagiClient->getCallerId();
@@ -520,7 +377,7 @@ $pagiClient->sipHeaderRemove('P-Asserted-Identity');
 <h3>Spooling calls through call files</h3>
 <p>
 Asterisk lets you use <a href="http://www.voip-info.org/wiki/view/Asterisk+auto-dial+out">call files</a> to generate calls automatically, you
-can access this feature via the <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallSpool_ICallSpool.html#%5CPAGI%5CCallSpool%5CICallSpool">ICallSpool</a>
+can access this feature via the <a href="http://pagi.readthedocs.org/en/latest/PAGI-CallSpool-ICallSpool/">ICallSpool</a>
 interface:
 </p>
 <pre name="code" class="php">
@@ -541,14 +398,14 @@ $spool = CallSpoolImpl::getInstance(array(
 ));
 </pre>
 <p>
-The <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDialDescriptor">dial descriptor</a> is an abstraction over dial strings, so you dont have to code them yourself. Currently,
-PAGI supports <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_SIPDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CSIPDialDescriptor">SIPDialDescriptor</a> and
-<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_DialDescriptor_DAHDIDialDescriptor.html#%5CPAGI%5CDialDescriptor%5CDAHDIDialDescriptor">DAHDIDialDescriptor</a>.
+The <a href="http://pagi.readthedocs.org/en/latest/PAGI-DialDescriptor-DialDescriptor/">dial descriptor</a> is an abstraction over dial strings, so you dont have to code them yourself. Currently,
+PAGI supports <a href="http://pagi.readthedocs.org/en/latest/PAGI-DialDescriptor-SIPDialDescriptor/">SIPDialDescriptor</a> and
+<a href="http://pagi.readthedocs.org/en/latest/PAGI-DialDescriptor-DAHDIDialDescriptor/">DAHDIDialDescriptor</a>.
 </p>
 <p>
 This example will then issue a dial to <b>SIP/myDevice@myProvider</b> with the caller id "123". When the call is answered, it will go to
 context "campaignContext", in the priority 1 of the extension 555. There are many options you can use in the
-<a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_CallSpool_CallFile.html#%5CPAGI%5CCallSpool%5CCallFile">CallFile</a>, like custom
+<a href="http://pagi.readthedocs.org/en/latest/PAGI-CallSpool-CallFile/">CallFile</a>, like custom
 variables, timeouts, etc.
 </p>
 <p>
@@ -565,33 +422,25 @@ if ($result->isAnswer()) {
 }
 </pre>
 <p>
-The result is a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Client_Result_DialResult.html#%5CPAGI%5CClient%5CResult%5CDialResult">DialResult</a>
+The result is a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-DialResult/">DialResult</a>
 </p>
 <h3>Last but not least: The PAGI Application</h3>
 <p>
-The pagi client can also be used inside a <a href="http://ci.marcelog.name:8080/job/PAGI/javadoc/db_Application_PAGIApplication.html#%5CPAGI%5CApplication%5CPAGIApplication">PAGI Application</a>. That is, your
+The pagi client can also be used inside a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Application-PAGIApplication/">PAGI Application</a>. That is, your
 own ivr application can be itself a PAGIApplication, by extending it. This will provide a number of features:
 <ul>
 <li>An <a href="http://us.php.net/set_error_handler">error handler</a> is automatically registered, and will invoke PAGIApplication::errorHandler() method.</li>
 <li>A <a href="http://us.php.net/pcntl_signal">signal handler</a> is automatically registered for the signals SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGUSR1, SIGUSR2, SIGCHLD, SIGALRM, and will invoke PAGIApplication::signalHandler() method.</li>
 <li>A <a href="http://us.php.net/manual/en/function.register-shutdown-function.php">shutdown handler</a> is automatically registered, and will invoke PAGIApplication::shutdown()</li>
 <li>An init method, PAGIApplication::init()</li>
-<li>A log4php logger instance in PAGIApplication::$logger (protected).</li>
+<li>A PSR-3 logger instance in PAGIApplication::$logger (protected).</li>
 </ul>
 </p>
 <h3>Checkpoint #2: A complete PAGI Application Skeleton</h3>
 <pre name="code" class="php">
 #!/usr/bin/php
 &lt;?php
-// Include the phar file.
-require_once 'PAGI-1.11.0.phar';
-
-// Set the include path to have pagi's phar first
-// (just to avoid having another installation in
-// the include_path loading first).
-ini_set('include_path', implode(PATH_SEPARATOR, array(
-    'phar://pagi.phar', ini_get('include_path')
-)));
+require_once 'vendor/autoload.php';
 
 use PAGI\Application\PAGIApplication;
 use PAGI\Client\Impl\ClientImpl as PagiClient;
@@ -636,9 +485,7 @@ class MyPagiApplication extends PAGIApplication
 }
 
 // Go, go, gooo!
-$pagiClientOptions = array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-);
+$pagiClientOptions = array();
 $pagiClient = PagiClient::getInstance($pagiClientOptions);
 $pagiAppOptions = array(
     'pagiClient' => $pagiClient,
