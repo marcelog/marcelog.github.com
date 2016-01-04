@@ -99,9 +99,7 @@ First, a couple of useful links:
 First, get a pagi client instance:
 </p>
 <pre name="code" class="php">
-$pagiClientOptions = array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-);
+$pagiClientOptions = array();
 use PAGI\Client\Impl\ClientImpl as PagiClient;
 $pagiClient = PagiClient::getInstance($pagiClientOptions);
 </pre>
