@@ -65,7 +65,7 @@ First, a couple of useful links:
 <li><u><a href="http://marcelog.github.com/PAGI">PAGI homepage</a></u></li>
 <li><u><a href="http://pagi.readthedocs.org/en/latest/ApiIndex/">PAGI API documentation</a></u></li>
 <li><u><a href="http://pagi.readthedocs.org/en/latest/PAGI-Node-Node/">Node API</a></u></li>
-<li><u><a href="http://http://pagi.readthedocs.org/en/latest/PAGI-Node-NodeController/">NodeController API</a></u></li>
+<li><u><a href="http://pagi.readthedocs.org/en/latest/PAGI-Node-NodeController/">NodeController API</a></u></li>
 </ul>
 </p>
 <h3>So what is a NodeController?</h3>
@@ -110,9 +110,7 @@ Nodes execution.
 Creating a node controller is as easy as this. First, get a pagi client instance, as usual:
 </p>
 <pre name="code" class="php">
-$pagiClientOptions = array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-);
+$pagiClientOptions = array();
 use PAGI\Client\Impl\ClientImpl as PagiClient;
 $pagiClient = PagiClient::getInstance($pagiClientOptions);
 </pre>
