@@ -77,133 +77,20 @@ the process will block until the response has arrived. To get the events, just r
 First, a couple of useful links:
 <ul>
 <li><u><a href="http://marcelog.github.com/PAMI">http://marcelog.github.com/PAMI/</a></u>: The homepage.</li>
-<li><u><a href="http://pear.marcelog.name">http://pear.marcelog.name/</a></u>: The PEAR channel</li>
 <li><u><a href="http://packagist.org/packages/marcelog/pami">http://packagist.org/packages/marcelog/pami</a></u>: Packagist home
 <li><u><a href="https://github.com/marcelog/PAMI">https://github.com/marcelog/PAMI/</a></u>: The GitHub repository</li>
 <li><u><a href="https://github.com/marcelog/PAMI/tree/master/docs/examples">Full PAMI examples</a></u></li>
-<li><u><a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/</a></u>: The CI server, containing the latest successful built artifacts, phar and pear packages.</li>
-<li><u><a href="http://pear.apache.org/log4php/">http://pear.apache.org/log4php/</a></u>: The <a href="http://logging.apache.org/log4php/">log4php</a> pear channel.</li>
 <li><u><a href="http://marcelog.github.com/articles/php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI Protocol article</a></u></li>
 <li><u><a href="http://marcelog.github.com/articles/php_asterisk_listener_example_using_pami_and_ding.html">http://marcelog.github.com/articles/php_asterisk_listener_example_using_pami_and_ding.html</a></u>: A more advanced pami application, using ding as DI container to
 capture events.</li>
 </ul>
 </p>
-<h3>A brief parenthesis: Installing log4php (only needed if installing manually or using the phar)</h3>
-<p>
-Unless you are installing PAMI via the pear channel, you need to install a dependency first. PAMI uses <a href="http://logging.apache.org/log4php/">log4php</a> as its logging system, so let's install log4php via the pear channel:
-</p>
-<p>
-Please also see the <a href="http://logging.apache.org/log4php/install.html">official installation guide</a> of log4php.
-</p>
-<pre name="code" class="php">
-$ pear channel-discover pear.apache.org/log4php
-$ pear install pear.apache.org/log4php/Apache_log4php-2.1.0
-</pre>
-<p>
-<b><u>Make sure</u></b> the directory "log4php" inside the log4php distribution is in your include path when
-using PAMI. If you get this error:
-</p>
-<pre name="code" class="php">
-PHP Fatal error:  Class 'Logger' not found
-</pre>
-<p>
-You need to include the logphp subdirectory correctly in your include_path.
-</p>
-<p>
-You can download and install PAMI in a number of ways, let's first examine them and then see how to
-bootstrap the pami client:
-</p>
 <h3>For PHP 5.3.9 and 5.3.10 users</h3>
 <p><b>NOTE</b>:Be sure that your PHP version is not 5.3.9 or 5.3.10, beacuse they had a bug in stream_get_line() that will prevent PAMI from working correctly. Please use a different 5.3 or 5.4 version. If you really need a patch, just email me or see <a href="https://github.com/marcelog/PAMI/blob/master/README.PHP-5.3.9-and-5.3.10">this</a>.</p>
-<h3>Option A: Installing and using the PHAR distribution</h3>
+<h3>Installing</h3>
 <p>
-You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.72, so the available artifact is named "PAMI-1.72.phar". Let's fetch it:
+PAMI is available via composer, please see <a href="https://github.com/marcelog/PAMI">the repo README file</a> for instructions on how to use it.
 </p>
-
-<pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/PAMI-1.72.phar
-</pre>
-<p>
-Let's see how to use it:
-</p>
-<pre name="code" class="php">
-// Include the phar file.
-require_once 'PAMI-1.72.phar';
-
-// Set the include path to have pami's phar first
-// (just to avoid having another installation in
-// the include_path loading first).
-ini_set('include_path', implode(PATH_SEPARATOR, array(
-    'phar://pami.phar', ini_get('include_path')
-)));
-</pre>
-<p>
-That's it. You can now bootstrap the pami client and do your thing (see below).
-</p>
-<h3>Option B: Installing the PEAR distribution manually</h3>
-<p>
-As stated before, you can get the pear package at the <a href="http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.72 is the latest version at the time of this writing):
-</p>
-<pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/PAMI/lastSuccessfulBuild/artifact/build/PAMI-1.72.tgz
-$ pear install PAMI-1.72.tgz
-</pre>
-<h3>Option C: Installing via the PEAR Channel</h3>
-<p>
-A pear channel is available <a href="http://pear.marcelog.name/">here</a>. If you want to use it, just:
-</p>
-<pre name="code" class="php">
-$ pear channel-discover pear.marcelog.name
-$ pear install marcelog/PAMI
-</pre>
-<p>
-Either way, to use it, make sure log4php is in your include path. PAMI will already be, since it's installed
-via pear:
-</p>
-<pre name="code" class="php">
-/*
- * If you have a PSR-0 compatible autoloader, you wont
- * need this, just make sure your autoloader is
- * bootstrapped. If you don't, PAMI comes with its own
- * PSR-0 autoloader, this can also be used for your own
- * benefit since you wont need any other autoloader if
- * your tree honors PSR-0.
- */
-require_once 'PAMI/Autoloader/Autoloader.php';
-PAMI\Autoloader\Autoloader::register();
-</pre>
-<p>
-That's it. You can now instantiate the client.
-</p>
-<h3>Option D: Getting the source, installing from github</h3>
-<p>
-You can download the <a href="https://github.com/marcelog/PAMI/zipball/master">ZIP</a> file from github, and also, you
-can clone the repository:
-</p>
-<pre name="code" class="php">
-$ git clone git://github.com/marcelog/PAMI.git
-</pre>
-<p>
-When installed this way, you need to make sure you set the include path into the
-<a href="https://github.com/marcelog/PAMI/tree/master/src/mg">/src/mg</a> subdirectory inside the
-root tree, so the PSR-0 autoloader would load from the src/mg/PAMI subdirectory.
-</p>
-<h3>Option E: Use composer</h3>
-<p>
-Just add the package "marcelog/pami":
-</p>
-<pre name="code" class="php">
-{
-    "require": {
-        "marcelog/pami": "dev-master"
-    },
-    "repositories": [
-    {
-      "type": "pear",
-      "url": "http://pear.apache.org/log4php/"
-    }]
-}
-</pre>
 <p>
 Packagist URL: <a href="http://packagist.org/packages/marcelog/pami">http://packagist.org/packages/marcelog/pami</a>
 </p>
@@ -225,8 +112,8 @@ write = system,call,agent,log,verbose,user,config,command,reporting,originate
 </pre>
 <h3>Connecting to AMI</h3>
 <p>
-Working with pami is pretty straightforward. You need to get an instance of an <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Client/IClient.php">IClient</a> implementation. Currently,
-the only implementation is <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Client/Impl/ClientImpl.php">ClientImpl</a>. A client will let you do this:
+Working with pami is pretty straightforward. You need to get an instance of an <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Client/IClient.php">IClient</a> implementation. Currently,
+the only implementation is <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Client/Impl/ClientImpl.php">ClientImpl</a>. A client will let you do this:
 <ul>
 <li>Open the connection to asterisk AMI</li>
 <li>Close the connection to asterisk AMI</li>
@@ -274,7 +161,7 @@ Easy, isn't it?
 <p>
 In order to get events, you need to register an event listener. There are 3 possible ways to register an event
 listener, all of them using the registerEventListener() method of the IClient implementation, and
-your listener will receive <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Message/Event/EventMessage.php">EventMessage</a> objects.
+your listener will receive <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Message/Event/EventMessage.php">EventMessage</a> objects.
 </p>
 <p>
 You can have as many listeners as you want, and mix them however you need.
@@ -302,7 +189,7 @@ $pamiClient->registerEventListener(array(
     $listener, 'handlerMethod'
 ));
 </pre>
-<li>Register an object, that implements <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Listener/IEventListener.php">IEventListener</a></li>
+<li>Register an object, that implements <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Listener/IEventListener.php">IEventListener</a></li>
 <pre name="code" class="php">
 use PAMI\Message\Event\EventMessage;
 use PAMI\Listener\IEventListener;
@@ -401,14 +288,14 @@ In this case, our predicate will only return true if and only if the event recei
 subevent type is a begin (i.e: an agi application has issued a Dial() command). You can only add 1 predicate (per listener, but you can have multiple listeners), but you can make it as complex as as you wish, and as a result, your event listener will be a little cleaner.
 </p>
 <p>
-By the way, <a href="https://github.com/marcelog/PAMI/tree/master/src/mg/PAMI/Message/Event">here are all the events available</a>.
+By the way, <a href="https://github.com/marcelog/PAMI/tree/master/src/PAMI/Message/Event">here are all the events available</a>.
 </p>
 <h3>More fun: Send actions</h3>
 <p>
 You can also send actions to asterisk. An action is just an object of a given type. You can see all the actions
-available <a href="https://github.com/marcelog/PAMI/tree/master/src/mg/PAMI/Message/Action">here</a> and the asterisk wiki with their
+available <a href="https://github.com/marcelog/PAMI/tree/master/src/PAMI/Message/Action">here</a> and the asterisk wiki with their
 <a href="https://wiki.asterisk.org/wiki/display/AST/AMI+Actions">official list of actions</a>. Let's send a
-<a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Message/Action/ReloadAction.php">Reload</a> action:
+<a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Message/Action/ReloadAction.php">Reload</a> action:
 </p>
 <pre name="code" class="php">
 use PAMI\Message\Action\ReloadAction;
@@ -420,33 +307,9 @@ if ($response->isSuccess()) {
 }
 </pre>
 <p>
-The result of the action sent, will come as a <a href="https://github.com/marcelog/PAMI/blob/master/src/mg/PAMI/Message/Response/ResponseMessage.php">Response</a> message.
+The result of the action sent, will come as a <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Message/Response/ResponseMessage.php">Response</a> message.
 </p>
-<H3>Configuring log4php</H3>
-<p>
-If you happen to run the code above, you will notice that log4php is outputing to the
-console. This is because it's probably not configured. You can configure log4php on your own
-(see <a href="http://logging.apache.org/log4php/docs/configuration.html">this</a>) or have pami
-do it on its own, by passing an option to the client with the log4php configuration file you
-want to use (in this case, an .ini file, but you can use xml):
-</p>
-<pre name="code" class="php">
-$options = array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-    'host' => '127.0.0.1',
-    // more options here
-);
-</pre>
-<p>
-A sample log4php.properties ini file:
-</p>
-<pre name="code" class="php">
-log4php.appender.default = LoggerAppenderDailyFile
-log4php.appender.default.layout = LoggerLayoutPattern
-log4php.appender.default.layout.ConversionPattern = "%d{ISO8601} [%p] %c: %m%n"
-log4php.appender.default.file = /tmp/log.log
-log4php.rootLogger = DEBUG, default
-</pre>
+
 <H3>Conclusion</H3>
 <p>
 PAMI is simple and straightforward. I hope you have fun using it, just as I had when
