@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Get your AWS instance tags from your EC2 instance</title>
+  <title>Send HipChat Notifications with SNS and Lambda</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services instance tags ec2 metadata curl wget"/>
-<meta name="description" content="This article shows how one can get the instance tags from inside an EC2 instance by using the aws command line tools by amazon web services."/>
+<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription"/>
+<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications by using SNS to invoke it."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Get your AWS instance tags from your EC2 instance</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Send HipChat Notifications with SNS and Lambda</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -59,22 +59,37 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Get your AWS instance tags from your EC2 instance</h2>
+                <h2>Send HipChat Notifications with SNS and Lambda</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
+<h3>Introduction</h3>
 <p>
-There's a quick way that you can use to read the tags of your EC2 instance from inside the same instance. If you have the instance id (and you
-can get it by using the <a href="get_aws_instance_id_ec2_read_metadata.html">EC2 MetaData</a>) you can use the <a href="https://aws.amazon.com/cli/">AWS Command Line tools</a>.
+<a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html">Amazon AWS Lambda</a> is a great service and really fun to use. In this article, I'm going to describe
+how we are using it for a project in combination with <a href="http://aws.amazon.com/sns/">Amazon Simple Notification Service</a> to send notifications to <a href="http://hipchat.com/">HipChat</a>.
+</p>
+<h3>Create your Lambda</h3>
+<p>
+The code for this Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
+Amazon has made recently available for the public.
 </p>
 <p>
-More specifically, by using the <a href="http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-tags.html">Describe Tags</a> command of the AWS CLI you can get your instance tags
-in the following way:
+In order for this to work, make sure your Lambda has Internet access. You can find the instructions on how to setup such a scenario in an <a href="aws_lambda_internet_vpc.html">earlier post that describes how to
+setup your VPCs and subnets so your Lambdas can have Internet access</a>.
 </p>
-  <pre name="code" class="php">
-aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}"
-</pre>
 <p>
+  The function uses the <a href="https://www.hipchat.com/docs/api">HipChat API v1</a>, which is deprecated but still available (and will be for a long time, apparently). It sends notifications through
+  a simple HTTP request. The code for this lambda is available in this gist:
+</p>
+<script src="https://gist.github.com/marcelog/3f463cd98d5ce41528eb58bfd7d7bcb5.js"></script>
+<p>
+Go to your <a href="https://us-west-2.console.aws.amazon.com/lambda/home#/functions">AWS Lambda Console</a> and create a new function by pasting the code.
+Make sure you change the variables and arguments named <b>token</b>, <b>room_id</b>,and  <b>from</b> to match your needs. Save your function and don't forget to setup your
+VPC and private subnet when configuring your function.
+</p>
+<p>
+You can test the function with an event like this:
+</p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -85,19 +100,36 @@ aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}"
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
+<pre name="code" class="php">
+{
+  "text": "hello world",
+  "color": "green"
+}
+</pre>
+<h3>Create your SNS Topic</h3>
 <p>
-Let's say you want to get the value of the <b>Environment</b> tag, you could do:
+Head to your <a href="https://us-west-2.console.aws.amazon.com/sns/v2/home?region=us-west-2#/topics">AWS SNS Console</a>, click on <b>Create New Topic</b>, pick a name and save your new topic. Once created, locate it in
+the topics list, select it, and click on <b>Create Subscription</b>. As the protocol, choose <b>AWS Lambda</b>, and choose your newly created
+function in the <b>Endpoint</b> dropdown. Save it.
+</p>
+<h3>Create your SNS Topic</h3>
+<p>
+To test the function through SNS select your topic and click on <b>Publish To Topic</b>, use the following message that will be sent as the <b>event</b> argument of your lambda handler:
 </p>
 <pre name="code" class="php">
-aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}" | grep -2 Environment | grep Value | tr -d ' ' | cut -f2 -d: | tr -d '"' | tr -d ',')
+{
+"default": "{\"text\": \"hello world\", \"color\": \"yellow\"}",
+"lambda": "{\"text\": \"hello world\", \"color\": \"yellow\"}"
+}
 </pre>
-
-<h3>Permissions</h3>
+<h3>Conclusion</h3>
 <p>
-For this to work, you have to have the <b>ec2:DescribeTags</b> permission in your user policies or in the IAM Profile of your instance.
+As you can see, SNS and Lambdas are absolutely fun to use! In no time we can integrate different kind of systems (in this case we chose HipChat, but <a href="https://slack.com/">Slack</a> would work exactly the same
+-although with a different API, point taken-). Hint: we are actually using this from <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> in order to
+receive notifications in our HipChat room as deploys go through their lifecycle. But I'm going to explain this in another article :).
 </p>
 <p>
-Enjoy!
+Cheers!
 </p>
               </div>
             </div>
@@ -134,7 +166,7 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
+                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
