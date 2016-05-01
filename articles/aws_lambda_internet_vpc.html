@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="Accessing the Internet and other AWS Resources in your VPC from AWS Lambda RDS VPC Subnet NAT Internet Gateway"/>
+<meta name="description" content="In this article we're going to see how to setup a Lambda function in Amazon WebS ervices (AWS) so it can access the Internet and other AWS Resources in both private subnets and public subnets"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <!--  <li><a href="../about.html"><span>About</span></a></li>  -->
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+    <div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Accessing the Internet and other AWS Resources from AWS Lambda</div>
+  </div>
+  <div class="main-outer">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+                <h2>Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</h2>
+                <div class="hr-1"><hr /></div>
+  <H3><u>Introduction</u></H3>
+<p>
+<a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html"><b>AWS Lambda</b></a> is a great service from Amazon that can be
+used for a lot of things. It is the key to a <a href="http://docs.serverless.com/"><b>Server Less</b></a> architecture/application but it can
+also be useful to develop <b>monitoring applications</b> (or functions, actually) for your own
+services.
+</p>
+<p>
+Truth be told, whatever is your use case, it is highly probable that you need to access the Internet or other AWS Resources (like <a href="https://aws.amazon.com/rds/"><b>RDS</b></a>)
+to fully accomplish your tasks. In the first days, you couldn't easily do this, but since <a href="https://aws.amazon.com/blogs/aws/new-access-resources-in-a-vpc-from-your-lambda-functions/">Feb 2016</a> Amazon
+made publicly available this new feature.
+</p>
+<p>
+In this article we're going to see what is needed to access both public and private IP addresses from within your Lambda functions. This is essentially giving your Lambdas access to one of your <a href="https://aws.amazon.com/vpc/"><b>VPCs</b></a>.
+</p>
+<H3><u>Configuring your Lambda</u></H3>
+<p>
+This part is actually pretty easy. In your <a href="https://us-west-2.console.aws.amazon.com/lambda/home">AWS Console for Lambda</a> click in one of your functions, and then go to the <b>Configuration</b> tab, and then click in <b>Advanced Settings</b>.
+</p>
+<p>
+You will notice that you can select a <b>VPC</b>, one or more <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html"><b>Subnets</b></a> and one <a href"http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html"><b>Security Group</b></a>.
+We will see some details about how to create these later, but for now, the trick here is to select <b>ONLY</b> <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Scenario2.html"><b>Private Subnets</b></a> (in case you need to access
+Internet resources, otherwise any subnet will do <b>as long as your other AWS resources reside in the same VPC as your Lambdas</b>).
+</p>
+<H3><u>Create a VPC</u></H3>
+<p>
+If you already have a VPC, you can use it. Otherwise, if you prefer to create a new one (fair enough), go to the <a href="https://console.aws.amazon.com/vpc/home?#vpcs:">VPC Section of your AWS Console</a>, and click
+<b>Create VPC</b>. Fill in a name and the tenancy type (usually "Default"), and the key here is the CIDR block to choose.
+</p>
+<p>
+The <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing">CIDR block</a> should specify a network big enough to contain your public and private subnets. Your Lambdas will be
+deployed to use only private subnets, while the public subnet will have a <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html"><b>NAT Gateway</b></a> that will
+provide internet access.
+</p>
+<p>
+As an example, the CIDR block for our new VPC could be <b>192.168.0.0/16</b>, reserving the 3rd octet to distinguish
+different subnets inside that VPC.
+</p>
+<H3><u>Create a Private Subnet</u></H3>
+<p>
+A private subnet is a subnet that has a routing table with a default route
+that goes through a <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html"><b>NAT instance or a gateway</b></a>.
+</p>
+<p>
+Our Lambdas need to be deployed in a <b>private subnet</b> in order to access Internet resources, otherwise they just won't be able to do it. If you only need to access
+resources inside the same VPC, any subnet will do the trick.
+</p>
+<p>
+Let's create our private subnet then. Go to the <a href="https://console.aws.amazon.com/vpc/home?#subnets:">Subnet Section of your AWS Console</a> and click
+<b>Create Subnet</b>, choose a name and the VPC we just created (look it up by its name or id).
+</p>
+<p>Pick a CIDR block that is covered by the VPC CIDR block. In our case
+we can use something like <b>192.168.20.0/24</b> (see how we have "split" our /16 network now, into one /24 subnet).
+</p>
+<H3><u>Create a Public Subnet</u></H3>
+<p>
+The public subnet is where our NAT Gateway will "live", and will only be used to provide Internet access to our private subnet where our Lambdas will be deployed.
+</p>
+<p>
+Follow the same procedure as above so you can create a new subnet. Pick a different CIDR block (but again, one that is covered by your VPC CIDR block), for example: <b>192.168.10.0/24</b>.
+</p>
+<H3><u>Create an Internet Gateway</u></H3>
+<p>
+Let's now create an Internet Gateway so we can provide Internet access to our new VPC. Head over to the <a href="https://console.aws.amazon.com/vpc/home?#igws:">Internet Gateways section of your AWS Console</a>
+and click <b>Create Internet Gateway</b>, pick a name and save it. Then locate your new Internet Gateway created in the listing, select it, click <b>Attach to VPC</b> and select the VPC you just created.
+</p>
+<H3><u>Create a NAT Gateway</u></H3>
+<p>
+So far we have created a VPC and attached an Internet Gateway to it, and inside the VPC we have two subnets. This step will place a NAT gateway in the public subnet
+so the private subnet can use it to route traffic to/from the Internet.
+</p>
+<p>
+Go to the <a href="https://console.aws.amazon.com/vpc/home?#NatGateways">NAT Gateways section of your AWS Console</a> and click <b>Create NAT Gateway</b>, choose your <b>Public Subnet</b> and allocate a new (or reuse an old)
+<a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html">ElasticIP</a> for it. This ElasticIP is the one that will be used by your Lambdas to
+access the Internet (so you might want to add it in any Firewalls or Security Groups outside this VPC) if you want to allow traffic and from them.
+</p>
+<H3><u>Create a Route Table for the Public Subnet</u></H3>
+<p>
+We have placed an Internet Gateway in our public subnet in our VPC, but we have to actually specify that we want to route traffic to "unknown locations" through the
+Internet Gateway. This is done by creating a <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html"><b>default route</b> in its routing table</a>.
+</p>
+<p>
+The default route is specified by the CIDR <b>0.0.0.0/0</b>. Go to the <a href="https://console.aws.amazon.com/vpc/home?#routetables:">Route Tables section of your AWS Console</a>
+and click <b>Create Route Table</b>, choose the VPC you created before and pick a name for it.
+</p>
+<p>
+Once it is created, locate it in the listing, select it, and click the <b>Routes</b> tab, then click <b>Edit</b> and then click <b>Add another route</b>.
+</p>
+<p>
+In destination use <b>0.0.0.0/0</b>, and choose your new Internet Gateway as the <b>target</b>. Save it.
+</p>
+<p>
+Now go back to your public subnet (in the Subnets section of your AWS Console), select your <b>public subnet</b>, click <b>Route Table</b> and then click <b>Edit</b>. You will now be able to select your new Route Table for your public subnet.
+</p>
+<H3><u>Create a Route Table for the Private Subnet</u></H3>
+<p>
+The procedure is pretty much the same, create a new Route Table and associate it with your <b>private subnet</b> this time. The only difference is that
+<b>instead of using your Internet Gateway</b> as the default target, you have to specify your <b>NAT Gateway</b>, so all traffic from the private subnet (and
+heading to the Internet) will flow through the NAT Gateway.
+</p>
+<H3><u>Setup your Lambdas</u></H3>
+<p>
+As described in the very first section of this article, you can now configure your Lambdas so they are deployed in the
+VPC and private subnets you just created, and use a Security Group that will allow them any outgoing traffic (inbound traffic will not be
+allowed to them because they will "live" in a private subnet).
+</p>
+<hr/>
+<H3><u>Conclusions</u></H3>
+<p>
+Using these very simple and reasonable steps one can now use Lambdas to do many things, like HTTP requests, use RDS, etc. A lot
+more space for creativity is at hand now :)
+</p>
+<br/>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+<p>
+If you liked this or other articles (and feel generous), you can make a donation:
+</p>
+<p>
+<a href='https://pledgie.com/campaigns/30947'><img alt='Click here to lend your support to: General and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/30947.png?skin_name=chrome' border='0' ></a>
+</p>
+                <h2>Related Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
+                  <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
+                </ul>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
