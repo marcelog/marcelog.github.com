@@ -50,6 +50,12 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Get your AWS instance tags from your EC2 instance</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+There's a quick way that you can use to read the tags of your EC2 instance from inside the same instance. If you have the instance id (and you
+can get it by using the <a href="get_aws_instance_id_ec2_read_metadata.html">EC2 MetaData</a>) you can use the <a href="https://aws.amazon.com/cli/">AWS Command Line tools</a>. More specifically, by using the <a href="http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-tags.html">Describe Tags</a> command of the AWS CLI you can get your instance tags
+in the following way: .&nbsp;<a href="aws_get_tags_from_inside_instance_ec2.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Getting the AWS instance ID from within the EC2 instance</h2>
                 <div class="hr-1"><hr /></div>
 <p>
