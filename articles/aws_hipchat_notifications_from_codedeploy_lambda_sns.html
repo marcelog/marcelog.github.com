@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Send HipChat Notifications with SNS and Lambda</title>
+  <title>HipChat Notifications from AWS CodeDeploy</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription"/>
-<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications by using SNS to invoke it."/>
+<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription codedeploy lifecycle"/>
+<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications from CodeDeploy during the lifecycle of a deploy by using SNS to invoke it."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Send HipChat Notifications with SNS and Lambda</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  HipChat Notifications from AWS CodeDeploy</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -59,36 +59,24 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Send HipChat Notifications with SNS and Lambda</h2>
+                <h2>HipChat Notifications from AWS CodeDeploy</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
 <h3>Introduction</h3>
 <p>
-<a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html">Amazon AWS Lambda</a> is a great service and really fun to use. In this article, I'm going to describe
-how we are using it for a project in combination with <a href="http://aws.amazon.com/sns/">Amazon Simple Notification Service</a> to send notifications to <a href="http://hipchat.com/">HipChat</a>.
+In a previous article I described <a href="aws_sns_hipchat_integration_notifications_with_lambda.html">how you can create a Lambda function and use it through SNS to send HipChat notifications</a>. In this article we're going to take
+this one step further and integrate another awesome Amazon service, <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> so we can receive HipChat notifications
+during the lifecycle of a deploy, and keep the whole team updated about the deploy status.
 </p>
 <h3>Create your Lambda</h3>
 <p>
-The code for this Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
-Amazon has made recently available for the public.
+As in the previous article, our Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
+Amazon has made recently available for the public. Also, the code is almost the same, except for a slight difference in the handler function, that is adapted to handle the <a href="docs.aws.amazon.com/codedeploy/latest/userguide/how-to-notify-json-format.html">CodeDeploy JSON payload</a>:
 </p>
+<script src="https://gist.github.com/marcelog/b96bd8ce87de0d13a5f869c106b8f604.js"></script>
 <p>
-In order for this to work, make sure your Lambda has Internet access. You can find the instructions on how to setup such a scenario in an <a href="aws_lambda_internet_vpc.html">earlier post that describes how to
-setup your VPCs and subnets so your Lambdas can have Internet access</a>.
-</p>
-<p>
-  The function uses the <a href="https://www.hipchat.com/docs/api">HipChat API v1</a>, which is deprecated but still available (and will be for a long time, apparently). It sends notifications through
-  a simple HTTP request. The code for this lambda is available in this gist:
-</p>
-<script src="https://gist.github.com/marcelog/3f463cd98d5ce41528eb58bfd7d7bcb5.js"></script>
-<p>
-Go to your <a href="https://us-west-2.console.aws.amazon.com/lambda/home#/functions">AWS Lambda Console</a> and create a new function by pasting the code.
-Make sure you change the variables and arguments named <b>token</b>, <b>room_id</b>,and  <b>from</b> to match your needs. Save your function and don't forget to setup your
-VPC and private subnet when configuring your function.
-</p>
-<p>
-You can test the function with an event like this:
+I recommend you to read the <a href="aws_sns_hipchat_integration_notifications_with_lambda.html">previous article</a> so you know about some considerations (where to put your token, and how to setup your SNS Topic and your Lambda function properly so it can access the Internet).
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -100,36 +88,17 @@ You can test the function with an event like this:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<pre name="code" class="php">
-{
-  "text": "hello world",
-  "color": "green"
-}
-</pre>
-<h3>Create your SNS Topic</h3>
+<h3>Setup your CodeDeploy Application</h3>
 <p>
-Head to your <a href="https://us-west-2.console.aws.amazon.com/sns/v2/home?region=us-west-2#/topics">AWS SNS Console</a>, click on <b>Create New Topic</b>, pick a name and save your new topic. Once created, locate it in
-the topics list, select it, and click on <b>Create Subscription</b>. As the protocol, choose <b>AWS Lambda</b>, and choose your newly created
-function in the <b>Endpoint</b> dropdown. Save it.
+Head to your <a href="https://us-west-2.console.aws.amazon.com/codedeploy/home">AWS CodeDeploy Console</a>, select your application, a deployment group, and edit it. Under <b>Triggers</b> click on <b>Create Trigger</b>
+pick a name, and choose all the events. In the SNS topic choose the SNS topic with the subscription that points to your Lambda function and then save it.
 </p>
-<h3>Create your SNS Topic</h3>
 <p>
-To test the function through SNS select your topic and click on <b>Publish To Topic</b>, use the following message that will be sent as the <b>event</b> argument of your lambda handler:
+That's it!
 </p>
-<pre name="code" class="php">
-{
-"default": "{\"text\": \"hello world\", \"color\": \"yellow\"}",
-"lambda": "{\"text\": \"hello world\", \"color\": \"yellow\"}"
-}
-</pre>
 <h3>Conclusion</h3>
 <p>
-As you can see, SNS and Lambdas are absolutely fun to use! In no time we can integrate different kind of systems (in this case we chose HipChat, but <a href="https://slack.com/">Slack</a> would work exactly the same
--although with a different API, point taken-). Hint: we are actually using this from <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> in order to
-receive notifications in our HipChat room as deploys go through their lifecycle. But I'm going to explain this in <a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">another article</a> :).
-</p>
-<p>
-Cheers!
+Now you can have notifications in your HipChat room whenever a deploy is created, finished, and in the middle as it goes through all your EC2 instances. Cool, uh?
 </p>
               </div>
             </div>
@@ -166,7 +135,7 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
