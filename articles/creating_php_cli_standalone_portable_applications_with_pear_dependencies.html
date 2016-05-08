@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>A simple roadmap for a portable and self contained PHP Application</u></H3>
   <p>
 First of all, this is just one way to do it. It can be used as a skeleton and improved. So it's not
 my intention to be absolutist here saying that everything should be this way. But it's a good start.
@@ -84,7 +84,7 @@ Specifically, this is about cli applications. This is so, because I dont really 
 because you can actually configure a lot of things for a web application right there in your virtual host configuration,
 .htaccess file or equivalents, etc. That aside, this stuff should apply to both worlds.
 </p>
-  <H3><u>Requirements</u></H3>
+  <H3><u>Requirements for the PHP dependencies</u></H3>
   <p>
 The requirements are simple actually:
 <ul>
@@ -94,7 +94,7 @@ The requirements are simple actually:
 <p>
 A little shell script knowledge wont hurt if you want to change things, of course!
   </p>
-<H3><u>The basic idea</u></H3>
+<H3><u>The basic idea of how to make your PHP Application portable and standalone</u></H3>
 <p>
 <ul>
 <li>Use the -c flag of the php cli to specify our own php.ini file.</li>
@@ -128,34 +128,18 @@ A little shell script knowledge wont hurt if you want to change things, of cours
 <li>Run "bin/run.sh jobRunner Job"</li>
 </ul>
 </p>
-  <H3><u>The tree layout</u></H3>
+  <H3><u>The tree layout of your standalone PHP Application</u></H3>
     <p>
 Note: You can find the source code for this article at <a href="https://github.com/marcelog/Portable-PHP-Application">github</a>.
   </p>
 
-<pre name="code" class="php">
-|~bin/
-| |~setup/
-| | `-install-dependencies.sh*
-| |-bootstrap.php
-| |-jobRunner.php
-| `-run.sh*
-|~config/
-| |~setup/
-| | `-dependencies
-| |-cli.properties
-| `-php.ini
-|~src/
-| `~php/
-|   `-Job.php
-
-</pre>
-<H3><u>The src directory</u></H3>
+<script src="https://gist.github.com/marcelog/383704b1a60c9112baebe8ab38c7ecf5.js"></script>
+<H3><u>The src directory where your Standalone PHP Application is</u></H3>
 <p>
 This directory will hold your source code. I've chosen something similar to maven, putting
 the language name as a subdirectory (src/php).
 </p>
-<H3><u>The config directory</u></H3>
+<H3><u>The config directory of your PHP Application</u></H3>
 <p>
 Everything starts in the config directory. The php.ini file is well known, this is where
 you actually configure the php with any settings you may need. We're going to use the -c flag
@@ -165,25 +149,7 @@ for the php cli to run our scripts.
 The cli.properties file is where "the trick" is done, it will need to be included by every shell script
 in the application:
 </p>
-<pre name="code" class="php">
-# System locations for installed php and pear. You can
-# touch/change these ones and try with other php versions.
-php=/usr/bin/php
-pear=/usr/bin/pear
-
-vendors=${root}/vendor
-config=${root}/config
-myphppath=${vendors}/php
-
-# The include path for all the applications will be
-# limited to everything needed inside the vendors directory.
-phpargs="-d include_path=${myphppath}:${vendors}/log4php"
-phpini=${config}/php.ini
-phpexec="${php} ${phpargs}"
-mypear=${vendors}/bin/pear
-mypearrc=${vendors}/.pearrc
-bin=${root}/bin
-</pre>
+<script src="https://gist.github.com/marcelog/df390a4182e660fcee6d9e512460fb38.js"></script>
 <p>
 Our cli applications will be run through a shell script, and not directly by
 invoking php by ourselves. This script will include cli.properties and then
@@ -192,11 +158,7 @@ have access to the paths for all the executables and directories needed.
 <p>
 In the config/setup/dependencies file, the application pear dependencies are declared:
 </p>
-<pre name="code" class="php">
-pear.doctrine-project.org/DoctrineORM
-pear.marcelog.name/Ding
-pear.apache.org/log4php/Apache_log4php
-</pre>
+<script src="https://gist.github.com/marcelog/0c0789e7e9619cef681e65d889ea5b42.js"></script>
 <p>
 It will be read and used by the bin/setup/install-dependencies.sh script. In this case, no versions
 are specified for these dependencies, but you could specify the exact versions needed.
@@ -212,66 +174,9 @@ file with the desired default options to assure isolation. Then it will use the 
 pear to install all the pear dependencies found in the file config/setup/dependencies. Quite easy. It should
 only be run once, at deployment time (or every other time you update your dependencies).
 </p>
-<pre name="code" class="php">
-#!/bin/bash
+<script src="https://gist.github.com/marcelog/cb3131c8cd7bf76031d79d7a62c4911a.js"></script>
 
-# Get our base directory (the one where this script is located)
-me=$(dirname ${0})
-root=${me}/../..
-root=`cd ${root}; pwd`
-
-# Try to include the well known config file.
-configFile=${root}/config/cli.properties
-
-if [ ! -f ${configFile} ]; then
-    echo Missing $configFile
-    exit 254
-fi
-
-. ${root}/config/cli.properties
-
-# Create the vendors directory if it does not exist.
-if [ ! -d "${vendors}" ]; then
-    echo Creating ${vendors}
-    mkdir -p ${vendors}
-fi
-
-cd $vendors
-
-# This will use the existing system pear installation to install
-# a fresh copy in the vendors directory, setting up a pear
-# configuration file with the needed options to make this new
-# pear installation completely standalone.
-function setupPear() {
-    ${pear} config-create ${vendors} .pearrc
-    ${pear} -c ${vendors}/.pearrc config-set php_dir ${vendors}/php
-    ${pear} -c ${vendors}/.pearrc config-set bin_dir ${vendors}/bin
-    ${pear} -c ${vendors}/.pearrc config-set cache_dir ${vendors}/pear/cache
-    ${pear} -c ${vendors}/.pearrc config-set cfg_dir ${vendors}/pear/cfg
-    ${pear} -c ${vendors}/.pearrc config-set data_dir ${vendors}/pear/data
-    ${pear} -c ${vendors}/.pearrc config-set download_dir ${vendors}/pear/download
-    ${pear} -c ${vendors}/.pearrc config-set temp_dir ${vendors}/pear/tmp
-    ${pear} -c ${vendors}/.pearrc config-set auto_discover 1
-    ${pear} -c ${vendors}/.pearrc install pear
-}
-
-# This will use the new pear installation to install
-# the application dependencies.
-function pearInstall() {
-    ${mypear} -c ${mypearrc} install --alldeps ${1}
-}
-
-# Install pear first, then all of the app dependencies
-setupPear
-oldIFS=${IFS}
-IFS=$'\n'
-for i in `cat ${config}/setup/dependencies`; do
-    pearInstall ${i}
-done
-IFS=${oldIFS}
-</pre>
-
-<H3><u>Running the stub and the jobs</u></H3>
+<H3><u>Running the stub and the PHP jobs</u></H3>
 <p>
 We will use the file run.sh as the standard entry point for our php scripts. It will
 receive the name of the php script as argument (without the .php extension) and try to
@@ -282,39 +187,7 @@ the name of the stub itself).
 It doesnt matter where and how you invoke this shell script, it will always find its way to
 the absolute paths needed. Cool.
 </p>
-<pre name="code" class="php">
-#!/bin/bash
-
-# Get our base directory (the one where this script is located)
-me=$(dirname ${0})
-root=${me}/../..
-root=`cd ${root}; pwd`
-
-# Try to include the well known config file.
-configFile=${root}/config/cli.properties
-
-if [ ! -f ${configFile} ]; then
-    echo Missing $configFile
-    exit 254
-fi
-
-. ${root}/config/cli.properties
-
-# The first argument is the php script to run (the stub).
-if [ ${#@} -lt 1 ]; then
-    echo "Missing php script name"
-    exit 254
-fi
-
-# Remove the first argument, we're going to use it.
-stub=${1}
-shift
-
-# Invoke php with our custom ini file and include path,
-# passing every other argument in the command line to the
-# stub.
-${phpexec} ${bin}/${stub}.php ${@}
-</pre>
+<script src="https://gist.github.com/marcelog/18f2a114aa07faa00f6e67bbda339612.js"></script>
 <p>
 The stub itself will do nothing more than receive a list of command line arguments and
 use the first one to try to instantiate the job class. Remember, this is just an example
@@ -324,47 +197,23 @@ than just doing this.
 <p>
 So this is the code for the stub that will run our jobs:
 </p>
-<pre name="code" class="php">
-require_once __DIR__ . '/bootstrap.php';
-
-if ($argc < 2) {
-    echo "Missing job name";
-    exit (254);
-}
-
-$jobName = $argv[1];
-$job = new $jobName;
-$job->run();
-</pre>
+<script src="https://gist.github.com/marcelog/bef1669b6afb05c21a7f61d68082a5e3.js"></script>
 <p>
 To bootstrap the code, we use bootstrap.php, which does nothing more than the
 very basic stuff
 </p>
-<pre name="code" class="php">
-$myDir = realpath(__DIR__ . '/..');
-// Register a cute autoloader for our own files.
-spl_autoload_register(function($class) use ($srcDir) {
-    $file = "$srcDir/$class.php";
-    if (file_exists($file)) {
-        require_once $file;
-        return true;
-    }
-});
-</pre>
+<script src="https://gist.github.com/marcelog/c14b77b0e4dacff2c1c48cb0fa85daa0.js"></script>
 <p>
 An example run:
 </p>
-<pre name="code" class="php">
-marcelog@server ~/test $ bin/run.sh jobRunner Job
-Hello world
-</pre>
+<script src="https://gist.github.com/marcelog/b40882d8a713e9bdc302ca5ac1effed7.js"></script>
 <p>
 So from now on, you can concentrate in coding what you need inside the src/php directory (or whatever
 path you've chosen) and be sure that your system or applications will be easily deployable and wont conflict
 with other stuff in the target server, even when having esoteric setup needs, leaving room for the sysadmins
 to tweak things as needed.
 </p>
-<H3><u>Conclusions</u></H3>
+<H3><u>Enjoy your standalone PHP application</u></H3>
 <p>
 Everything in this article can be applied to webapps and cli apps. It will allow you to
 easily control which dependencies are installed for the applications, and share a server without
