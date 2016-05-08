@@ -64,21 +64,20 @@
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Setting up the Postfix SMTP server to route all your email to an external SMTP Gateway</u></H3>
   <p>
 Suppose you want all your web servers to locally send all email (maybe from your contact forms, or whatever)
-to a real smtp gateway. If you're running <a href="http://www.postfix.org/">postfix</a> as your mta, this is quite easily to achieve.
+to a real <b>smtp gateway</b>. If you're running <a href="http://www.postfix.org/">postfix</a> as your MTA, this is quite easy to achieve.
 </p>
-<H3><u>Configuration</u></H3>
 <p>
 In your <a href="http://www.postfix.org/postconf.5.html">main.cf</a> file (usually /etc/postfix/main.cf or /usr/local/etc/postfix/main.cf), specify your transport maps:
 </p>
-<pre name="code" class="php">
-transport_maps =  hash:/etc/postfix/transport
-</pre>
+<script src="https://gist.github.com/marcelog/bbca3b6e8778db6e8563e4b4f9ebfb5f.js"></script>
 <p>
 And in your <a href="http://www.postfix.org/transport.5.html">transport</a> file (usually /etc/postfix/transport or /usr/local/etc/postfix/transport), specify
-your gateways per domain. This allows you to specify with regular expressions which emails go where. In this case, an asterisk specifies every domain
+your gateways per domain.
+</p>
+<p>This allows you to specify with regular expressions which emails go where. In this case, an asterisk specifies every domain
 (the transport file allows very complex setups, this is of course an extreme and trivial example):
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -91,16 +90,12 @@ your gateways per domain. This allows you to specify with regular expressions wh
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<pre name="code" class="php">
-*              smtp:myotherhost.com
-</pre>
+<script src="https://gist.github.com/marcelog/cab40847fc623eebecf68e4dd81bc3ae.js"></script>
 <p>
 Then invoke postmap to regenerate the transports db, and reload postfix:
 </p>
-<pre name="code" class="php">
-# postmap hash:/etc/postfix/transport
-# postfix reload
-</pre>
+<script src="https://gist.github.com/marcelog/0c39d574d6ef542ff747fc074c445213.js"></script>
+<h3>All local emails will be routed to another SMTP Server</h3>
 <p>
 That should do it. All email generated in this host should now be forwarded to the smtp gateway. Remember to configure your smtp gateway
 to accept mail from all the hosts that will forward emails to it.
