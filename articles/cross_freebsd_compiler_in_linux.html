@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Why a C/C++ Cross Compiler is useful</u></H3>
 <p>
 I manage a Hudson CI Server that runs on a linux system where I work, and one of our projects is written in
 plain C code that should be able to run on linux and also freebsd 7. Up to now we were using a freebsd (hudson) slave
@@ -74,19 +74,19 @@ freebsd 7 binaries in a linux box.
 <p>
 You can find the source for this article <a href="https://github.com/marcelog/Freebsd-Cross-GCC">here</a>.
 </p>
-<H3><u>First things, first</u></H3>
+<H3><u>What is a Toolchain and why it's needed to build software</u></H3>
 <p>
-What exactly is a toolchain? Generically speaking, a toolchain is a set of tools (other software) that is run to generate
+Generically speaking, a toolchain is a set of tools (other software) that is run to generate
 other software, in a certain specific sequence. In this case, we are talking about a C/C++ preprocessor, a C/C++ compiler,
 an assembler, a linker, etc.
 </p>
-<H3><u>Understanding the task</u></H3>
+<H3><u>One operating system: Multiple toolchains</u></H3>
 <p>
 We are going to use our current toolchain (installed in a linux box) to generate a new toolchain that builds freebsd 7
 binaries for either 32 or 64 bits cpu's. This new toolchain will be installed in parallel to our current toolchain, so we can still
 generate binaries for linux also. This is a halfway to the infamous <b>canadian cross.</b>
 </p>
-<H3><u>The canadian cross</u></H3>
+<H3><u>The canadian cross: The foundation stone of cross compiling</u></H3>
 <p>
 The canadian cross can be used to generate a full working application (or operating system) for a certain architecture from scratch.
 Suppose you have 3 machines, named A, B, and C. The idea is to use machine A to build a cross compiler that runs on machine B, to create executables for machine C.
@@ -102,7 +102,7 @@ In our particular case, we already have compilers 1 and 2 because linux systems 
 functional. In order to simplify things a little, we're gonna stop at making the compiler 3, that is the cross compiler from
 machine A (the linux box) to the machine B (the freebsd box).
 </p>
-<H3><u>About GNU targets</u></H3>
+<H3><u>About GNU targets: Choosing what to build and how</u></H3>
 <p>
 When compiling software, the GNU toolchain needs to know 2 <b>targets</b>:
 <ul>
@@ -135,7 +135,7 @@ libraries, includes, stubs for executables, etc.
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<H3><u>The requirements</u></H3>
+<H3><u>Requirements for cross compiling in Linux for FreeBSD</u></H3>
 <ul>
 <li>The linux box, of course, with a full and working GNU toolchain (or any other propietary toolchain) to build the cross toolchain that will generate the freebsd binaries.</li>
 <li>FreeBSD 7 include files (the whole /usr/include)</li>
@@ -143,7 +143,7 @@ libraries, includes, stubs for executables, etc.
 <li>Freebsd 7 libc: (/usr/lib/libc.a, /usr/lib/libc.so, /usr/lib/libm.a, /usr/lib/libm.so)</li>
 </ul>
 
-<H3><u>Software involved</u></H3>
+<H3><u>GNU Software needed</u></H3>
 <ul>
 <li>GNU binutils (I used 2.21)</li>
 <li>GCC (I used 4.5.2)</li>
@@ -159,131 +159,52 @@ If you decide to use GCC >= 4.1.x (like I did), you will also need:
 <p>
 I'm going to use <b>/usr/cross-freebsd</b> as the prefix for the installation.
 </p>
-<H3><u>Step 1: Build binutils</u></H3>
+<H3><u>Step 1: Build GNU binutils</u></H3>
 <p>
 GNU Binutils has some low level utilities that can manipulate executables. You can get it directly from <a href="http://www.gnu.org/software/binutils/">GNU</a>
 </p>
 <p>
-Uncompress the distribution: <b>tar jxf binutils-2.21.tar.bz2</b><br/>
-Configure the software:
+Uncompress the distribution, configure the software, build and install:
 </p>
-<pre name="code" class="php">
-cd binutils-2.21
-./configure --enable-libssp --enable-gold --enable-ld --target=x86_64-pc-freebsd7 --prefix=/usr/cross-freebsd
-</pre>
-<p>
-Build and install:
-</p>
-<pre name="code" class="php">
-gmake
-gmake install
-</pre>
-
+<script src="https://gist.github.com/marcelog/adade3d3d506091f80f8a6a168d97aa0.js"></script>
 <H3><u>Step 2: Install freebsd specific files</u></H3>
 <p>
 Remember that I told you to go get some files from a freebsd distribution? It's time to use them.<br/><br/>
 Following the GNU toolchain convention, create the following directories:<br/><br/>
 </p>
-<pre name="code" class="php">
-mkdir -p /usr/cross-freebsd/x86_64-pc-freebsd7/include
-mkdir -p /usr/cross-freebsd/x86_64-pc-freebsd7/lib
-</pre>
+<script src="https://gist.github.com/marcelog/de8370029f150e697d39660c9c49baab.js"></script>
 <p>
 Deploy the contents of <b>/usr/include</b> in <b>/usr/cross-freebsd/x86_64-pc-freebsd7/include</b><br/>
 The files you got from <b>/usr/lib</b> in <b>/usr/cross-freebsd/x86_64-pc-freebsd7/lib</b>.
 </p>
-<H3><u>Step 3: Build the tools needed by GCC</u></H3>
+<H3><u>Step 3: Build the GNU tools needed by GCC</u></H3>
 <p>
 Skip this if you're using a gcc &lt; 4.1.
 </p>
 <H4><u>GMP</u></H4>
 <p>
-Uncompress the distribution:
+Uncompress the distribution, configure the software, build and install:
 </p>
-<pre name="code" class="php">
-tar jxf gmp-4.3.2.tar.bz2
-</pre>
-Configure the software:
-</p>
-<pre name="code" class="php">
-cd gmp-4.3.2
-./configure --prefix=/usr/cross-freebsd --enable-shared --enable-static --enable-mpbsd --enable-fft --enable-cxx --host=x86_64-pc-freebsd7
-</pre>
-<p>
-Build and install:
-</p>
-<pre name="code" class="php">
-gmake
-gmake install
-</pre>
+<script src="https://gist.github.com/marcelog/d3110128189f6958f872a9857a02a30a.js"></script>
 <H4><u>MPFR</u></H4>
 <p>
-Uncompress the distribution:
+Uncompress the distribution, configure the software, build and install:
 </p>
-<pre name="code" class="php">
-tar jxf mpfr-2.4.2.tar.bz2
-</pre>
-<p>
-Configure the software:
-</p>
-<pre name="code" class="php">
-cd mpfr-2.4.2
-./configure --prefix=/usr/cross-freebsd --with-gnu-ld --with-gmp=/usr/cross-freebsd --enable-static --enable-shared --host=x86_64-pc-freebsd7
-</pre>
-<p>
-Build and install:
-</p>
-<pre name="code" class="php">
-gmake
-gmake install
-</pre>
+<script src="https://gist.github.com/marcelog/dc2b86a5eea28571d4c28210d88f0ea5.js"></script>
+
 <H4><u>MPC</u></H4>
 <p>
-Uncompress the distribution:
+Uncompress the distribution, configure the software, build and install:
 </p>
-<pre name="code" class="php">
-tar jxf mpc-0.8.1.tar.bz2
-</pre>
-<p>
-Configure the software:
-</p>
-<pre name="code" class="php">
-cd mpc-0.8.1
-./configure --prefix=/usr/cross-freebsd --with-gnu-ld --with-gmp=/usr/cross-freebsd --with-mpfr=/usr/cross-freebsd --enable-static --enable-shared --host=x86_64-pc-freebsd7
-</pre>
-<p>
-Build and install:
-</p>
-<pre name="code" class="php">
-gmake
-gmake install
-</pre>
+<script src="https://gist.github.com/marcelog/c5b2ac5262395feede0f964cd4d1bc56.js"></script>
 <H3><u>Step 4: Build the cross compiler</u></H3>
 <p>
 <b>NOTE</b>: GCC requires to be built in a directory that is not the source dir, that's why we are creating an <b>objdir</b>. See below:<br/>
 </p>
 <p>
-Uncompress the distribution:
+Uncompress the distribution, configure the software, build and install:
 </p>
-<pre name="code" class="php">
-tar jxf gcc-4.5.2.tar.bz2
-</pre>
-<p>
-Configure the software:
-</p>
-<pre name="code" class="php">
-cd gcc-4.5.2
-mkdir objdir
-cd objdir
-../configure --without-headers --with-gnu-as --with-gnu-ld --enable-languages=c,c++ --disable-nls --enable-libssp --enable-gold --enable-ld --target=x86_64-pc-freebsd7 --prefix=/usr/cross-freebsd --with-gmp=/usr/cross-freebsd --with-mpc=/usr/cross-freebsd --with-mpfr=/usr/cross-freebsd --disable-libgomp
-</pre>
-<p>
-Build and install:
-</p>
-<pre name="code" class="php">
-LD_LIBRARY_PATH=/usr/cross-freebsd/lib gmake
-gmake install
-</pre>
+<script src="https://gist.github.com/marcelog/25ecbcddf0842edb0b33fdaa8f959e38.js"></script>
 <p>
 Changing the LD_LIBRARY_PATH is necessary so the gcc build wont fail when trying to use mpc and mpfr.
 </p>
@@ -292,28 +213,9 @@ Changing the LD_LIBRARY_PATH is necessary so the gcc build wont fail when trying
 <p>
 Write a simple "hello world" code in C to test the native and cross compilers:<br/>
 </p>
-<pre name="code" class="php">
-#include&lt;stdio.h&gt;
-int
-main(int argc, char *argv[])
-{
-    fprintf(stdout, "Hello world\n");
-    return 0;
-}
-</pre>
+<script src="https://gist.github.com/marcelog/f67139cc47076e22c7d48d3efac9269d.js"></script>
 
-<p>
-$ gcc helloworld.c -o helloworld <br/>
-$ file helloworld<br/>
-helloworld: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), for GNU/Linux 2.6.9, dynamically linked (uses shared libs), not stripped<br/>
-</p>
-
-<p>
-$ LD_LIBRARY_PATH=/usr/cross-freebsd/lib<br/>
-$ /usr/cross-freebsd/bin/x86_64-pc-freebsd7-gcc helloworld.c -o helloworld<br/>
-$ file helloworld<br/>
-helloworld: ELF 64-bit LSB executable, x86-64, version 1 (FreeBSD), for FreeBSD 7.2, dynamically linked (uses shared libs), FreeBSD-style, not stripped<br/>
-</p>
+<script src="https://gist.github.com/marcelog/e95e15758af6f6ada66983af9a39de2c.js"></script>
 <H3><u>Step 6: Test the installation with a gnu software</u></H3>
 <p>
 We will now try to build a full gnu program with our brand new cross compiler. i.e: libxml2
@@ -321,17 +223,11 @@ We will now try to build a full gnu program with our brand new cross compiler. i
 <p>
 Get and unpack libxml2. Enter the source directory:
 </p>
-<pre name="code" class="php">
-export PATH=${PATH}:/usr/cross-freebsd/bin
-export LD_LIBRARY_PATH=/usr/cross-freebsd/lib
-./configure --prefix=/usr/cross-freebsd --host=x86_64-pc-freebsd7
-gmake
-gmake install
-</pre>
+<script src="https://gist.github.com/marcelog/33bbdb35ca071c1fde87430c748c12c4.js"></script>
 <p>
 Now, if you copy (for instance.. ) xmllint to a freebsd box, you should be able to run it ;) You're all set.
 </p>
-<H3><u>Conclusions</u></H3>
+<H3><u>Cross compiler aftermath</u></H3>
 <p>
 As you can see there is some complexity in effectively building a cross compiler, however it IS a pretty straightforward process
 when you know the steps involved. It's also very easy to break things when you start playing with different options for binutils
