@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<H3><u>Introduction</u></H3>
+<H3><u>AGI: the workhorse for your VoIP and General Telephony Applications for the Asterisk PBX</u></H3>
   <p>
 The <b>Asterisk Gateway Protocol</b> (AGI from now on) is the protocol used by the Asterisk server as its interface for telephony applications.<br/><br/>
 AGI is just a way that allows you (as a software developer) to easily make telephony applications that asterisk will run someway along
@@ -74,7 +74,7 @@ needed to make a successfull <u>IVR</u> (<b>Interactive Voice Response</b>) in v
 You might also be interested in <a href="http://marcelog.github.com/PAGI">PAGI</a>. An AGI client/framework that allows you to
 quickly develop agi applications in an oop fashion.
 </p>
-<H3><u>Asterisk configuration for AGI applications</u></H3>
+<H3><u>Asterisk PBX configuration for your AGI telephony applications</u></H3>
 <p>
 To start your agi application you will use the AGI() dialplan application from you own dialplan. For example, in <b>extensions.conf:</b><br/>
 <hr/>
@@ -85,7 +85,7 @@ exten =&gt; 1,1,AGI(myApplication.php)<br/>
   <p>
 This will tell asterisk to start an agi application when a call is made to the '1' extension. That's it ;)
   </p>
-  <H3><u>Overview of the AGI Protocol</u></H3>
+  <H3><u>Overview of the AGI (Asterisk Gateway Interface) Protocol</u></H3>
   <p>
 AGI is a very simple protocol. Asterisk communicate with the applications through their standard input
 (stdin) and standard output (stdout). So you can send commands to asterisk via your stdout and receive
@@ -158,7 +158,7 @@ agi_context: default<br/>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<H3><u>Quick shell example</u></H3>
+<H3><u>Quick IVR (Interactive Voice Response) example in a shell script</u></H3>
 <p>
 Let's try a very basic example to see in action what we've covered so far:
 </p>
@@ -173,42 +173,9 @@ exten =&gt; 1,1,AGI(/tmp/agi.sh,arg1,arg2,arg3)<br/>
 <hr/>
 <H4>Create the agi application</H4>
 <p>
-<pre name="code" class="php">
-#!/bin/bash
-
-filedump=/tmp/dump.txt
-
-function log() {
-    echo ${@} &gt;&gt; ${filedump}
-}
-
-function dumpvar() {
-    log "channel variable: ${1} = ${2}"
-}
-
-log "------------ call start ------------"
-dumpvar "config dir" ${AST_CONFIG_DIR}
-dumpvar "configfile" ${AST_CONFIG_FILE}
-dumpvar "module dir" ${AST_MODULE_DIR}
-dumpvar "spool dir" ${AST_SPOOL_DIR}
-dumpvar "monitor dir" ${AST_MONITOR_DIR}
-dumpvar "var dir" ${AST_VAR_DIR}
-dumpvar "data dir" ${AST_DATA_DIR}
-dumpvar "log dir" ${AST_LOG_DIR}
-dumpvar "agi dir" ${AST_AGI_DIR}
-dumpvar "key dir" ${AST_KEY_DIR}
-dumpvar "run dir" ${AST_RUN_DIR}
-
-line='init'
-while [ "${#line}" -gt "2" ]; do
-        read line
-        log ${line}
-done
-log "------------ call done ------------"
-exit 0
-</pre>
+<script src="https://gist.github.com/marcelog/2f9491d4283ab154c5225f8a09179c23.js"></script>
 </p>
-<H4>Run the application</H4>
+<H4>Run the IVR application</H4>
 <p>
 Make a call to the '1' extension. Your agi application should run and create the
 file /tmp/dump.txt with the output from the channel variables. This application does
@@ -217,48 +184,13 @@ the channel variables block.
 </p>
 <p>
 Example of the file /tmp/dump.txt generated:<br/>
------------- call start ------------<br/>
-channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
-channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
-channel variable: module dir = /usr/lib/asterisk/modules<br/>
-channel variable: spool dir = /tmp/marcelog/asterisk/spool<br/>
-channel variable: monitor dir = /tmp/marcelog/asterisk/spool/monitor<br/>
-channel variable: var dir = /tmp/marcelog/asterisk<br/>
-channel variable: data dir = /tmp/marcelog/asterisk<br/>
-channel variable: log dir = /tmp/marcelog/asterisk/logs<br/>
-channel variable: agi dir = /tmp/marcelog/asterisk/agi-bin<br/>
-channel variable: key dir = /tmp/marcelog/asterisk/keys<br/>
-channel variable: run dir = /tmp/marcelog/asterisk<br/>
-agi_request: /tmp/agi.sh<br/>
-agi_channel: SIP/marcelog-e00d2760<br/>
-agi_language: ar<br/>
-agi_type: SIP<br/>
-agi_uniqueid: 1297542965.8<br/>
-agi_version: 1.6.0.9<br/>
-agi_callerid: marcelog<br/>
-agi_calleridname: marcelog@mg<br/>
-agi_callingpres: 0<br/>
-agi_callingani2: 0<br/>
-agi_callington: 0<br/>
-agi_callingtns: 0<br/>
-agi_dnid: 667<br/>
-agi_rdnis: unknown<br/>
-agi_context: default<br/>
-agi_extension: 667<br/>
-agi_priority: 2<br/>
-agi_enhanced: 0.0<br/>
-agi_accountcode:<br/>
-agi_threadid: 1104922960<br/>
-agi_arg_1: arg1<br/>
-agi_arg_2: arg2<br/>
-agi_arg_3: arg3<br/>
------------- call done ------------<br/>
+<script src="https://gist.github.com/marcelog/6ed0986ca1239934c988c0c370be573f.js"></script>
 </p>
 <p>
 Notice how asterisk passes the variables from the dialplan to your application (i.e:
 the "special" channel variables <b>agi_arg_x</b> where x is the argument index).
 </p>
-<H3><u>Sending AGI commands and receiving responses</u></H3>
+<H3><u>Sending AGI commands and receiving responses to create a basic IVR</u></H3>
 <p>
 An example agi command that logs to the console is:<br/>
 VERBOSE "message" 3
@@ -300,143 +232,17 @@ As an AGI script, you should always set the AGI variable <b>AGISTATUS</b> to one
 <p>
 That's about it, you can find the complete list of commands <a href="https://wiki.asterisk.org/wiki/display/AST/AGI+Commands">here.</a><br/>
 </p>
-<H3><u>Quick shell example: Part 2</u></H3>
+<H3><u>Quick IVR example: Part 2</u></H3>
 <p>
 Now let's modify the example, like this:
 </p>
-<pre name="code" class="php">
-#!/bin/bash
-
-filedump=/tmp/dump.txt
-
-function log() {
-    echo ${@} >> ${filedump}
-}
-
-function dumpvar() {
-    log "channel variable: ${1} = ${2}"
-}
-
-function send() {
-    log Sending: ${@}
-    echo ${@}
-    read line
-    log "Got: ${line}"
-}
-
-function answer() {
-    send "ANSWER"
-}
-
-function agilog() {
-    send "VERBOSE" \"${@}\"
-}
-
-function play() {
-    send STREAM FILE ${1} "#"
-}
-
-function setvariable() {
-    send SET VARIABLE ${1} ${2}
-}
-
-function hangup() {
-    setvariable AGISTATUS SUCCESS
-    send "HANGUP 16"
-}
-
-callStatus=1
-function callEnded() {
-    if [ "${callStatus}" -eq "0" ]; then
-        return
-    fi
-    callStatus=0
-    agilog "Call ended abruptly"
-    hangup
-    exit 0
-}
-# Asterisk will send a SIGHUP signal when the user hangups the channel. In this
-# example you can try it by waiting for the welcome audio message to finish or
-# hangup before it finishes playing.
-trap callEnded SIGHUP
-log "------------ call start ------------"
-dumpvar "config dir" ${AST_CONFIG_DIR}
-dumpvar "configfile" ${AST_CONFIG_FILE}
-dumpvar "module dir" ${AST_MODULE_DIR}
-dumpvar "spool dir" ${AST_SPOOL_DIR}
-dumpvar "monitor dir" ${AST_MONITOR_DIR}
-dumpvar "var dir" ${AST_VAR_DIR}
-dumpvar "data dir" ${AST_DATA_DIR}
-dumpvar "log dir" ${AST_LOG_DIR}
-dumpvar "agi dir" ${AST_AGI_DIR}
-dumpvar "key dir" ${AST_KEY_DIR}
-dumpvar "run dir" ${AST_RUN_DIR}
-
-line='init'
-while [ "${#line}" -gt "2" ]; do
-        read line
-        log ${line}
-done
-answer
-agilog Hello There
-play welcome
-hangup
-log "------------ call done ------------"
-exit 0
-</pre>
+<script src="https://gist.github.com/marcelog/c403a20efd4938fe7f72c6f393030ba3.js"></script>
 
 <p>
 Example of the file /tmp/dump.txt generated:<br/>
------------- call start ------------<br/>
-channel variable: config dir = /export/users/marcelog/config/asterisk<br/>
-channel variable: configfile = /export/users/marcelog/config/asterisk/asterisk.conf<br/>
-channel variable: module dir = /usr/lib/asterisk/modules<br/>
-channel variable: spool dir = /tmp/marcelog/asterisk/spool<br/>
-channel variable: monitor dir = /tmp/marcelog/asterisk/spool/monitor<br/>
-channel variable: var dir = /tmp/marcelog/asterisk<br/>
-channel variable: data dir = /tmp/marcelog/asterisk<br/>
-channel variable: log dir = /tmp/marcelog/asterisk/logs<br/>
-channel variable: agi dir = /tmp/marcelog/asterisk/agi-bin<br/>
-channel variable: key dir = /tmp/marcelog/asterisk/keys<br/>
-channel variable: run dir = /tmp/marcelog/asterisk<br/>
-agi_request: /tmp/agi.sh<br/>
-agi_channel: SIP/marcelog-e00d2760<br/>
-agi_language: ar<br/>
-agi_type: SIP<br/>
-agi_uniqueid: 1297542965.8<br/>
-agi_version: 1.6.0.9<br/>
-agi_callerid: marcelog<br/>
-agi_calleridname: marcelog@mg<br/>
-agi_callingpres: 0<br/>
-agi_callingani2: 0<br/>
-agi_callington: 0<br/>
-agi_callingtns: 0<br/>
-agi_dnid: 667<br/>
-agi_rdnis: unknown<br/>
-agi_context: default<br/>
-agi_extension: 667<br/>
-agi_priority: 2<br/>
-agi_enhanced: 0.0<br/>
-agi_accountcode:<br/>
-agi_threadid: 1104922960<br/>
-agi_arg_1: arg1<br/>
-agi_arg_2: arg2<br/>
-agi_arg_3: arg3<br/>
-<br/>
-Sending: ANSWER<br/>
-Got: 200 result=0<br/>
-Sending: VERBOSE "Hello There"<br/>
-Got: 200 result=1<br/>
-Sending: STREAM FILE welcome #<br/>
-Sending: VERBOSE "Call ended abruptly"<br/>
-Got: 00 result=-1 endpos=3840<br/>
-Sending: SET VARIABLE AGISTATUS SUCCESS<br/>
-Got: 200 result=1<br/>
-Sending: HANGUP 16<br/>
-Got: 200 result=1<br/>
------------- call done ------------<br/>
+<script src="https://gist.github.com/marcelog/b22941edc5ec93ca23393d023b7edfdd.js"></script>
 </p>
-<H3><u>Conclusions</u></H3>
+<H3><u>Rapidly implement VoIP telephony applications (like IVRs) for the Asterisk PBX</u></H3>
 <p>
 As you can see, its fairly easy to implement almost *any* ivr application very quickly and easy
 via agi. One of the most important keys to the success of asterisk as a telephony software and
