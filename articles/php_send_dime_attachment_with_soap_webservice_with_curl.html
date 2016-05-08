@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Enhancing the native PHP SOAP support for DIME requests</u></H3>
   <p>
 As you may be aware by now, <b>PHP</b> native <b>SOAP</b> implementation does not support
 <b>DIME</b> transfers (this implies that the one from <b>Zend Framework</b>(tm) does not
@@ -76,26 +76,14 @@ to use PEAR <b>Net_Dime</b> to create the message, and then post it via curl. Ob
 refined a lot, but it may help you in dire, time-lacking situations ;)
 </p>
 
-<H3><u>Example</u></H3>
+<H3><u>A sample DIME envelope request with attachments</u></H3>
 <p>
-So let's say you want to send a soap request with cero or more attachments, using DIME as
+So let's say you want to send a soap request with zero or more attachments, using DIME as
 the transport (I had this requirement when dealing with WoodWing(tm)). You will first need to
 get the text of the soap envelope request, like:
-<pre name="code" class="php">
-$req = "&lt;?xml version='1.0' encoding='UTF-8' ?&gt;
-
-&lt;SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'
-xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-xmlns:SOAP-ENC='http://schemas.xmlsoap.org/soap/encoding/'
-xmlns:ns1='urn:Something'&gt;
-&lt;SOAP-ENV:Body&gt;
-&lt;ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/ns1:SomeMethodRequiringAnAttachment&gt;
-&lt;/SOAP-ENV:Body&gt;
-&lt;/SOAP-ENV:Envelope&gt;";
-</pre>
 </p>
+<script src="https://gist.github.com/marcelog/d9b0ad6d666cfab5e47d32f5ce79830a.js"></script>
+
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -108,89 +96,28 @@ xmlns:ns1='urn:Something'&gt;
 </script>
 <p>
 The plan, is to send this message using curl, with the following code:
-<pre name="code" class="php">
-/**
- * Send a POST requst using cURL
- * @param string $url to request
- * @param array $post values to send
- * @param array $options for cURL
- * @return string
- */
-function curl_post($url, $post = NULL)
-{
-    $defaults = array(
-        CURLOPT_POST => 1,
-        CURLOPT_HEADER => 0,
-        CURLOPT_URL => $url,
-        CURLOPT_HTTPHEADER => array(
-'Content-Disposition: form-data; name=\"soap\"; filename=\"123\"',
-'Content-Type: application/dime'
-        ),
-        CURLOPT_FRESH_CONNECT => 1,
-        CURLOPT_RETURNTRANSFER => 1,
-        CURLOPT_FORBID_REUSE => 1,
-        CURLOPT_TIMEOUT => 400,
-        CURLOPT_POSTFIELDS => $post,
-        CURLOPT_BINARYTRANSFER => true
-    );
-
-    $ch = curl_init();
-    curl_setopt_array($ch, $defaults);
-    $result = curl_exec($ch);
-    if(!$result)
-    {
-        trigger_error(curl_error($ch));
-    }
-    curl_close($ch);
-    return $result;
-}
-
-</pre>
 </p>
+<script src="https://gist.github.com/marcelog/688288c534e59de074be0480a4acb2b1.js"></script>
+
 <p>
 And this is the code that put the pieces together and actually sends the message
 with the attachments:
 </p>
-<pre name="code" class="php">
-function send($url, $msg, $attachments = array())
-{
-        $tempFile = tmpfile();
-        if ($tempFile === false) {
-                throw new \Exception('Could not create temp file');
-        }
-        $dime = new Net_DIME_Message($tempFile);
-        $dime->sendData($msg, 'http://schemas.xmlsoap.org/soap/envelope/');
-        foreach ($attachments as $id => $attachment) {
-                $dime->sendData($attachment, 'application/octet-stream', $id);
-        }
-        rewind($tempFile);
-        $msg = stream_get_contents($tempFile);
-        fclose($tempFile);
-        $ret = curl_post($url, strlen($msg), '', $msg);
-        return new SimpleXMLElement($ret);
-}
-
-</pre>
+<script src="https://gist.github.com/marcelog/8d08106f8abdabe2b1d117aa91084466.js"></script>
 </p>
 
-<H3><u>Using it</u></H3>
+<H3><u>Using the code to send DIME requests with attachments</u></H3>
 <p>
 Now, how to use it:
 </p>
-<pre name="code" class="php">
-$file = './a.jpg';
-$fileContents = file_get_contents($file);
-// This is computed so the attachment id is the md5 sum of the file in question.
-$fileMD5 = md5($fileContents);
-$result = send($req, array($fileMD5 => $fileContents));
-</pre>
+<script src="https://gist.github.com/marcelog/168fea7e9c3cbc97bf02efc89cf4c381.js"></script>
 <p>
 After running the request, and if everything went ok, you will have a <b>SimpleXMLElement</b> with
 the soap response. The request consists of a DIME message with the first attachment being the
 soap request itself, and the following are the attachment themselves.
 </p>
 
-<H3><u>Conclusions</u></H3>
+<H3><u>Now you can upload your files using PHP and DIME</u></H3>
 <p>
 Quick, dirty, a little low-level, but effective. Lot to improve, but that's the subject
 of another article ;) This will let you quickly implement and/or test your dime client. Let's hope
