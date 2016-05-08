@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</title>
+<title>How to setup nginx to work with FastCGI and different (multiple) PHP versions</title>
 <meta name="Author" content="Marcelo Gornstein"/>
 <meta name="Keywords" content="How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3"/>
-<meta name="description" content="This article will show how to setup nginx to use fastcgi with different php versions, like 5.2 and 5.3 per virtual host"/>
+<meta name="description" content="This article will show how to setup nginx to use fastcgi with different and multiple php versions, like 5.2 and 5.3 per virtual host"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to setup nginx to work with FastCGI and different (multiple) PHP versions</div>
   </div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog2 -->
@@ -59,38 +59,36 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</h2>
+                <h2>How to setup nginx to work with FastCGI and different (multiple) PHP versions</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>So you need to setup NGINX to run multiple PHP versions at once?</u></H3>
   <p>
-<a href="http://nginx.org/">Nginx</a> seems to be the new silver bullet nowadays, so I've decided
+<a href="http://nginx.org/"><b>Nginx</b></a> seems to be the new silver bullet nowadays, so I've decided
 to give it a try. Of course it is fun to get it up and running and serve static content, but the
-true fun is to see it replace <a href="http://httpd.apache.org">apache</a> or <a href="http://www.lighttpd.net/">lighttpd</a>
-completely. And to make that happen, it has to support serving some dynamic content. In this article, I'll show
-a very basic and quick setup for nginx, using <a href="http://en.wikipedia.org/wiki/FastCGI">FastCGI</a> to serve
-PHP 5.2 and PHP 5.3 for different virtual hosts.
+true fun is to see it replace <a href="http://httpd.apache.org"><b>Apache</b></a> or <a href="http://www.lighttpd.net/"><b>Lighttpd</b></a>
+completely.
+</p>
+<p>And to make that happen, it has to support serving some dynamic content. In this article, I'll show
+a very basic and quick setup for nginx, using <a href="http://en.wikipedia.org/wiki/FastCGI"><b>FastCGI</b></a> to serve
+(in this particular case) PHP 5.2 and PHP 5.3 for different <b>virtual hosts</b> (<u>this will also work with other PHP versions too</u>).
   </p>
   <p>
 The idea here, is to compile versions 5.2 and 5.3 of php with FastCGI enabled. Once we get that, we can launch
 both fastcgi daemons and let nginx connect to them.
   </p>
-  <H3><u>Configuration for PHP 5.2</u></H3>
+  <H3><u>Configure and build PHP 5.2</u></H3>
   <p>
 For PHP 5.2 you will need to configure (as in running ./configure before building) adding
 the following options:
   </p>
-  <pre name="code" class="php">
---enable-fastcgi --with-pcre --enable-mbstr-enc-trans --enable-mbstring
-  </pre>
-  <H3><u>Configuration for PHP 5.3</u></H3>
+<script src="https://gist.github.com/marcelog/ae61bb3167e08ca06fc087dddd4dc35d.js"></script>
+  <H3><u>Configure and build PHP 5.3</u></H3>
   <p>
 For PHP 5.3, the configuration options are slightly different:
   </p>
-  <pre name="code" class="php">
---enable-cgi
-  </pre>
+<script src="https://gist.github.com/marcelog/81b848ce56eb1eab7edc68bfad36cf75.js"></script>
   <p>
   This will let you run the php-cgi as a fastcgi daemon, by specifying -b address:port
   <p>
@@ -107,125 +105,21 @@ For PHP 5.3, the configuration options are slightly different:
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-  <H3><u>Configuration file for nginx</u></H3>
+  <H3><u>Setup your NGINX web server with FastCGI</u></H3>
   <p>
-We're going to configure 2 virtual hosts, one for php 5.2 and one for php 5.3. Each one of
-these will access an exclusive fastcgi daemon, running the correct php version we need. Also, a sample
+We're going to configure 2 <b>virtual hosts</b>, one for <b>PHP 5.2</b> and one for <b>PHP 5.3</b>. Each one of
+these will access an exclusive <b>FastCGI daemon</b>, running the correct php version we need. Also, a sample
 configuration is shown, to route all requests to non-existant files, to a front controller in
-index.php (useful for zend framework, yii, symfony, etc).
+index.php (useful for <b>Zend Framework</b>, <b>Yii</b>, <b>Symfony</b>, etc).
   </p>
-<pre name="code" class="php">
-
-# Useful to debug rewrite rules and other stuff
-error_log  logs/error.log  notice;
-
-http {
-    # Debug rewrite rules
-    rewrite_log  on;
-}
-
-server {
-        listen          80;
-        server_name     php53;
-        root            /www/php53;
-        index           index.php;
-        fastcgi_index   index.php;
-
-        location / {
-            index index.php;
-        }
-
-        location ~ \.htaccess {
-            deny all;
-        }
-
-        # These lines will allow to redirect any request that does not match
-        # an existant file to a front controller (zf, yii, symfony, etc)
-        error_page  404 = /index.php;
-        if (!-e $request_filename) {
-            rewrite ^.*$ /index.php last;
-        }
-
-        location ~ \.php {
-                # Workaround PHP vulnerability:
-                # http://forum.nginx.org/read.php?2,88845,page=3
-                try_files $uri =404;
-                # Alternatively you can set
-                # cgi.fix_pathinfo = false
-                # in php.ini
-                include /etc/nginx/fastcgi_params;
-                keepalive_timeout 0;
-                fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
-                fastcgi_pass    127.0.0.1:9001;
-        }
-}
-server {
-        listen          80;
-        server_name     php52;
-        root            /www/php52;
-        index           index.php;
-        fastcgi_index   index.php;
-
-        location / {
-            index index.php;
-        }
-
-        location ~ \.htaccess {
-            deny all;
-        }
-
-        # These lines will allow to redirect any request that does not match
-        # an existant file to a front controller (zf, yii, symfony, etc)
-        error_page  404 = /index.php;
-        if (!-e $request_filename) {
-            rewrite ^.*$ /index.php last;
-        }
-
-        location ~ \.php {
-                # Workaround PHP vulnerability:
-                # http://forum.nginx.org/read.php?2,88845,page=3
-                try_files $uri =404;
-                # Alternatively you can set
-                # cgi.fix_pathinfo = false
-                # in php.ini
-                include /etc/nginx/fastcgi_params;
-                keepalive_timeout 0;
-                fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
-                fastcgi_pass    127.0.0.1:9000;
-        }
-}
-  </pre>
-  <H3><u>Start me up!</u></H3>
+<script src="https://gist.github.com/marcelog/77eaba22a26a7136ab3a1c4fc63bb9e3.js"></script>
+  <H3><u>Run multiple FastCGI daemons with different PHP versions</u></H3>
   <p>
 This is a very silly script that will run your fastcgi daemons and nginx. Beware, this is just to show you
 how it can be done, I recommend that you adapt this script to your OS, honoring the way init scripts are created
 (freebsd has its own way, each linux flavor tend to have its own, etc)
   </p>
-  <pre name="code" class="php">
-#!/bin/bash
-USER=nobody
-PHP_52_BIND=127.0.0.1:9000
-PHP_53_BIND=127.0.0.1:9001
-PHP_52_CGI=/usr/php-5.2/bin/php-cgi
-PHP_53_CGI=/usr/php-5.3/bin/php-cgi
-PHP_FCGI_CHILDREN=15
-PHP_FCGI_MAX_REQUESTS=1000
-PHP_CGI_ARGS="- USER=$USER PATH=/usr/bin PHP_FCGI_CHILDREN=$PHP_FCGI_CHILDREN PHP_FCGI_MAX_REQUESTS=$PHP_FCGI_MAX_REQUESTS"
-PHP_52_CGI_ARGS="${PHP_CGI_ARGS} ${PHP_52_CGI} -b ${PHP_52_BIND}"
-PHP_53_CGI_ARGS="${PHP_CGI_ARGS} ${PHP_53_CGI} -b ${PHP_53_BIND}"
-
-# First kill nginx
-killall -q -w -u ${USER} nginx
-
-# Then kill fastcgi daemons
-killall -q -w -u ${USER} ${PHP_53_CGI}
-killall -q -w -u ${USER} ${PHP_52_CGI}
-
-# Launch fastcgi daemons & nginx
-/usr/bin/env -- $PHP_52_CGI_ARGS &
-/usr/bin/env -- $PHP_53_CGI_ARGS &
-/usr/nginx/sbin/nginx
-  </pre>
+<script src="https://gist.github.com/marcelog/febe6681c99758c55b6bf9a8dfb2577d.js"></script>
 <p>
 That's it. Enjoy your php/nginx installation :)
 </p>
