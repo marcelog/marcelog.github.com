@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>The framework to create IVR and VoIP Applications in PHP for the Asterisk PBX</h3>
 <p>
 <a href="http://marcelog.github.com/PAGI">PAGI</a> (not to be confused with <a href="http://phpagi.sourceforge.net/">phpagi</a>) is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI:
 Asterisk Gateway Interface</a>. AGI is a very simple protocol, and it has been implemented in a wide variety of languages, allowing to quickly create
@@ -81,7 +81,7 @@ offers, you can really skip the parts you are not interested in, it's kind of a 
 <b>NOTE</b>: Since version 1.11.0 PAGI comes with call flow nodes, which are *very* useful when creating ivr applications
 without having to manually use the PAGI client. You can find out more <a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">here</a>.
 </p>
-<h3>Getting it</h3>
+<h3>Getting PAGI for PHP</h3>
 <p>
 First, a couple of useful links:
 <ul>
@@ -94,7 +94,7 @@ First, a couple of useful links:
 <li><u><a href="http://marcelog.github.com/articles/php_asterisk_agi_protocol_tutorial.html">AGI Protocol article</a></u></li>
 </ul>
 </p>
-<h3>Installing</h3>
+<h3>Installing PAGI for PHP</h3>
 <p>
 PAGI is available via composer, please see <a href="https://github.com/marcelog/PAGI">the repo README file</a> for instructions on how to use it.
 </p>
@@ -103,10 +103,7 @@ PAGI is available via composer, please see <a href="https://github.com/marcelog/
 First of all, you've got to setup asterisk so it will run your agi application in a given extension. For example, we
 can do this in the <a href="http://www.voip-info.org/wiki/view/Asterisk+config+extensions.conf">extensions.conf</a> file:
 </p>
-<pre name="code" class="php">
-exten => _X.,1,AGI(/tmp/app.php)
-exten => _X.,n,Hangup
-</pre>
+<script src="https://gist.github.com/marcelog/8df449035b991679b5073fb21ce0a490.js"></script>
 <p>
 The <b>_X.</b> is a <a href="http://www.voip-info.org/wiki/view/Asterisk+Dialplan+Patterns">dialplan pattern</a>, it will match
 any number dialed as long as it is 1 digit long. You can of course go ahead and write your own pattern or use an exact number, like
@@ -122,7 +119,7 @@ asterisk to <a href="http://pubs.opengroup.org/onlinepubs/009604599/functions/fo
 The second line is just a safe bet, a <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+Hangup">Hangup command</a>, just in case your app
 goes a little funny on the call and does not terminate it in an appropiate way.
 </p>
-<h3>Create the agi application file</h3>
+<h3>Create an AGI application file for the Asterisk PBX</h3>
 <p>
 Of course this file is just an <a href="http://en.wikipedia.org/wiki/Entry_point">entry point</a>, and in this particular case, also the application. But as any other entry point,
 it can be used to just bootstrap your real application, in the case you have a more complex scenario.
@@ -130,11 +127,7 @@ it can be used to just bootstrap your real application, in the case you have a m
 <p>
 So, assuming your php binary is located in "/usr/bin/php" create the file /tmp/app.php with this content:
 </p>
-<pre name="code" class="php">
-#!/usr/bin/php
-&lt;?php
-require_once 'vendor/autoload.php';
-</pre>
+<script src="https://gist.github.com/marcelog/67267bbae81d42713d830fcbfc211276.js"></script>
 <p>
 The first line is the <a href="http://en.wikipedia.org/wiki/Shebang_(Unix)">shebang</a> line that will make /usr/bin/php the interpreter for the
 file, effectively using php to run our application.
@@ -142,9 +135,7 @@ file, effectively using php to run our application.
 <p>
 In order for the operating system to execute file, make it executable:
 </p>
-<pre name="code" class="php">
-$ chmod a+x /tmp/app.php
-</pre>
+<script src="https://gist.github.com/marcelog/8b3126c8ea9567c642b7d3174491808b.js"></script>
 <p>
 <b>NOTE</b>: You should only give execute permissions to the asterisk user instead of just making it executable for all
 users, this was just an example.
@@ -173,10 +164,7 @@ In this case, we're going to use the standard pagi client implementation.
 <p>
 This is as easy as:
 </p>
-<pre name="code" class="php">
-use PAGI\Client\Impl\ClientImpl as PagiClient;
-$pagiClient = PagiClient::getInstance(array());
-</pre>
+<script src="https://gist.github.com/marcelog/e61189f108a134ab4ae9088c9a5eeea9.js"></script>
 <p>
 <b>NOTE</b>: The client accepts an array with options. The available options are:
 </p>
@@ -188,9 +176,7 @@ $pagiClient = PagiClient::getInstance(array());
 <b>NOTE</b>: AGI establishes the use of <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_input_.28stdin.29">stdin</a> and
 <a href="http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29">stdout</a> for communication, you cant
 write anything that outputs to console directly (like echo's, or var_dump's). That's why you can set your own logger in the client like this:
-<pre name="code" class="php">
-$pagiClient->setLogger($logger);
-</pre>
+<script src="https://gist.github.com/marcelog/eebf01c6049df99a0fb84f360e1893a1.js"></script>
 <p>
 The logger must be a <a href="http://www.php-fig.org/psr/psr-3/">PSR-3</a> compatible logger.
 </p>
@@ -204,15 +190,8 @@ The logger must be a <a href="http://www.php-fig.org/psr/psr-3/">PSR-3</a> compa
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Checkpoint #1: A basic application</h3>
-<pre name="code" class="php">
-$pagiClientOptions = array();
-use PAGI\Client\Impl\ClientImpl as PagiClient;
-$pagiClient = PagiClient::getInstance($pagiClientOptions);
-$pagiClient->answer();
-$pagiClient->sayDigits(123);
-$pagiClient->hangup();
-</pre>
+<h3>Checkpoint #1: A basic VoIP application for Asterisk</h3>
+<script src="https://gist.github.com/marcelog/f49fa4f5d266b2f157eafca0463b2bbf.js"></script>
 <p>
 Now dial into your asterisk, you should listen to the numbers "one", "two", and "three". From now on, I'll mention <b>some</b>
 if the many things you can do through the pagi client, you should refer to the <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-IClient/">IClient interface</a> to see all the available
@@ -230,10 +209,8 @@ of one or all the operations. See the
 <a href="http://pagi.readthedocs.org/en/latest/ApiIndex/">API documentation</a> for all the results available, in the namespace PAGI\Client\Result.
 You should check the api documentation for the method you are using to see what kind of result is available (ExecResult, RecordResult, FaxResult, PlayResult, etc). Do not be freighten! It's quite easy to use them. See below.
 </p>
-<h3>Playing a sound file</h3>
-<pre name="code" class="php">
-$result = $pagiClient->streamFile($aSoundFile, $escapeDigits);
-</pre>
+<h3>Playing a sound file in a Call from your PHP Application in Asterisk</h3>
+<script src="https://gist.github.com/marcelog/d307aa4be4aa7ccceb55aef2b9118452.js"></script>
 <p>
 Where:
 <ul>
@@ -245,32 +222,12 @@ Where:
 $result will be a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-PlayResult/">PlayResult</a> that
 you can use to get information about what happened while the file was playing.
 </p>
-<pre name="code" class="php">
-if ($result->isTimeout()) {
-    // The user did not interrupt the play
-} else {
-    // The user interrupted the play
-    $digits = $result->getDigits(); // Get what the user pressed
-}
-</pre>
-<h3>Reading input from the user</h3>
+<script src="https://gist.github.com/marcelog/afa11b153289bd394483a1d16cd545af.js"></script>
+<h3>Reading input from the user from your PHP Application in Asterisk</h3>
 <p>
 To read input from the user, you have a couple of options:
 </p>
-<pre name="code" class="php">
-// Read a single digit, play a sound file as a prompt.
-$result = $pagiClient->getOption(
-    $aSoundFile, $escapeDigits, $maxInputTime
-);
-
-// Read a single digit, no sound file played.
-$result = $pagiClient->waitDigit($maxInputTime);
-
-// Get at least 1 digit, playing a sound file as a prompt.
-$result = $pagiClient->getData(
-    $aSoundFile, $maxInputTime, $maxDigitsToRead
-);
-</pre>
+<script src="https://gist.github.com/marcelog/a2bec482c26685c6c1d358befb04fcd8.js"></script>
 <p>
 Where:
 <ul>
@@ -282,102 +239,61 @@ Where:
 In the case of waitDigit(), the result is a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-DigitReadResult/">DigitReadResult</a>, and
 the others return a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-PlayResult/">PlayResult</a>.
 </p>
-<h3>Playing indication tones</h3>
+<h3>Playing indication tones of the Call from your PHP Application in Asterisk</h3>
 <p>
 You can also play some standard tones, these might need some tweaking in your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+indications.conf">indications.conf</a> file:
 </p>
-<pre name="code" class="php">
-$pagiClient->playDialTone();
-$pagiClient->playCongestionTone($seconds);
-$pagiClient->playBusyTone($seconds);
-</pre>
+<script src="https://gist.github.com/marcelog/9954bee86401bc337df61d33ff94f7b3.js"></script>
 <p>
 And you can also send indications at the signaling level, without playing any audio:
 </p>
-<pre name="code" class="php">
-$pagiClient->indicateProgress();
-$pagiClient->indicateBusy();
-$pagiClient->indicateCongestion();
-</pre>
-<h3>Playing Music On Hold</h3>
+<script src="https://gist.github.com/marcelog/7e6870c5602a756a6eae7d5fac5aa47b.js"></script>
+<h3>Playing Music On Hold in a Call</h3>
 <p>
 Putting music on hold is also quite easy. You might need to configure your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+musiconhold.conf">moh.conf</a> file:
 </p>
-<pre name="code" class="php">
-$pagiClient->setMusic(true, 'myMOHClass');
-$pagiClient->setMusic(false);
-</pre>
+<script src="https://gist.github.com/marcelog/9c8f9a52709d834f58751554b91a48be.js"></script>
 <h3>Logging through asterisk</h3>
 <p>
 In case you want to log stuff through the asterisk logger (so your messages get to the asterisk console or
 general asterisk log files), you can use the <a href="https://github.com/marcelog/PAGI/blob/master/src/PAGI/Logger/Asterisk/IAsteriskLogger.php">AsteriskLogger</a> interface, remember
 that when logging through asterisk, you might need to tweak your <a href="http://www.voip-info.org/wiki/view/Asterisk+config+logger.conf">logger.conf</a> file:
 </p>
-<pre name="code" class="php">
-$asteriskLogger = $pagiClient->getAsteriskLogger();
-$asteriskLogger->dtmf("A DTMF priority message");
-$asteriskLogger->verbose("A VERBOSE priority message");
-$asteriskLogger->debug("A DEBUG priority message");
-$asteriskLogger->notice("A NOTICE priority message");
-$asteriskLogger->error("An ERROR priority message");
-$asteriskLogger->warn("A WARNING priority message");
-</pre>
+<script src="https://gist.github.com/marcelog/cbe32b887accbe7479b56a83a8f03f4d.js"></script>
 <h3>Manipulating the channel variables</h3>
 <p>
 When AGI handshake starts, the server (asterisk) sends a couple of <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+Standard+Channel+Variables">channel variables</a>.
 The pagi client offers the <a href="http://pagi.readthedocs.org/en/latest/PAGI-ChannelVariables-IChannelVariables/">IChannelVariables</a>
 interface to access them:
 </p>
-<pre name="code" class="php">
-$channelVariables = $pagiClient->getChannelVariables();
-$asteriskLogger->debug($channelVariables->getCallerId());
-$asteriskLogger->debug($channelVariables->getDNIS());
-</pre>
+<script src="https://gist.github.com/marcelog/5b84a2b50e6c63f2ab8ee5ebc5476b49.js"></script>
 <p>
 To set a variable, you would do:
 </p>
-<pre name="code" class="php">
-$pagiClient->setVariable("myVariable", "myValue");
-$asteriskLogger->debug($pagiClient->getVariable("myVariable"));
-</pre>
+<script src="https://gist.github.com/marcelog/7c6c5bc2b1965fcab730baa4b0c31d55.js"></script>
 <p>
 The IChannelVariables also provides access to some important environment variables. For example, to get the
 directory where spooled call files should go:
 </p>
-<pre name="code" class="php">
-$spoolDir = $channelVariables->getDirectorySpool();
-</pre>
+<script src="https://gist.github.com/marcelog/6959da8aba5187143c1eebed2cdde848.js"></script>
 <h3>Manipulating the CDR (Call Detail Record)</h3>
 <p>
 Pagi offers the <a href="http://pagi.readthedocs.org/en/latest/PAGI-CDR-ICDR/">ICDR</a> interface to interact with
 the cdr's, by setting custom values and retrieving the ones set by asterisk itself:
 </p>
-<pre name="code" class="php">
-$cdr = $pagiClient->getCDR();
-$cdr->setUserfield("my own content here");
-$cdr->setAccountCode("blah");
-$cdr->setCustom("myOwnField", "withMyOwnValue");
-$asteriskLogger->debug($cdr->getAnswerLength());
-</pre>
+<script src="https://gist.github.com/marcelog/1b951f5821887e2169125885a4c1f45a.js"></script>
 <h3>Working with the Caller ID's</h3>
 <p>
 In order to get and set caller id values, you can access the <a href="http://pagi.readthedocs.org/en/latest/PAGI-CallerId-ICallerId/">ICallerId</a> interface:
 </p>
-<pre name="code" class="php">
-$clid = $pagiClient->getCallerId();
-$asteriskLogger->debug($clid->getNumber());
-$clid->setNumber('123123');
-</pre>
+<script src="https://gist.github.com/marcelog/44cc059d382c02e6b1906ee6ef83ed86.js"></script>
 <p>
 In this case, the next <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+Dial">dial command</a> will carry the caller id set.
 </p>
 <p>
 To set the caller id presentation mode:
 </p>
-<pre name="code" class="php">
-$clid = $pagiClient->getCallerId();
-$clid->setCallerPres("allowed_not_screened");
-</pre>
+<script src="https://gist.github.com/marcelog/4b11a1fcef04af9fec152bd839dc6329.js"></script>
 <p>
 For the complete list of caller id presentation modes, see: http://www.voip-info.org/wiki/view/Asterisk+func+CALLERPRES
 </p>
@@ -385,40 +301,18 @@ For the complete list of caller id presentation modes, see: http://www.voip-info
 <p>
 Before issuing a dial(), you may need to set some sip headers (to set privacy settings, or whatever). Here's how you can do it with the pagi client:
 </p>
-<pre name="code" class="php">
-$pagiClient->sipHeaderAdd('Privacy', 'Id');
-$pagiClient->sipHeaderAdd('P-Asserted-Identity', 'Anonymous');
-</pre>
+<script src="https://gist.github.com/marcelog/5ae7c49a318441801e740bf2aa5c77d5.js"></script>
 <p>
 To delete a header:
 </p>
-<pre name="code" class="php">
-$pagiClient->sipHeaderRemove('Privacy');
-$pagiClient->sipHeaderRemove('P-Asserted-Identity');
-</pre>
+<script src="https://gist.github.com/marcelog/7ad2e38403051d19fe130558ba0bfa7a.js"></script>
 <h3>Spooling calls through call files</h3>
 <p>
 Asterisk lets you use <a href="http://www.voip-info.org/wiki/view/Asterisk+auto-dial+out">call files</a> to generate calls automatically, you
 can access this feature via the <a href="http://pagi.readthedocs.org/en/latest/PAGI-CallSpool-ICallSpool/">ICallSpool</a>
 interface:
 </p>
-<pre name="code" class="php">
-use PAGI\DialDescriptor\SIPDialDescriptor;
-use PAGI\CallSpool\CallFile;
-use PAGI\CallSpool\Impl\CallSpoolImpl;
-
-$dialDescriptor = new SIPDialDescriptor("myDevice", "myProvider");
-$callFile = new CallFile($dialDescriptor);
-$callFile->setCallerId('123');
-$callFile->setContext('campaignContext');
-$callFile->setExtension('555');
-$callFile->setPriority(1);
-
-$spool = CallSpoolImpl::getInstance(array(
-    "tmpDir" => "/tmp/temporaryDirForSpool",
-    "spoolDir" => "/var/lib/asterisk/spool/outgoing"
-));
-</pre>
+<script src="https://gist.github.com/marcelog/d168956df172dde5af338d9057f40034.js"></script>
 <p>
 The <a href="http://pagi.readthedocs.org/en/latest/PAGI-DialDescriptor-DialDescriptor/">dial descriptor</a> is an abstraction over dial strings, so you dont have to code them yourself. Currently,
 PAGI supports <a href="http://pagi.readthedocs.org/en/latest/PAGI-DialDescriptor-SIPDialDescriptor/">SIPDialDescriptor</a> and
@@ -437,16 +331,11 @@ moved to the real asterisk spool directory, so asterisk will pick it up when it'
 <h3>Dialing</h3>
 <p>If you want to <a href="http://www.voip-info.org/wiki/view/Asterisk+cmd+Dial">Dial</a> from an agi application:
 </p>
-<pre name="code" class="php">
-$result = dial("DAHDI/g1/5555555", array(60, 'rh'));
-if ($result->isAnswer()) {
-    $asteriskLogger->debug($result->getAnsweredTime());
-}
-</pre>
+<script src="https://gist.github.com/marcelog/46f6972f24f5bbcb2b737efd5d1093b2.js"></script>
 <p>
 The result is a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Client-Result-DialResult/">DialResult</a>
 </p>
-<h3>Last but not least: The PAGI Application</h3>
+<h3>Last but not least: The PAGI Application (suitable to rapidly create your telephony applications for Asterisk)</h3>
 <p>
 The pagi client can also be used inside a <a href="http://pagi.readthedocs.org/en/latest/PAGI-Application-PAGIApplication/">PAGI Application</a>. That is, your
 own ivr application can be itself a PAGIApplication, by extending it. This will provide a number of features:
@@ -458,68 +347,12 @@ own ivr application can be itself a PAGIApplication, by extending it. This will 
 <li>A PSR-3 logger instance in PAGIApplication::$logger (protected).</li>
 </ul>
 </p>
-<h3>Checkpoint #2: A complete PAGI Application Skeleton</h3>
-<pre name="code" class="php">
-#!/usr/bin/php
-&lt;?php
-require_once 'vendor/autoload.php';
-
-use PAGI\Application\PAGIApplication;
-use PAGI\Client\Impl\ClientImpl as PagiClient;
-
-class MyPagiApplication extends PAGIApplication
-{
-    protected $agi;
-    protected $asteriskLogger;
-    protected $channelVariables;
-
-    public function run()
-    {
-        $this->asteriskLogger->notice("Run");
-        $this->logger->info("Run");
-    }
-
-    public function init()
-    {
-        $this->logger->info('Init');
-        $this->agi = $this->getAgi();
-        $this->asteriskLogger = $this->agi->getAsteriskLogger();
-        $this->channelVariables = $this->agi->getChannelVariables();
-        $this->asteriskLogger->notice('Init');
-    }
-
-    public function signalHandler($signo)
-    {
-        $this->asteriskLogger->notice("Got signal: $signo");
-        $this->logger->info("Got signal: $signo");
-    }
-
-    public function errorHandler($type, $message, $file, $line)
-    {
-        $this->asteriskLogger->error("$message at $file:$line");
-        $this->logger->error("$message at $file:$line");
-    }
-
-    public function shutdown()
-    {
-        $this->asteriskLogger->notice('Shutdown');
-    }
-}
-
-// Go, go, gooo!
-$pagiClientOptions = array();
-$pagiClient = PagiClient::getInstance($pagiClientOptions);
-$pagiAppOptions = array(
-    'pagiClient' => $pagiClient,
-);
-$pagiApp = new MyPagiApplication($pagiAppOptions);
-$pagiApp->init();
-$pagiApp->run();
-</pre>
+<h3>Checkpoint #2: A complete PAGI Application Skeleton Example</h3>
+<script src="https://gist.github.com/marcelog/829276dfd90ca0b955b36e7f2bd7954b.js"></script>
 <p>
 See <a href="https://github.com/marcelog/Pagi-App-And-Test-Example">this</a> for a complete example of an ivr application including unit tests.
 </p>
-<H3>Conclusion</H3>
+<H3>Start writing your VoIP Telephony Applications in PHP for Asterisk</H3>
 <p>
 Enough writing already, right? Go make your own ivr applications now :)
 </p>
