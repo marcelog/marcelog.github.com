@@ -32,13 +32,13 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
+     </div>
     <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Mocking global php functions for unit testing</div>
   </div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -52,9 +52,9 @@
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Achieve 100% Code Coverage in PHP with a Mock of Global Functions</u></H3>
   <p>
 Let's say you'd like to achieve a 100% <b>coverage</b> of your code in your <b>php</b> application (you obsessive geek..). It's almost
 certain you'll need to start mock'ing things around. So far so good.. but sooner or later you will need to deal with the test cases
@@ -72,34 +72,12 @@ technique to allow you to <b>mock global php functions</b>. This will
 require your code to use <b>namespaces</b>, available since <b>PHP 5.3</b>.
 </p>
 
-<H3><u>Classical example</u></H3>
+<H3><u>Classical PHP Code example calling a global function</u></H3>
 <p>
 Suppose this is the code you'd like to test, a file called SomeClass.php:
-<pre name="code" class="php">
-namespace My\Nice\Namezpace;
-
-class SomeClass
-{
-    public function doSomething()
-    {
-        // Notice how the global function "socket_create" is called without
-        // the leading backslash (relative instead of absolute call in a
-        // namespaced environment). This will let us later mock the call
-        // by taking advantage of the relative-to-the-namespace call.
-        $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-        if ($socket === false) {
-            throw new \Exception('Ooops!');
-        }
-        socket_close($socket);
-        return true;
-    }
-
-    public function __construct()
-    {
-    }
-}
-</pre>
 </p>
+<script src="https://gist.github.com/marcelog/b94cd30ed9a0ebffa23f67701edb929f.js"></script>
+
 <p>
 It's fairly easy to have a unit test for the "success case" by just asserting
 the result value. What happens with the other use case, where the exception is
@@ -108,8 +86,17 @@ This is an extreme simple example, but what happens if something complicated
 has to be done when the call to <b>socket_create</b> fails for whatever reason? How can
 you be sure that the code is behaving like it should be?<br/>
 </p>
-
-<H1><u>The tests</u></H1>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- blog1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6947936742546167"
+     data-ad-slot="6142121850"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<H1><u>The PHPUnit tests mocking a global function</u></H1>
 <p>
 This is our Test_SomeClass.php file:
 </p>
@@ -117,10 +104,8 @@ This is our Test_SomeClass.php file:
 <p>
 Running phpunit will give you the 100% coverage :)
 </p>
-<pre name="code" class="php">
-phpunit --debug --process-isolation --verbose --stop-on-incomplete --stop-on-skipped --stop-on-failure --stop-on-error --colors --coverage-html html Test_SomeClass.php
-</pre>
-<H3><u>Conclusions</u></H3>
+<script src="https://gist.github.com/marcelog/3673abb3508d033987565d0635b2888b.js"></script>
+<H3><u>How about that 100% PHP Code Coverage?</u></H3>
 <p>
 With this little trick we can increase the testing level of the code. Most "normal" php code lacks good error
 handling (differences between cero, false, and null are among the #1's). Now everything can be tested at the highest
@@ -177,7 +162,7 @@ If you liked this or other articles (and feel generous), you can make a donation
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>
