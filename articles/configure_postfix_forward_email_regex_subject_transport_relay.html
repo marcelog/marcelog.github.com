@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Different relays in postfix based on regular expressions</title>
+<title>Different SMTP relays in postfix based on regular expressions</title>
 <meta name="Author" content="Marcelo Gornstein"/>
 <meta name="Keywords" content="Configuring postfix to forward email to different relays based on regular expressions for body content and headers"/>
 <meta name="description" content="This article will show how to setup postfix so it will forward incoming email to different smtp gateway using regular expressions in the body content and headers to route email to different relays"/>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Different relays in postfix based on regular expressions</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Different SMTP relays in postfix based on regular expressions</div>
   </div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog2 -->
@@ -59,11 +59,11 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Different relays in postfix based on regular expressions</h2>
+                <h2>Different SMTP relays in postfix based on regular expressions</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Use Case: Choosing SMTP routes based on the email subject</u></H3>
   <p>
 So I had this particular situation where a site sends lots of emails to its
 registered users, and some of those emails go directly to the Spam folder of hotmail, yahoo, or gmail, for various reasons.
@@ -74,19 +74,17 @@ the site hired a payed smtp relay to be used for sending *only* those emails (th
 only use this service with the very important emails, and continue using their own smtp server to delivery the rest).
 </p>
 <p>
-I was told to use the subject of the email as the discriminator. Important emails would have some special keywords like "Reminder", or "Confirmation", those would have to be
-delivered using the payed smtp relay, while the others wont.
+I was told to use the <b>subject of the email</b> as the discriminator. Important emails would have some special keywords like "Reminder", or "Confirmation", those would have to be
+delivered using the <b>payed smtp relay</b>, while the others wouldn't.
 </p>
 <p>
-So I started fiddling with postfix, and here's how I could do it (in an amazingly easy way).
+So I started fiddling with <b>the Postfix SMTP server</b>, and here's how I could do it (in an amazingly easy way).
 </p>
-<H3><u>Configuration</u></H3>
+<H3><u>Setting up Postfix to check Email headers</u></H3>
 <p>
 In your <a href="http://www.postfix.org/postconf.5.html">main.cf</a> file (usually /etc/postfix/main.cf or /usr/local/etc/postfix/main.cf), specify your header_checks:
 </p>
-<pre name="code" class="php">
-header_checks = regexp:/etc/postfix/header_checks
-</pre>
+<script src="https://gist.github.com/marcelog/03b8319a7789822f340831e28ed2ba0c.js"></script>
 <p>
 And in your <a href="http://www.postfix.org/header_checks.5.html">header_checks</a> file (usually /etc/postfix/header_checks or /usr/local/etc/postfix/header_checks), specify
 your regular expressions and rules. This file accepts lots of possible configurations, so I encourage you to read the <a href="http://www.postfix.org/header_checks.5.html">manual page</a>.
@@ -104,23 +102,19 @@ In my particular case, I've specified the following rules:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<pre name="code" class="php">
-/^[sS]ubject:.*Confirmation*/ FILTER smtp:smtp.arelay.com
-/^[sS]ubject:.*Reminder*/ FILTER smtp:smtp.arelay.com
-</pre>
+<script src="https://gist.github.com/marcelog/e4846851608abf5c7be893a089c27b94.js"></script>
 <p>
 Those lines will make postfix apply a transport filter based on the regular expression (that is applied to the whole mail content) and will let you
-choose a different transport (relay) based on those rules exactly. This will match with lines starting with "subject:" and having the words Reminder or Confirmation
+choose a different transport (relay) based on those rules exactly.
+</p>
+<p>This will match with lines starting with "subject:" and having the words Reminder or Confirmation
 in it. Of course it is possible to match not only the header, but a text line inside the very same body of the mail, so use these kind of rules with care when you
 cant trust the origin of the email.
 </p>
 <p>
 Then invoke postmap to regenerate the transports db, and reload postfix:
 </p>
-<pre name="code" class="php">
-# postmap hash:/etc/postfix/header_checks
-# postfix reload
-</pre>
+<script src="https://gist.github.com/marcelog/798920f2a5c03661f7f7c5ed08944a05.js"></script>
 <p>
 That's it. Hey don't you just love postfix?
 </p>
