@@ -66,7 +66,7 @@
 <p>
 <a href='https://pledgie.com/campaigns/30944'><img alt='Click here to lend your support to: PAMI and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/30944.png?skin_name=chrome' border='0' ></a>
 </p>
-<h3>Introduction</h3>
+<h3>The PHP AMI client ideal to write Telephony Applications and Operator Panels</h3>
 <p>
 <a href="http://marcelog.github.com/PAMI">PAMI</a> is a PHP 5.3 client for <a href="http://marcelog.github.com/articles/php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI:
 Asterisk Manager Interface</a>. <a href="http://www.digium.com">Asterisk</a> is one of the hot topics in the IT world due to its broad acceptance and use case scenarios.
@@ -87,7 +87,7 @@ system.
 You will send the actions through the <a href="http://ci.marcelog.name:8080/job/PAMI/javadoc/db_Client_IClient.html#%5CPAMI%5CClient%5CIClient">pami client</a>. This is a synchronous operation,
 the process will block until the response has arrived. To get the events, just register an event listener (more on this after the installation instructions).
 </p>
-<h3>Getting it</h3>
+<h3>Download PAMI for PHP</h3>
 <p>
 First, a couple of useful links:
 <ul>
@@ -110,21 +110,13 @@ PAMI is available via composer, please see <a href="https://github.com/marcelog/
 Packagist URL: <a href="http://packagist.org/packages/marcelog/pami">http://packagist.org/packages/marcelog/pami</a>
 </p>
 
-<h3>Let the fun begin!</h3>
+<h3>Configure your Asterisk installation to accept connections from your PHP Application</h3>
 <p>
 In your <a href="http://www.asteriskguru.com/tutorials/manager_conf.html">manager.conf</a> file, create a user with
 permissions to access ami. In the following example, the user admin, has ALL permissions granted (beware!). This is the
 username that we are going to use from pami:
 </p>
-<pre name="code" class="php">
-[admin]
-secret = mysecret
-deny=0.0.0.0/0.0.0.0
-permit=127.0.0.1/255.255.255.0
-read = system,call,log,verbose,agent,user,config,dtmf,reporting,cdr,dialplan
-write = system,call,agent,log,verbose,user,config,command,reporting,originate
-
-</pre>
+<script src="https://gist.github.com/marcelog/9482090d08952a7dcf8510f1f6250592.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -135,7 +127,7 @@ write = system,call,agent,log,verbose,user,config,command,reporting,originate
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Connecting to AMI</h3>
+<h3>Connecting to your Asterisk PBX from your PHP Application</h3>
 <p>
 Working with pami is pretty straightforward. You need to get an instance of an <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Client/IClient.php">IClient</a> implementation. Currently,
 the only implementation is <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Client/Impl/ClientImpl.php">ClientImpl</a>. A client will let you do this:
@@ -149,40 +141,11 @@ the only implementation is <a href="https://github.com/marcelog/PAMI/blob/master
 <p>
 In order to get the client instance and open the connection, you need to provide the connection options through an array:
 </p>
-<pre name="code" class="php">
-/* These are (in order) the options we can pass to pami client:
- *
- * The hostname or ip address where asterisk ami is listening
- * The scheme can be tcp:// or tls://
- * The port where asterisk ami is listening
- * Username configured in manager.conf
- * Password configured for the above user
- * Connection timeout in milliseconds
- * Read timeout in milliseconds
- */
-$pamiClientOptions = array(
-    'host' => '127.0.0.1',
-    'scheme' => 'tcp://',
-    'port' => 9999,
-    'username' => 'admin',
-    'secret' => 'mysecret',
-    'connect_timeout' => 10000,
-    'read_timeout' => 10000
-);
-
-use PAMI\Client\Impl\ClientImpl as PamiClient;
-$pamiClient = new PamiClient($pamiClientOptions);
-
-// Open the connection
-$pamiClient->open();
-
-// Close the connection
-$pamiClient->close();
-</pre>
+<script src="https://gist.github.com/marcelog/693c6622caec82624c069529171e6fd2.js"></script>
 <p>
 Easy, isn't it?
 </p>
-<h3>Listening for events</h3>
+<h3>Listening for specific Asterisk events in your PHP Application</h3>
 <p>
 In order to get events, you need to register an event listener. There are 3 possible ways to register an event
 listener, all of them using the registerEventListener() method of the IClient implementation, and
@@ -193,100 +156,28 @@ You can have as many listeners as you want, and mix them however you need.
 </p>
 <ul>
 <li>Register a <a href="http://us.php.net/closure">Closure</a></li>
-<pre name="code" class="php">
-use PAMI\Message\Event\EventMessage;
-$pamiClient->registerEventListener(function (EventMessage $event) {
-    var_dump($event);
-});
-</pre>
+<script src="https://gist.github.com/marcelog/f0d494c34e541f8209cc15c227e1de78.js"></script>
 <li>Register a specific method of an object</li>
-<pre name="code" class="php">
-use PAMI\Message\Event\EventMessage;
-class MyListener
-{
-    public function handlerMethod(EventMessage $event)
-    {
-        var_dump($event);
-    }
-}
-$listener = new MyListener();
-$pamiClient->registerEventListener(array(
-    $listener, 'handlerMethod'
-));
-</pre>
+<script src="https://gist.github.com/marcelog/fee638afdaed38d5614b7a898fa39938.js"></script>
 <li>Register an object, that implements <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Listener/IEventListener.php">IEventListener</a></li>
-<pre name="code" class="php">
-use PAMI\Message\Event\EventMessage;
-use PAMI\Listener\IEventListener;
-class MyOtherListener implements IEventListener
-{
-    public function handle(EventMessage $event)
-    {
-        var_dump($event);
-    }
-}
-$listener = new MyOtherListener();
-$pamiClient->registerEventListener($listener);
-</pre>
+<script src="https://gist.github.com/marcelog/c0a563bd4c0e30190c154df4f47390a5.js"></script>
 </ul>
 </p>
 <p>
 In order for pami to receive the events, you need to periodically call the process() method, like:
 </p>
-<pre name="code" class="php">
-$running = true;
+<script src="https://gist.github.com/marcelog/b4255ede2ade86f26d80c4b57442fe17.js"></script>
 
-while($running) {
-    $pamiClient->process();
-    usleep(1000);
-}
-</pre>
 <p>
 If you dont like having a main loop like that, try using <a href="http://us.php.net/register_tick_function">register_tick_function()</a> instead:
 </p>
-<pre name="code" class="php">
-register_tick_function(array($pamiClient, 'process'));
-</pre>
+<script src="https://gist.github.com/marcelog/45efdb3700d616257e9a991995c39c60.js"></script>
 <p>
 This will require to use <a href="http://us.php.net/declare">declare(ticks=1)</a> at the top of your source file.
 </p>
-<h3>Putting it all together</h3>
-<pre name="code" class="php">
-use PAMI\Client\Impl\ClientImpl as PamiClient;
-use PAMI\Message\Event\EventMessage;
-use PAMI\Listener\IEventListener;
-
-$pamiClientOptions = array(
-    'host' => '127.0.0.1',
-    'scheme' => 'tcp://',
-    'port' => 9999,
-    'username' => 'admin',
-    'secret' => 'mysecret',
-    'connect_timeout' => 10000,
-    'read_timeout' => 10000
-);
-
-$pamiClient = new PamiClient($pamiClientOptions);
-
-// Open the connection
-$pamiClient->open();
-
-$pamiClient->registerEventListener(function (EventMessage $event) {
-    var_dump($event);
-});
-
-$running = true;
-
-// Main loop
-while($running) {
-    $pamiClient->process();
-    usleep(1000);
-}
-
-// Close the connection
-$pamiClient->close();
-</pre>
-<h3>Filtering incoming events</h3>
+<h3>Sample Skeleton for a Telephony Application for Asterisk PBX</h3>
+<script src="https://gist.github.com/marcelog/e9ff530436cb7e079cf5e4cb52fe3765.js"></script>
+<h3>Filtering incoming events from your PBX</h3>
 <p>
 Up to now, we've only seen how to register event listeners. These listeners will receive <b>ALL</b> the
 events that get to pami. What happens if we only want some events, or there is some important condition to
@@ -294,20 +185,8 @@ be met before receiving the events? That's where predicates come to the rescue. 
 listener, an optional closure can be passed as argument that will be the predicate. If the predicate returns
 true, the event will be dispatched. If the predicate returns false, the event wont get to the listener:
 </p>
-<pre name="code" class="php">
-use PAMI\Message\Event\DialEvent;
-$pamiClient->registerEventListener(
-    function (EventMessage $event) {
-        var_dump($event);
-    },
-    function (EventMessage $event) {
-        return
-            $event instanceof DialEvent
-            && $event->getSubEvent() == 'Begin'
-        ;
-    }
-);
-</pre>
+<script src="https://gist.github.com/marcelog/1c7c3468c94606bdcf513cef92ccbdba.js"></script>
+
 <p>
 In this case, our predicate will only return true if and only if the event received is DialEvent, and the
 subevent type is a begin (i.e: an agi application has issued a Dial() command). You can only add 1 predicate (per listener, but you can have multiple listeners), but you can make it as complex as as you wish, and as a result, your event listener will be a little cleaner.
@@ -315,27 +194,19 @@ subevent type is a begin (i.e: an agi application has issued a Dial() command). 
 <p>
 By the way, <a href="https://github.com/marcelog/PAMI/tree/master/src/PAMI/Message/Event">here are all the events available</a>.
 </p>
-<h3>More fun: Send actions</h3>
+<h3>Send actions and commands that will be executed in your Asterisk PBX</h3>
 <p>
 You can also send actions to asterisk. An action is just an object of a given type. You can see all the actions
 available <a href="https://github.com/marcelog/PAMI/tree/master/src/PAMI/Message/Action">here</a> and the asterisk wiki with their
 <a href="https://wiki.asterisk.org/wiki/display/AST/AMI+Actions">official list of actions</a>. Let's send a
 <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Message/Action/ReloadAction.php">Reload</a> action:
 </p>
-<pre name="code" class="php">
-use PAMI\Message\Action\ReloadAction;
-$response = $pamiClient->send(new ReloadAction());
-if ($response->isSuccess()) {
-    echo "Ok!\n";
-} else {
-    echo "Failed!\n"
-}
-</pre>
+<script src="https://gist.github.com/marcelog/216be499e504e7c97c934ecbec051d82.js"></script>
 <p>
 The result of the action sent, will come as a <a href="https://github.com/marcelog/PAMI/blob/master/src/PAMI/Message/Response/ResponseMessage.php">Response</a> message.
 </p>
 
-<H3>Conclusion</H3>
+<H3>Start writing your own VoIP and Telephony Applications for the Asterisk PBX</H3>
 <p>
 PAMI is simple and straightforward. I hope you have fun using it, just as I had when
 writing it! A component like this can open a lot of new possibilities to your cli and
