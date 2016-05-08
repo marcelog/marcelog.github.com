@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Your Aspect Oriented Programming and Dependency Injection container for PHP</h3>
 <p>
 <a href="http://marcelog.github.com/Ding">Ding</a> is DI (<a href="http://en.wikipedia.org/wiki/Dependency_injection">Dependency Injection</a>)
 container, featuring IoC (<a href="http://en.wikipedia.org/wiki/Dependency_inversion">Inversion of Control</a>), and AOP (<a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">
@@ -72,7 +72,7 @@ Aspect Orientend Programming</a>) for PHP 5.3 (actually, it needs >= 5.3.3). It 
 on <a href="http://es.wikipedia.org/wiki/Spring_Framework">The Spring Framework</a>, and also has some of the features of the
 <a href="http://jcp.org/aboutJava/communityprocess/final/jsr250/index.html">JSR-250</a> and the <a href="http://jcp.org/aboutJava/communityprocess/final/jsr330/index.html">JSR-330</a>.
 </p>
-<h3>Getting it</h3>
+<h3>Installing the container</h3>
 <p>
 First, a couple of useful links:
 <ul>
@@ -92,17 +92,15 @@ Unless you are installing Ding via the pear channel, you need to install a depen
 <p>
 Please also see the <a href="http://logging.apache.org/log4php/install.html">official installation guide</a> of log4php.
 </p>
-<pre name="code" class="php">
-$ pear channel-discover pear.apache.org/log4php
-$ pear install pear.apache.org/log4php/Apache_log4php-2.1.0
-</pre>
+<script src="https://gist.github.com/marcelog/aeea970db537537a3b3fa92b35de4cda.js"></script>
+
 <p>
 <b><u>Make sure</u></b> the directory "log4php" inside the log4php distribution is in your include path when
 using Ding. If you get this error:
 </p>
-<pre name="code" class="php">
-PHP Fatal error:  Class 'Logger' not found
-</pre>
+<p>
+<b>PHP Fatal error:  Class 'Logger' not found</b>
+</p>
 <p>
 You need to include the logphp subdirectory correctly in your include_path.
 </p>
@@ -114,23 +112,13 @@ bootstrap the container:
 <p>
 You can get the latest phar and pear package from the <a href="http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. At this time, the latest version is 1.6.3, so the available artifact is named "Ding-1.6.3.phar". Let's fetch it:
 </p>
-<pre name="code" class="php">
-$ wget http://ci.marcelog.name/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.6.3.phar
-</pre>
+<script src="https://gist.github.com/marcelog/d5cef7b8bc169da6f02cd9f144621afd.js"></script>
+
 <p>
 Let's see how to use it:
 </p>
-<pre name="code" class="php">
-// Include the phar file.
-require_once 'Ding-1.6.3.phar';
+<script src="https://gist.github.com/marcelog/ccbd52b7471208e26631310fd1bfef90.js"></script>
 
-// Set the include path to have ding's phar first
-// (just to avoid having another installation in
-// the include_path loading first).
-ini_set('include_path', implode(PATH_SEPARATOR, array(
-    'phar://ding.phar', ini_get('include_path')
-)));
-</pre>
 <p>
 That's it. You can now bootstrap the container and do your thing (see below).
 </p>
@@ -138,34 +126,20 @@ That's it. You can now bootstrap the container and do your thing (see below).
 <p>
 As stated before, you can get the pear package at the <a href="http://ci.marcelog.name/job/Ding/lastSuccessfulBuild/artifact/build/">CI server</a>. You can download it and install it manually (again, 1.6.3 is the latest version at the time of this writing):
 </p>
-<pre name="code" class="php">
-$ wget http://ci.marcelog.name:8080/job/Ding/lastSuccessfulBuild/artifact/build/Ding-1.6.3.tgz
-$ pear install Ding-1.6.3.tgz
-</pre>
+<script src="https://gist.github.com/marcelog/b1d6630f709ff0eaee6f68d120e1c20f.js"></script>
+
 <h3>Option C: Installing via the PEAR Channel</h3>
 <p>
 A pear channel is available <a href="http://pear.marcelog.name/">here</a>. If you want to use it, just:
 </p>
-<pre name="code" class="php">
-$ pear channel-discover pear.marcelog.name
-$ pear install marcelog/Ding
-</pre>
+<script src="https://gist.github.com/marcelog/7ee69bfb862d1cccd7d8c5e0a37ec3b1.js"></script>
+
 <p>
 Either way, to use it, make sure log4php is in your include path. Ding will already be, since it's installed
 via pear:
 </p>
-<pre name="code" class="php">
-/*
- * If you have a PSR-0 compatible autoloader, you wont
- * need this, just make sure your autoloader is
- * bootstrapped. If you don't, Ding comes with its own
- * PSR-0 autoloader, this can also be used for your own
- * benefit since you wont need any other autoloader if
- * your tree honors PSR-0.
- */
-require_once 'Ding/Autoloader/Autoloader.php';
-Ding\Autoloader\Autoloader::register();
-</pre>
+<script src="https://gist.github.com/marcelog/ef79fcd7e58143c63a3f84e0e23d8ab3.js"></script>
+
 <p>
 That's it. You can now instantiate the container.
 </p>
@@ -174,9 +148,8 @@ That's it. You can now instantiate the container.
 You can download the <a href="https://github.com/marcelog/Ding/zipball/master">ZIP</a> file from github, and also, you
 can clone the repository:
 </p>
-<pre name="code" class="php">
-$ git clone git://github.com/marcelog/Ding.git
-</pre>
+<script src="https://gist.github.com/marcelog/fa6bf8f4e33f455fd8db076f8fe00b01.js"></script>
+
 <p>
 When installed this way, you need to make sure you set the include path into the
 <a href="https://github.com/marcelog/Ding/tree/master/src/mg">/src/mg</a> subdirectory inside the
@@ -186,18 +159,8 @@ root tree, so the PSR-0 autoloader would load from the src/mg/Ding subdirectory.
 <p>
 Just add the package "marcelog/ding":
 </p>
-<pre name="code" class="php">
-{
-    "require": {
-        "marcelog/ding": "dev-master"
-    },
-    "repositories": [
-    {
-      "type": "pear",
-      "url": "http://pear.apache.org/log4php/"
-    }]
-}
-</pre>
+<script src="https://gist.github.com/marcelog/0d0f7a656af33164da3d09bd43885140.js"></script>
+
 <p>
 Packagist URL: <a href="http://packagist.org/packages/marcelog/ding">http://packagist.org/packages/marcelog/ding</a>
 </p>
@@ -215,11 +178,8 @@ Packagist URL: <a href="http://packagist.org/packages/marcelog/ding">http://pack
 <p>
 To instantiate the container, you need to pass a set of configuration options:
 </p>
-<pre name="code" class="php">
-// Get the container instance
-use Ding\Container\Impl\ContainerImpl as DingContainer;
-$container = DingContainer::getInstance($dingOptions);
-</pre>
+<script src="https://gist.github.com/marcelog/7268e167499460de2c2601d0c2ea3852.js"></script>
+
 <p>
 The complete list of configuration options is <a href="http://marcelog.github.com/Ding/manual/toc.html#config">here</a>. Let's try
 some basic stuff first. We will configure the 3 drivers for bean definitions (you need at least 1, and there are up to
@@ -233,30 +193,14 @@ some basic stuff first. We will configure the 3 drivers for bean definitions (yo
 <p>
 The 'bdef' (from Bean Definition) section of the configuration will configure the drivers:
 </p>
-<pre name="code" class="php">
-$dingOptions = array('ding' => array(
-    'factory' => array(
-        'bdef' => array(
-            'annotation' => array('scanDir' => array(__DIR__)),
-            'xml' => array(
-                'filename' => 'beans.xml',
-                'directories' => array(__DIR__)
-            ),
-            'yaml' => array(
-                'filename' => 'beans.yaml',
-                'directores' => array(__DIR__)
-            )
-        )
-    )
-));
-</pre>
-<h3>Getting the beans</h3>
+<script src="https://gist.github.com/marcelog/2e5a96ff4d659304ef5a1fda51bce68c.js"></script>
+
+<h3>Getting beans from the container for your PHP application</h3>
 <p>
 That's it! Here's how to get beans from the container:
 </p>
-<pre name="code" class="php">
-$bean = $container->getBean('myBean');
-</pre>
+<script src="https://gist.github.com/marcelog/eda54951504435042a9fc41cbfa50890.js"></script>
+
 <H3>Configuring log4php</H3>
 <p>
 If you happen to run the code above, you will notice that log4php is outputing to the
@@ -265,25 +209,12 @@ console. This is because it's probably not configured. You can configure log4php
 do it on its own, by passing an option to the container with the log4php configuration file you
 want to use (in this case, an .ini file, but you can use xml):
 </p>
-<pre name="code" class="php">
-$dingOptions = array('ding' => array(
-    'log4php.properties' => __DIR__ . '/log4php.properties',
-    'factory' => array(
-    // more options here
-    )
-));
-</pre>
+<script src="https://gist.github.com/marcelog/264c6cd7b071143fab6e6adc836721dd.js"></script>
 <p>
 A sample log4php.properties ini file:
 </p>
-<pre name="code" class="php">
-log4php.appender.default = LoggerAppenderDailyFile
-log4php.appender.default.layout = LoggerLayoutPattern
-log4php.appender.default.layout.ConversionPattern = "%d{ISO8601} [%p] %c: %m%n"
-log4php.appender.default.file = /tmp/log.log
-log4php.rootLogger = DEBUG, default
-</pre>
-<H3>Conclusion</H3>
+<script src="https://gist.github.com/marcelog/c71e1bbbbc77dc3c0c4aa408ad6f7b27.js"></script>
+<H3>Everything's now ready to start using AOP, DI, and Events in your PHP Applications</H3>
 <p>
 Enough to get you started. As you can see there are many different ways to get you started using Ding. In
 <a href="ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">another
