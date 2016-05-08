@@ -63,9 +63,9 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Using XML, Yaml, or Annotations in your PHP Applications for Dependency Injection</h3>
 <p>
-In a <a href="http://marcelog.github.com/articles/ding_how_to_install_configure_tutorial_introduction.html">previous article</a> I've shown how to download and install
+In <a href="http://marcelog.github.com/articles/ding_how_to_install_configure_tutorial_introduction.html">"<b>Installing and using the Ding DI Container</b>"</a> I've shown how to download and install
 <a href="http://marcelog.github.com/Ding/">the ding container</a>. The article ended with getting a container instance, but didn't show how to actually define and use your
 beans. So that's what this article is all about.
 </p>
@@ -91,30 +91,13 @@ The Xml and Yaml files are non code-invasive. In contrast, using annotations is 
 are a little more agile in the daily developer's work. The most used combination is to have a very short xml or yaml file and the rest using annotations throughout the code.
 Let's see an example of a bean declared in the 3 drivers (just a preview), then I'll show how to configure them in the container:
 </p>
-<pre name="code" class="xml">
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;beans&gt;
-  &lt;bean id="myXmlBean" class="MyBean"/&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/34a29d180864a1a9838bd8c606d81fd7.js"></script>
 <p>And the equivalent Yaml:</p>
-<pre name="code" class="php">
-beans:
-  myYamlBean:
-    class: MyBean
-</pre>
+<script src="https://gist.github.com/marcelog/f27a8cfa67de9bba313a11834f596672.js"></script>
 <p>
 And the equivalent using annotations:
 </p>
-<pre name="code" class="php">
-/**
- * @Component(name="myAnnotatedBean")
- */
-class MyBean
-{
-
-}
-</pre>
+<script src="https://gist.github.com/marcelog/2c6170f4b3748096fcfbe6b104ddca70.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -125,27 +108,9 @@ class MyBean
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Configuring the 3 drivers</h3>
+<h3>Configuring the 3 drivers to get your components or beans from the PHP Container</h3>
 <p>The drivers are specified in the <a href="http://marcelog.github.com/Ding/manual/toc.html#config">container configuration options</a>:</p>
-<pre name="code" class="php">
-$options = array('ding' => array(
-    'factory' => array(
-        'bdef' => array(
-            'xml' => array(
-                'filename' => array('beans.xml', 'otherbeans.xml'),
-                'directories' => array(__DIR__, __DIR__ . '/otherDir')
-            ),
-            'yaml' => array(
-                'filename' => array('beans.yaml', 'otherbeans.yaml'),
-                'directories' => array(__DIR__, __DIR__ . '/otherDir')
-            ),
-            'annotation' => array('scanDir' => array(__DIR__))
-        )
-    )
-));
-// Get an instance of the container.
-$container = Ding\Container\Impl\ContainerImpl::getInstance($options);
-</pre>
+<script src="https://gist.github.com/marcelog/6659a64a3c116e5bd46bd9972bc84abe.js"></script>
 <p>
 In this case we are configuring all the drivers:
 </p>
@@ -155,7 +120,7 @@ are the directory where the script is, and the subdirectory "otherDir". So ding 
 <li><u>yaml</u>: Same as xml, but with .yaml files.</li>
 <li><u>annotation</u>: We're declaring the directory where the script is as one of the directories to be scanned for annotations.</li>
 </ul>
-<h3>Enough to get you started</h3>
+<h3>Enough to get you started and write Great PHP Applications</h3>
 <p>
 To get right into dependency injection, continue with <a href="ding_xml_yaml_di_dependency_injection.html">this article</a>. Also, You can find more about the xml and yaml drivers here:
 <ul>
