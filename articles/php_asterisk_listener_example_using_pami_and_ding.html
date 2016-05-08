@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</title>
+<title>Create VoIP applications for Asterisk using PHP, PAMI, and Ding (Inversion of control and dependency injection in your php telephony applications)</title>
 <meta name="Author" content="Marcelo Gornstein"/>
 <meta name="Keywords" content="This article is an example about how to mix different technologies (asterisk, php, pami, and ding) to have some fun and maybe monitor/debug your own asterisk installation inversion of control and dependecy injection in telephony applications"/>
 <meta name="description" content="This article is an example about how to mix different technologies (asterisk, php, pami, and ding) to have some fun and maybe monitor/debug your own asterisk installation inversion of control and dependecy injection in telephony applications"/>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Create VoIP applications for Asterisk using PHP, PAMI, and Ding</div>
   </div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog2 -->
@@ -59,13 +59,13 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Making an Asterisk Manager Interface monitor using PHP, PAMI, and Ding</h2>
+                <h2>Create VoIP applications for Asterisk using PHP, PAMI, and Ding</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Writing VoIP applications in PHP for Asterisk using PAMI</u></H3>
 <p>
-<b>NOTE</b>: If you are just looking for an introduction to ami and PAMI, take a look at: <a href="pami_introduction_tutorial_how_to_install.html">this</a>.
+<b>NOTE</b>: If you are just looking for an introduction to ami and PAMI, take a look at: <a href="pami_introduction_tutorial_how_to_install.html">"<b>Getting Started with the PAMI: PHP Asterisk Manager Interface = Easy Asterisk Monitoring</b>"</a>.
 </p>
 <p>
 Here, I'll write about AsterTrace (<a href="https://github.com/marcelog/AsterTrace">https://github.com/marcelog/AsterTrace</a>), a
@@ -81,9 +81,9 @@ I'll talk about how AsterTrace uses them both, and how this will help you here a
 to get a more decoupled code, very easy to mantain and scale.
 </p>
 <p>
-A similar article with Ding and Doctrine2 as ORM is available <a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">here</a>.
+A similar article with Ding and Doctrine2 as ORM is available in <a href="php_applications_with_doctrine2_orm_and_ding_di_container.html">"<b>Writing PHP applications with Doctrine2 as ORM and Ding as DI container</b>"</a>.
 </p>
-<H3><u>Installing AsterTrace</u></H3>
+<H3><u>Installing AsterTrace, the horsepower of your telephony application</u></H3>
 <p>
 You can get AsterTrace directly from github:
     <ul>
@@ -96,7 +96,7 @@ You can get AsterTrace directly from github:
 <p>
 That's it :) Now read on to see how it works.
 </p>
-<H3><u>What is what and how it works</u></H3>
+<H3><u>How AsterTrace makes possible to rapidly write VoIP and Telephony Applications</u></H3>
 <p>
 To sum up, this is the general idea:
 </p>
@@ -128,70 +128,7 @@ To sum up, this is the general idea:
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 <p><u>Application tree layout overview. What's where.</u></p>
-<pre>
-src/mg/AsterTrace         ==> Main source directory
-  ServerHandlers          ==> Server Handlers reside here. These will listen for events triggered from the tcp server.
-    ServerHandler.php     ==> A base class for all tcp command listeners.
-    ServerCommandDTO.php  ==> DTO to be used when dispatching events from the TCP server. The handlers will get this as the argument of the event.
-    CoreShowChannels.php  ==> Event handler when a tcp client issues CoreShowChannels
-  EventHandlers           ==> Event Handlers reside here. These are our listening beans.
-    DialListener.php
-    DtmfListener.php
-    EventListener.php
-    PDOListener.php
-    VarSetListener.php
-    NewChannelListener.php
-    NewStateListener.php
-    NewExtenListener.php
-  Handlers
-    ErrorHandler.php      ==> Application error handler.
-    PamiHandler.php       ==> Our pami handler (will receive all events issued by the PamiHelper).
-    ShutdownHandler.php   ==> Application shutdown handler.
-    SignalHandler.php     ==> Application signal handler (so you may shutdown everything with kill or ^C).
-    TCPServerHandler.php  ==> The TCP Server. This will get called from the TCPServerHelper from ding. In turn, this will dispatch events according to what each client sent as a command.
-  bin
-    astertrace.php        ==> Main entry point for the application (see below).
-    bootstrap.php         ==> Bootstrap code (see below).
-    rest.php              ==> REST interface. Use it as a webservice (see below).
-conf/
-    astertrace.properties.example ==> AMI connection information. Rename to astertrace.properties and edit.
-    log4php.properties.example    ==> log4php configuration to log errors, debug, etc. Rename to log4php.properties (and log4php-rest.properties to use it with the rest interface)and edit.
-    mysql.properties.example      ==> mysql configuration (host, tables, database, etc). Rename to mysql.properties and edit.
-    php.properties.example        ==> php properties, like display_errors, error_reporting, etc. Rename to php.properties and edit.
-    server.properties.example     ==> TCP Server properties. Rename to server.properties and edit.
-    support                       ==> Bean definitions are here.
-      pdo-mysql.xml               ==> PDO related beans.
-      cli.xml                     ==> Main bean definitions for the CLI interface.
-      handlers.xml                ==> Beans for error handler, signal handler, shutdown handler, pami, etc.
-      server-handlers.xml         ==> Each bean defined here will handle a command (action) from a TCP Client.
-      rest.xml                    ==> Main bean definitions for the REST interface.
-      event-handlers.xml          ==> Where to include the actual listeners to be run (CLI).
-      event-handlers-rest.xml     ==> Where to include the actual listeners to be run (REST).
-      event-handlers
-        dial-pdo-mysql-statements.xml    ==> Prepared statements for dial listener.
-        dial.xml                         ==> dial listener.
-        dtmf-pdo-mysql-statements.xml    ==> Prepared statements for dtmf listener.
-        dtmf.xml                         ==> dtmf listener.
-        event-pdo-mysql-statements.xml   ==> Prepared statements for generic events listener.
-        event.xml                        ==> Generic events listener.
-        rest-event.xml                   ==> Generic events listener (REST).
-        varset-pdo-mysql-statements.xml  ==> Prepared statements for varset listener.
-        varset.xml                       ==> Varset listener.
-        newchannel-pdo-mysql-statements.xml  ==> Prepared statements for newchannel listener.
-        newchannel.xml                       ==> Newchannel listener.
-        newstate-pdo-mysql-statements.xml  ==> Prepared statements for newstate listener.
-        newstate.xml                       ==> Newstate listener.
-        newexten-pdo-mysql-statements.xml  ==> Prepared statements for newexten listener.
-        newexten.xml                       ==> Newexten listener.
-      server-handlers                      ==> Beans that handle TCPClient actions.
-        coreShowChannels.xml               ==> Handler for a TCP Client issuing a CoreShowChannels.
-      handlers                             ==> Several "handlers" beans (error, signal, etc).
-        error-handler.xml
-        pami-handler.xml
-        shutdown-handler.xml
-        signal-handler.xml
-        server.xml
-</pre>
+<script src="https://gist.github.com/marcelog/e8903b19a4aaea6286c0b77557fc9083.js"></script>
 <p>
 The key here, are the xml files, which are the container configuration. This is where all the beans
 are defined and related to each other. Because of this configuration, our beans will be injected with
@@ -201,9 +138,7 @@ everything they need to work (even a logger :))
 <p>
 The main entry point for AsterTrace is <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/bin/astertrace.php">astertrace.php</a>.
 So you can start it by running it:
-<pre name="code" class="php">
-php src/mg/AsterTrace/bin/astertrace.php ./conf
-</pre>
+<script src="https://gist.github.com/marcelog/e66c7480595b242c167837e3519c0cd8.js"></script>
 </p>
 <p>
 This script will call the <a href="https://github.com/marcelog/AsterTrace/blob/master/src/mg/AsterTrace/bin/bootstrap.php">bootstrap.php</a> file that resides in the same directory. Boostrap.php will:
@@ -311,19 +246,19 @@ following way: If the uniqueid does not exist, the uniqueid and the dtmf digit w
 <li>Behaviour: Will capture all newexten events, so you can see how channels go through the dialplan, step by step.
 <li>Event handler method: onNewexten</li>
 </ul>
-<H3><u>Extending the application</u></H3>
+<H3><u>Extending your VoIP application to listen for more PBX Events</u></H3>
 <p>
 We can add more beans to extend this functionality. Adding beans is trivial, we could use annotations, yaml, or xml configurations.
 </p>
 <p>
 Whenever we want to get a specific event, we just need to define a listens-on directive in the bean configuration, and the container will automagically
-call the method onEventName() with the event received :) So we can propagate events via radius, or activemq, or rabbitmq, etc.
+call the method onEventName() with the event received :) So we can propagate events via <b>Radius</b>, or <b>ActiveMQ</b>, or <b>RabbitMQ</b>, etc.
 </p>
-<H3><u>Conclusions</u></H3>
+<H3><u>Start creating your own VoIP applications (like Operator Panels) for Asterisk</u></H3>
 <p>
-As you see, having Ding and PAMI work together is a pretty smooth task, and will benefit your code by making it
+As you see, having <b>Ding</b> and <b>PAMI</b> work together is a pretty smooth task, and will benefit your code by making it
 cleaner and less coupled. You will be able to focus on the task you really want to do. Ding will take care of the
-inversion of control and dependeny injection, while PAMI will take care of the managing the AMI protocol. In this
+<b>inversion of control</b> and <b>dependency injection</b>, while PAMI will take care of the managing the <b>AMI protocol</b>. In this
 way, your application is truly event driven, and everything will get called without you having to worry about how or
 when. Even configuring the application is trivial due to the use of the PropertiesHolder.
 </p>
