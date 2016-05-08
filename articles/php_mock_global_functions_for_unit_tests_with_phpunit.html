@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Achieve 100% Code Coverage in PHP with a Mock of Global Functions</u></H3>
   <p>
 Let's say you'd like to achieve a 100% <b>coverage</b> of your code in your <b>php</b> application (you obsessive geek..). It's almost
 certain you'll need to start mock'ing things around. So far so good.. but sooner or later you will need to deal with the test cases
@@ -72,34 +72,12 @@ technique to allow you to <b>mock global php functions</b>. This will
 require your code to use <b>namespaces</b>, available since <b>PHP 5.3</b>.
 </p>
 
-<H3><u>Classical example</u></H3>
+<H3><u>Classical PHP Code example calling a global function</u></H3>
 <p>
 Suppose this is the code you'd like to test, a file called SomeClass.php:
-<pre name="code" class="php">
-namespace My\Nice\Namezpace;
-
-class SomeClass
-{
-    public function doSomething()
-    {
-        // Notice how the global function "socket_create" is called without
-        // the leading backslash (relative instead of absolute call in a
-        // namespaced environment). This will let us later mock the call
-        // by taking advantage of the relative-to-the-namespace call.
-        $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-        if ($socket === false) {
-            throw new \Exception('Ooops!');
-        }
-        socket_close($socket);
-        return true;
-    }
-
-    public function __construct()
-    {
-    }
-}
-</pre>
 </p>
+<script src="https://gist.github.com/marcelog/b94cd30ed9a0ebffa23f67701edb929f.js"></script>
+
 <p>
 It's fairly easy to have a unit test for the "success case" by just asserting
 the result value. What happens with the other use case, where the exception is
@@ -118,77 +96,16 @@ you be sure that the code is behaving like it should be?<br/>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<H1><u>The tests</u></H1>
+<H1><u>The PHPUnit tests mocking a global function</u></H1>
 <p>
 This is our Test_SomeClass.php file:
-
-<pre name="code" class="php">
-namespace {
-    // This allow us to configure the behavior of the "global mock"
-    $mockSocketCreate = false;
-}
-
-namespace My\Nice\Namezpace {
-    // And this here, does the trick: it will override the socket_create()
-    // function in your code *just for the namespace* where you are defining it.
-    // This relies on the code above calling the socket_create function without
-    // the leading backslash, so we trick SomeClass into calling our own function
-    // inside that namespace instead of the global socket_create function.
-    function socket_create() {
-        global $mockSocketCreate;
-        if (isset($mockSocketCreate) && $mockSocketCreate === true) {
-            return false;
-        } else {
-            return call_user_func_array('\socket_create', func_get_args());
-        }
-    }
-
-include_once './SomeClass.php';
-
-class Test_SomeClass extends \PHPUnit_Framework_TestCase
-{
-    public function setUp()
-    {
-        global $mockSocketCreate;
-        $mockSocketCreate = false;
-    }
-
-    /**
-     * This will test the success case.
-     * @test
-     */
-    public function can_success_case()
-    {
-        $dummy = new \My\Nice\Namezpace\SomeClass;
-        $this->assertTrue($dummy->doSomething());
-    }
-
-    /**
-     * This will enable the mock and call the code. socket_create will now
-     * return false instead the call of the original socket_create, our work
-     * here is done.
-     * @test
-     * @expectedException \Exception
-     */
-    public function cannot_error_case()
-    {
-        global $mockSocketCreate;
-        $mockSocketCreate = true;
-        $dummy = new \My\Nice\Namezpace\SomeClass;
-        $dummy->doSomething();
-        $this->fail('Should not here');
-    }
-}
-}
-</pre>
 </p>
+<script src="https://gist.github.com/marcelog/69de0e64e0c8f0656584ba4b61004352.js"></script>
 <p>
 Running phpunit will give you the 100% coverage :)
 </p>
-<pre name="code" class="php">
-phpunit --debug --process-isolation --verbose --stop-on-incomplete --stop-on-skipped --stop-on-failure --stop-on-error --colors --coverage-html html Test_SomeClass.php
-</pre>
-<H3><u>Conclusions</u></H3>
+<script src="https://gist.github.com/marcelog/3673abb3508d033987565d0635b2888b.js"></script>
+<H3><u>How about that 100% PHP Code Coverage?</u></H3>
 <p>
 With this little trick we can increase the testing level of the code. Most "normal" php code lacks good error
 handling (differences between cero, false, and null are among the #1's). Now everything can be tested at the highest
