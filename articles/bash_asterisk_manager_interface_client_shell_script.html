@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</title>
+<title>Bami: A Proof of concept Asterisk Manager Interface (AMI) client written in bash for the Asterisk PBX</title>
 <meta name="Author" content="Marcelo Gornstein"/>
 <meta name="Keywords" content="Bami: A Proof of concept asterisk manager interface (AMI) client written in bash shell script"/>
 <meta name="description" content="This article is a about how to write an asterisk manager interface (AMI) client in pure bash shell script using netcat"/>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Bami: A Proof of concept Asterisk Manager Interface (AMI) client written in bash for the Asterisk PBX</div>
   </div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog2 -->
@@ -59,13 +59,13 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</h2>
+                <h2>Bami: A Proof of concept Asterisk Manager Interface (AMI) client written in bash for the Asterisk PBX</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Receiving and Sending events from the Asterisk PBX in a shell script</u></H3>
 <p>
-In <a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">this article</a> I explained the
+In <a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">"<b>The Asterisk Manager Interface (AMI) Protocol</b>"</a> I explained the
 inners of the AMI protocol, and talked about actions, events, and responses.
 </p>
 <p>
@@ -77,31 +77,18 @@ source code</a> is available at github.
 <p>
 But remember, this is <b>just</b> an example and
 a script written for fun. If you are looking for a more serious piece of work, I encourage you to take a look
-at <a href="http://marcelog.github.com/PAMI">PAMI</a> (which is written in PHP), and <a href="http://marcelog.github.com/Nami">Nami</a> (in Javascript, for nodejs).
+at <a href="http://marcelog.github.com/PAMI">PAMI</a> (which is written in PHP), and <a href="http://marcelog.github.com/Nami">Nami</a> (in <b>Javascript</b>, for <b>Nodejs</b>).
 </p>
-<H3><u>Configuring Bami</u></H3>
+<H3><u>Configuring and Running Bami with your Asterisk PBX information</u></H3>
 <p>
-Edit bami.sh and setup log path, and AMI username and password.
+Edit bami.sh and setup log path, and <b>AMI username and password</b>. You will also need something like <a href="http://nc110.sourceforge.net/"><b>Netcat</b></a>. Example:
 </p>
-<H3><u>Running Bami</u></H3>
-<p>
-You will need something like netcat. Example:
-</p>
-<pre name="code" class="php">
-nc 127.0.0.1 5038 -e ./bami.sh
-</pre>
-<H3><u>Logging</u></H3>
+<script src="https://gist.github.com/marcelog/b748076f24fd5e7c60b1e65b728bf733.js"></script>
+<H3><u>Logging the communication with the Asterisk PBX</u></H3>
 <p>Doing a tail -f of the configured logfile will show something like:</p>
-<pre name="code" class="php">
-09/08/11 21:46:40 - DEBUG - Event: Newstate Privilege: call,all Channel: DAHDI/x-1 ChannelState: 5 ChannelStateDesc: Ringing CallerIDNum: x CallerIDName: Uniqueid: 1315529123.320110
-09/08/11 21:46:40 - INFO - === Unhandled event: Newstate ===
-09/08/11 21:46:40 - DEBUG - Event: DTMF Privilege: dtmf,all Channel: DAHDI/x-1 Uniqueid: 1315529106.320100 Digit: 6 Direction: Received Begin: No End: Yes
-09/08/11 21:46:40 - INFO - DTMF
-09/08/11 21:46:40 - DEBUG - Event: DTMF Privilege: dtmf,all Channel: DAHDI/x-1 Uniqueid: 1315529097.320090 Digit: 0 Direction: Received Begin: Yes End: No
-09/08/11 21:46:40 - INFO - DTMF
-</pre>
+<script src="https://gist.github.com/marcelog/0c222070d2fc7cdbbcf74d55fa188571.js"></script>
 <hr/>
-<H3><u>How it works</u></H3>
+<H3><u>Using NetCat to Send and Receive Asterisk Events</u></H3>
 <p>
 Using <a href="http://netcat.sourceforge.net/">netcat</a> allow us to communicate through a TCP/IP connection transparently.
 So the idea is to use netcat to connect to AMI and link the standard input and standard error (stdin and stdout) to this socket
@@ -139,121 +126,27 @@ improvements (and actual real features) are an excercise to the reader :) (i.e: 
 action and receiving the response when having events associated to that response, etc).
 </p>
 <hr/>
-<H3><u>The Code</u></H3>
+<H3><u>Log the communication with your PBX</u></H3>
 <p>
 First, the logging functions. We'll use these across Bami to log messages to a file:
 </p>
-<pre name="code" class="php">
-# Generic function for logging
-function log() {
-    echo `date "+%D %T - "` "${@}" >> ${log}
-}
-
-# Will call log() with a INFO prefix
-function info() {
-    log "INFO - ${@}"
-}
-
-# Will call log() with a DEBUG prefix
-function debug() {
-    log "DEBUG - ${@}"
-}
-
-# Will call log() with a ERROR prefix
-function error() {
-    log "ERROR - ${@}"
-}
-</pre>
+<script src="https://gist.github.com/marcelog/ec8b1c3b43f7eb7563979d2d292439fa.js"></script>
 <p>
 Great, nothing special there. Let's now take a look at how to read line by line and
 a complete PDU (Protocol Data Unit, I felt like calling it this way, it should rather be just "data"
 or "message"):
 </p>
-<pre name="code" class="php">
-# Reads a line from AMI (stdin), will strip \r
-function readLine() {
-    local line=""
-    read line
-    line=`echo ${line} | tr -d "\r"`
-    echo ${line}
-}
-
-# Reads a full PDU from asterisk. Since Asterisk messages
-# ends with a \r\n\r\n, and we use "read" to read line by
-# line, this will translate to an empty line delimiting
-# PDUs. So read up to an empty line, and return whatever
-# read.
-function readPdu() {
-    local pdu=""
-    local complete=0
-    while [ ${complete} -eq "0" ]; do
-        line=`readLine`
-        # End Of Message detected
-        if [ -z ${line} ]; then
-            complete=1
-        else
-            # Concat line read
-            pdu=`printf "${pdu}\\\n${line}"`
-        fi
-    done
-    echo ${pdu}
-}
-</pre>
+<script src="https://gist.github.com/marcelog/04e58228c7ef90e339d76169c7f58b21.js"></script>
 <p>
 Now, the code needed to actually send an action, in this case, Login
 </p>
-<pre name="code" class="php">
-# Performs a Login action. Will terminate with error code 255 if
-# the asterisk ami welcome message is not found.
-function login() {
-    local welcome=`readLine`
-    if [ ${welcome} != "Asterisk Call Manager/1.1" ]; then
-        error "Invalid peer. Not AMI."
-        exit 255
-    fi
-    printf "Action: Login\r\nUsername: ${user}\r\nSecret: ${pass}\r\n\r\n"
-    local response=`readPdu`
-    if [[ ! ${response} =~ Success ]]; then
-        error "Could not login: ${response}"
-        exit 254
-    fi
-}
-# Do login.
-login
-</pre>
+<script src="https://gist.github.com/marcelog/951141a52402e115a51e2022d70ca7f9.js"></script>
 <p>
 Now, the main reading loop, which reads event and acts accordingly:
 </p>
-<pre name="code" class="php">
-# Main reading loop.
-while [ true ]; do
-    pdu=`readPdu`
-    debug "${pdu}"
-    $regex="Event: *"
-    if [[ $pdu =~ $regex ]]; then
-        eventName=`echo ${pdu} | cut -d' ' -f2`
-        case ${eventName} in
-            DTMF)
-                info DTMF
-            ;;
-            VarSet)
-            ;;
-            Hangup)
-            ;;
-            Dial)
-                info Dial
-            ;;
-            *)
-                info "=== Unhandled event: ${eventName} ==="
-            ;;
-        esac
-    else
-        info "Response: ${pdu}"
-    fi
-done
-</pre>
+<script src="https://gist.github.com/marcelog/2458b0e332ce4971b518e500ae966bdd.js"></script>
 <hr/>
-<H3><u>Conclusions</u></H3>
+<H3><u>Ready to start building an Operator Panel for your Asterisk PBX?</u></H3>
 <p>
 As you can see, AMI is very easy to work with. It has it falls, but being a text protocol with a very simple spec (maybe too simple.. )
 will allow you to actually do a client in whatever language you'd like.
