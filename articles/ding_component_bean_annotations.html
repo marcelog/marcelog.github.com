@@ -63,19 +63,19 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>About components</h3>
+<h3>Designing your PHP Application with components</h3>
 <p>
 Everything shown here using annotations, is also available by using the XML and YAML bean definition providers, so you are
 free to use any of the 3 drivers (XML, YAML, Annotations) to define your beans and mix them anyway you like or need to. See
-<a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">the manual</a> for details on how to use xml and yaml.
+<a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">the dependency injection container manual</a> for details on how to use xml and yaml.
 </p>
 <p>
 One more thing :) These annotations are used to define the components, the annotations that are specifically designed to
-describe the component's injections and dependencies are a subject of <a href="http://marcelog.github.com/articles/ding_component_bean_annotations_di_dependency_injection.html">another article</a>, so this one wont get too long.
+describe the component's injections and dependencies are described in <a href="http://marcelog.github.com/articles/ding_component_bean_annotations_di_dependency_injection.html">"<b>Ding annotations for dependency injection</b>"</a>, so this one wont get too long.
 </p>
-<h3>@Component and @Named</h3>
+<h3>Using the annotations @Component and @Named to Define your PHP Components</h3>
 <p>
-These annotations define beans (components). @Component comes from the <a href="http://www.springsource.org">spring framework</a> and
+These annotations define beans (components). @Component comes from the <a href="http://www.springsource.org"><b>Spring Framework</b></a> and
 @Named from the <a href="http://jcp.org/en/jsr/detail?id=330">JSR-330</a>. Both are equivalent, and the reason to have both, is
 just to make it a little more comfortable for people that used one or the other. Ding is all about
 beans, which are components. There are types (not stereotypes, yet) for these components. So a basic generic
@@ -91,46 +91,16 @@ extend the definition of @Component, inheriting its options and available extra 
 </ul>
 <h4><b>Examples</b></h4>
 <p>Here he have a named component, with 3 names:</p>
-<pre name="code" class="php">
-/**
- * @Named(name={"name1", "name2", "name3"})
- */
-class MyNamedComponent
-{
-}
-</pre>
+<script src="https://gist.github.com/marcelog/6595e32e1fafcf48dcbe520db2755ed7.js"></script>
 <p>And here's one without a specific name, so Ding will autogenerate one:</p>
-<pre name="code" class="php">
-/**
- * @Component(primary="true")
- */
-class MyBean
-{
-}
-</pre>
-<h3>@Primary</h3>
+<script src="https://gist.github.com/marcelog/8d086ae196f565d78cad4a0b5992c190.js"></script>
+<h3>Use @Primary to tag your PHP component as the best option with multiple ones can be chosen</h3>
 <p>
 This annotation is the equivalent of using "primary=true" in a bean/component definition.
 </p>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/**
- * @Component
- * @Primary
- */
-class MyComponent
-{
-    /**
-     * @Bean
-     * @Primary
-     */
-    public function beanName()
-    {
-        return new MyBean();
-    }
-}
-</pre>
-<h3>@Configuration</h3>
+<script src="https://gist.github.com/marcelog/0bdfef5f33d39c349cb2c241f3f9f00f.js"></script>
+<h3>Create Configuration classes for your PHP Application with the annotation @Configuration</h3>
 <p>
 This annotation lets you define beans that are the source for other bean definitions.
 </p>
@@ -142,24 +112,7 @@ This annotation lets you define beans that are the source for other bean definit
 <p>In this case, this class is the source for the bean definition of the bean "beanName". When this bean is requested,
 the method acts as a factory method for it (i.e: it gets called).
 </p>
-<pre name="code" class="php">
-/**
- * @Configuration
- */
-class MyConfigClass
-{
-    /** @Bean */
-    public function beanName()
-    {
-        return new MyBean();
-    }
-    /** @Bean(primary="true") */
-    public function anotherBeanName()
-    {
-        return new MyBean();
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/126c8bd277199d4cde67298bb4efa7a2.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -170,7 +123,7 @@ class MyConfigClass
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>@Bean</h3>
+<h3>Create components from your PHP classes with @Bean</h3>
 <p>This annotation can be used in any method(s) inside any classes annotated as a component (like @Configuration,
 @Component, @Named, @Aspect, @Controller, etc), it will tell the container to use that particular component as a
 factory bean of the given bean name. @Bean methods accepts every annotation that a @Component accepts, like @Scope,
@@ -188,19 +141,7 @@ the return value, this will tell the container that this particular bean is of t
 <p>In this case, this component is the source for the bean definition of the bean "beanName". When this bean is requested,
 the method acts as a factory method for it (i.e: it gets called).
 </p>
-<pre name="code" class="php">
-/**
- * @Component
- */
-class MyComponent
-{
-    /** @Bean(class="MyBean") */
-    public function beanName()
-    {
-        return new MyBean();
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/5b9224c2faadc04b2076423e2ad833fd.js"></script>
 <h3>@Scope</h3>
 <p>
 Use this annotation to define the bean scope, at the class level. Can also be used in @Bean methods.
@@ -210,31 +151,16 @@ Use this annotation to define the bean scope, at the class level. Can also be us
 <li><u>value</u>: A string, can be "singleton" or "prototype". Required. </li>
 </ul>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/**
- * @Component
- * @Scope(value="singleton")
- */
-class MyComponent
-{
-}
-</pre>
-<h3>@Singleton and @Prototype</h3>
+<script src="https://gist.github.com/marcelog/b245004ca08b5347fc47010a2257c4b7.js"></script>
+<h3>Use the annotations @Singleton and @Prototype to define singletons in your PHP Application</h3>
 <p>
 @Singleton is equivalent to @Scope(value="singleton"), and @Prototype is equivalent to
 @Scope(value="prototype"). Can be used at the class level and in @Bean methods.
 </p>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/**
- * @Component
- * @Singleton
- */
-class MyComponent
-{
-}
-</pre>
-<h3>@InitMethod and @DestroyMethod</h3>
+<script src="https://gist.github.com/marcelog/4519098b503e951db2f5a433d6dd9cef.js"></script>
+
+<h3>Define specific PHP methods with @InitMethod and @DestroyMethod so they are run on construct and destruct</h3>
 <p>
 These annotations lets you hook a method call right after the bean as been completely
 assembled (@InitMethod) and right before destructing it (@DestroyMethod). These are used at the
@@ -245,24 +171,8 @@ class level, but can also be used in @Bean methods.
 <li><u>method</u>: A string. Required. This is where the name of the method intended to be called is defined.</li>
 </ul>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/**
- * @Component
- * @InitMethod(method="init")
- * @DestroyMethod(method="shutdown")
- */
-class MyComponent
-{
-    public function init()
-    {
-    }
-
-    public function destroy()
-    {
-    }
-}
-</pre>
-<h3>@PostConstruct and @PreDestroy</h3>
+<script src="https://gist.github.com/marcelog/b84d33a6882bb4d1d141d3361dc6a332.js"></script>
+<h3>Use the annotations @PostConstruct and @PreDestroy to execute code during the lifecycle of your PHP Components</h3>
 <p>
 These annotations are used at the method level in @Component's, and are the equivalent of using
 @InitMethod(method="xxx") and @DestroyMethod(method="yyy") respectively. The main difference is that the
@@ -270,23 +180,8 @@ latter are used at the class level and @PostConstruct and @PreDestroy are used a
 can't use them in @Bean methods.
 </p>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/**
- * @Component
- */
-class MyComponent
-{
-    /** @PostConstruct */
-    public function init()
-    {
-    }
-    /** @PreDestroy */
-    public function destroy()
-    {
-    }
-}
-</pre>
-<h3>@ListensOn</h3>
+<script src="https://gist.github.com/marcelog/c1852a39b5863ab90d71415366fdf470.js"></script>
+<h3>Listening for events in your PHP Components with @ListensOn</h3>
 <p>This annotation tells ding that the given bean will listen for the specified event names. Can be used at the class level and in @Bean methods.</p>
 <p>When one of the events is dispatched through the container (let's say event1 as an example), ding will try to find a method named onEvent1(). The event
 data will be sent as an argument. See
@@ -296,35 +191,7 @@ data will be sent as an argument. See
 <li><u>value</u>: A string or an array of strings. Required. Specifies the name of the events that this bean will receive.</li>
 </ul>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/**
- * @Component
- * @ListensOn(value={"event1", "event2", "event3"})
- */
-class MyComponent
-{
-    /** Called by the container when event1 is dispatched */
-    public function onEvent1($data)
-    {
-    }
-    /** Called by the container when event2 is dispatched */
-    public function onEvent2($data)
-    {
-    }
-    /** Called by the container when event3 is dispatched */
-    public function onEvent3($data)
-    {
-    }
-    /**
-     * @Bean(class="MyOtherComponent")
-     * @ListensOn(value="event1")
-     */
-    public function myOtherBean()
-    {
-        return new MyOtherComponent();
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/18741068d266b2cd674bfc0bf33c0c41.js"></script>
 <p>
 
 </p>
