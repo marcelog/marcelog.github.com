@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Using XML, Yaml, and Annotations to get your PHP components via Dependency Injection</h3>
+<h3>Using XML, Yaml, and Annotations to execute code in your PHP components</h3>
 <p>
 Sometimes it's useful (or needed) to have the container call certain methods right before injecting (or giving
 away) our beans, and right before destructing it, as a way of setup-teardown or init-shutdown.
@@ -80,7 +80,7 @@ We'll see how to use them with the 3 drivers. In the following examples, the met
 as soon as the beans are completely assembled, and the shutdown method will be called when the container
 is destroyed:
 </p>
-<h3>Using PHP annotations to configure your components, beans, and container</h3>
+<h3>Using PHP annotations execute code during the lifecycle of your component</h3>
 <p>
 You can do this in 2 ways. At the method level:
 </p>
@@ -99,9 +99,9 @@ And at the class level:
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 <script src="https://gist.github.com/marcelog/f6f449db1eeb96373e9ea3ad2a1be532.js"></script>
-<h3>Using XML to configure your components, beans, and container</h3>
+<h3>Using XML execute code during the lifecycle of your component</h3>
 <script src="https://gist.github.com/marcelog/53076f5bb99238f30897879f916f9401.js"></script>
-<h3>Using Yaml to configure your components, beans, and container</h3>
+<h3>Using YAML execute code during the lifecycle of your component</h3>
 <script src="https://gist.github.com/marcelog/15dea341f33bbadef49b22ce18d163a8.js"></script>
 
               </div>
