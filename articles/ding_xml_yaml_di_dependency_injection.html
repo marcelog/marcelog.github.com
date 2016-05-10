@@ -63,21 +63,21 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Introduction to Dependency Injection for your PHP Code with XML and YAML</h3>
 <p>
-In this <a href="http://marcelog.github.com/articles/ding_component_bean_annotations_di_dependency_injection.html">past article</a> I've discussed the
+In <a href="http://marcelog.github.com/articles/ding_component_bean_annotations_di_dependency_injection.html">"<b>Use Annotations in your PHP Code to achieve Dependency Injection with the Ding Container</b>"</a> I've discussed the
 dependency injection features when using annotations. This time, we'll see how to use the xml and yaml drivers to do the same (setter and constructor injection). If you don't know how to configure
-the xml and yaml drivers, please start by reading <a href="http://marcelog.github.com/articles/ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">this</a>.
+the xml and yaml drivers, please start by reading <a href="http://marcelog.github.com/articles/ding_example_xml_yaml_annotations_bean_drivers_tutorial_how_to.html">"<b>Ding container: Using the Xml, Yaml, and Annotations drivers</b>"</a>.
 </p>
 <p>In the <a href="http://marcelog.github.com/Ding/manual/toc.html#ioc">ding manual</a> you can find extensive examples (almost all with xml and annotations). You are encouraged to
 take a look at it. This article will reproduce some of the examples there, extending the concepts a little bit, and giving some missing-from-the-manual YAML examples.</p>
 <p>
 Also, the manual explains other stuff not mentioned here, like bean aliasing and inheritance, hooking in the bean lifecycle, aspect oriented programming
-(explained <a href="ding_php_aop_aspect_oriented_programming.html">here</a>), factory beans and factory classes, etc.
+(explained in <a href="ding_php_aop_aspect_oriented_programming.html">"<b>Aspect Oriented Programming in PHP with Ding</b>"</a>), factory beans and factory classes, etc.
 </p>
 <p>And, you can see the full examples for <a href="https://github.com/marcelog/Ding/tree/master/docs/examples/quickstart">xml</a> and <a href="https://github.com/marcelog/Ding/tree/master/docs/examples/yaml">yaml</a> at the Ding github repository.</p>
 
-<h3>Setter Injection</h3>
+<h3>Setter Injection for your PHP Application</h3>
 <p>
 Setter injection works given 2 conditions:
 </p>
@@ -89,9 +89,7 @@ Setter injection works given 2 conditions:
 Quick example: You have a repository class, and you want to set a value when you create an instance of it. Let's say you want
 to set the DB driver for a given repository, you could do something like:
 </p>
-<pre name="code" class="php">
-$repository->setDriver($mysqlDriver);
-</pre>
+<script src="https://gist.github.com/marcelog/9e441579cad8cf605ed08bd1eaffde92.js"></script>
 <p>
 In this case, you would define a "driver" property. And ding will automatically look for a "setDriver" method and use it
 to inject the configured values. The convention is that the property name is upercamel cased first, and then prepended with the word
@@ -99,57 +97,17 @@ to inject the configured values. The convention is that the property name is upe
 </p>
 <h4><u>Injecting scalar variables</u></h4>
 <p>The general syntax for setter injection with xml is the following:</p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someProperty"&gt;
-      &lt;value&gt;aLiteralValue&lt;/value&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/6966e7e007d423163282a6e795d0dabf.js"></script>
 <p>
 Equivalent with YAML:
 </p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someProperty:
-        value: aLiteralValue
-</pre>
+<script src="https://gist.github.com/marcelog/a48e239817af889719b8775af7ab9a16.js"></script>
 <p>
 You can also insert some special values, like "true", "false", or "null":
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someNullProperty"&gt;
-      &lt;null/&gt;
-    &lt;/property&gt;
-    &lt;property name="someTrueProperty"&gt;
-      &lt;true/&gt;
-    &lt;/property&gt;
-    &lt;property name="someFalseProperty"&gt;
-      &lt;false/&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/3072eb49b623b039e78ea9c6436862cc.js"></script>
 <p>In YAML:</p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someNullProperty:
-        value: null
-      someTrueProperty:
-        value: true
-      someFalseProperty:
-        value: false
-</pre>
+<script src="https://gist.github.com/marcelog/a910d9be174afb354cf03ac15bb20074.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -165,26 +123,11 @@ beans: !!map
 Of course, doing this is not recommended. But if you really need to, you can execute code
 and have the result injected as a property in your beans:
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someProperty"&gt;
-      &lt;eval&gt;&lt;![CDATA[ return "Some evaluated code"; ]]&gt;&lt;/eval&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/3f708becc36017f6cc22523257ab66b2.js"></script>
 <p>
 In YAML:
 </p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someProperty:
-        eval: return "Some evaluated code";
-</pre>
+<script src="https://gist.github.com/marcelog/2a0f49750b718581b506a47033c4f559.js"></script>
 
 
 <h4><u>Injecting user properties</u></h4>
@@ -193,79 +136,30 @@ You can also inject property values. In this case, we are injecting a property r
 <a href="http://marcelog.github.com/Ding/manual/toc.html#config">container or the properties holder</a>. In this case,
 the container will inject the value of the property "user.name":
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someProperty"&gt;
-      &lt;value&gt;${user.name}&lt;/value&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/1b3bd7a39ee4e8d8d7a60baab516ef3e.js"></script>
 <p>
 In YAML:
 </p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someProperty:
-        value: ${user.name}
-</pre>
+<script src="https://gist.github.com/marcelog/6802bb9d423aea3269944d5a324c58e2.js"></script>
 <h4><u>Injecting references to other beans (collaborators)</u></h4>
 <p>
 The usual case is the need to have a bean collaborating with another one. This translates into a bean
 having a dependency on another bean (the collaborator). To achieve this:
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myOtherBeanName" class="MyCollaborator"/&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someProperty"&gt;
-      &lt;ref bean="myOtherBeanName"/&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/76b6a0700ca7ef9312d5dd9f5c1e697d.js"></script>
 <p>
 In YAML:
 </p>
-<pre name="code" class="xml">
-beans: !!map
-  myOtherBeanName:
-    class: MyCollaborator
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someProperty:
-        ref: myOtherBeanName
-</pre>
+<script src="https://gist.github.com/marcelog/cf21884d45527b7cfb953cb6ab0fe6c0.js"></script>
 <p>
 You can also define a collaborator in the actual property where it will be injected, instead of defining the collaborator
 globally. This is useful to cleanup your xml/yaml files. These are called inner beans, which also, can be anonymous (i.e: without a given name):
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someProperty"&gt;
-      &lt;bean class="MyCollaborator"/&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/3247b47b190aeced60c5e2840e343dc2.js"></script>
 <p>
 In YAML:
 </p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someProperty:
-        bean:
-          class: MyCollaborator
-</pre>
+<script src="https://gist.github.com/marcelog/70523ea7f3bdc56920c8f6fb14f9c314.js"></script>
 <p>
 Being a bean definition themselves, you can have setter and constructor injection as well, and every other feature available when defining beans.
 </p>
@@ -274,121 +168,30 @@ Being a bean definition themselves, you can have setter and constructor injectio
 You can also inject arrays with values, specifying an optional key for each entry. In the following example, an associative array is
 injected, with several different values. Note how you can combine the syntax we saw above (remember, the array keys are completely optional):
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;property name="someProperty"&gt;
-      &lt;entry key="key1"&gt;
-        &lt;value&gt;aLiteralValue&lt;/value&gt;
-      &lt;/entry&gt;
-      &lt;entry key="key2"&gt;
-        &lt;value&gt;${user.name}&lt;/value&gt;
-      &lt;/entry&gt;
-      &lt;entry key="key3"&gt;
-        &lt;bean class="MyCollaborator"/&gt;
-      &lt;/entry&gt;
-      &lt;entry key="key4"&gt;
-        &lt;ref bean="otherBean"/&gt;
-      &lt;/entry&gt;
-      &lt;entry key="key5"&gt;
-        &lt;eval&gt;&lt;![CDATA[ return "Some evaluated code"; ]]>&lt;/eval&gt;
-      &lt;/entry&gt;
-      &lt;entry key="key6"&gt;
-        &lt;array&gt;
-          &lt;entry&gt;
-            &lt;value&gt;${aValue}&lt;/value&gt;
-          &lt;/entry&gt;
-        &lt;/array&gt;
-      &lt;/entry&gt;
-    &lt;/property&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/e5955845a7fe34783e61758304a69d28.js"></script>
 <p>In YAML:</p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    properties: !!map
-      someProperty:
-        value: !!map
-          key1:
-            value: aLiteralValue
-          key2:
-            value: ${user.name}
-          key3:
-            bean:
-              class: MyCollaborator
-          key4:
-            ref: otherBean
-          key5:
-            eval: return "Some evaluated code";
-          key6:
-            value: !!map
-              key:
-                value: ${aValue}
-</pre>
-<h3>Constructor Injection</h3>
+<script src="https://gist.github.com/marcelog/485a8d32a4aba7243fc39bb25fd9d214.js"></script>
+<h3>Constructor Injection for your PHP Classes</h3>
 <p>Constructor injection is pretty much equal to setter injection. The syntax for declaring constructor arguments
 is a little different, but you can use the same syntax to specify the values for the constructors. The constructor
 arguments are evaluated IN ORDER. But you can optionally specify the "name" of the argument</p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;constructor-arg&gt;
-      &lt;value&gt;aLiteralValue&lt;/value&gt;
-    &lt;/constructor-arg&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/e8fdfc161dc695e5b407e3278895023c.js"></script>
 <p>Specifying constructor argument names:</p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;constructor-arg name="argument1"&gt;
-      &lt;value&gt;aLiteralValue&lt;/value&gt;
-    &lt;/constructor-arg&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/b91c6d25a3c264d87f98cfb8a25c53ec.js"></script>
 <p>In YAML you would do:</p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    constructor-args:
-      - aLiteralValue
-</pre>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    constructor-args:
-      argument1: aLiteralValue
-</pre>
+<script src="https://gist.github.com/marcelog/0360368b9961ea88043fe20dae88e0d4.js"></script>
+<script src="https://gist.github.com/marcelog/cfe10ec27800342a1807d6c571d57723.js"></script>
 <p>Constructors can be injected with arrays, user properties, inner beans, etc. All what we saw for setters (properties) also apply to
 constructors, so I wont go over it. Just try the same syntax as with setter injection :)</p>
-<h3>Method Injection</h3>
+<h3>Method Injection: Use custom methods of your PHP Objects to inject dependencies</h3>
 <p>Method injection allows you to override a method in a given bean. In this case, the method "createDependency" in the bean
 "myBeanName" will be overriden (by the container) with an implementation that returns the bean "dependencyName".
 </p>
-<pre name="code" class="xml">
-&lt;beans&gt;
-  &lt;bean id="dependencyName" class="MyOtherBean" scope="prototype"/&gt;
-  &lt;bean id="myBeanName" class="MyBean"&gt;
-    &lt;lookup-method name="createDependency" bean="dependencyName"/&gt;
-  &lt;/bean&gt;
-&lt;/beans&gt;
-</pre>
+<script src="https://gist.github.com/marcelog/1d7e4764ed6bc5f5c601269aa28c310b.js"></script>
 <p>In YAML:</p>
-<pre name="code" class="xml">
-beans: !!map
-  myBeanName:
-    class: MyBean
-    lookup-methods: !!map
-      createDependency: dependencyName
-</pre>
-<p>This is a nice feature, very useful in certain ocasions. See <a href="http://blog.springsource.com/2004/08/06/method-injection/">this post</a>.</p>
-<h3>Conclusions</h3>
+<script src="https://gist.github.com/marcelog/54ad0046687ec09e6e5e27ca159ac890.js"></script>
+<p>This is a nice feature, very useful in certain ocasions. See <a href="http://blog.springsource.com/2004/08/06/method-injection/">"<b>Method Injection</b>"</a>.</p>
+<h3>Start enhancing your PHP Code: Dependency Injection everywhere</h3>
 <p>
 So you've seen an overview of how to make ding completely assemble your application components without using annotations. But, XML and YAML can get quite verbose, that's why I personally preffer to use annotations. But, xml and yaml can be really handy
 sometimes, and actually complements the annotations. Besides that, they provide a non-invasive way of configuring our dependencies, so that's
