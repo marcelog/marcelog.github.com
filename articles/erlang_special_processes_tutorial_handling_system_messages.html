@@ -67,7 +67,7 @@
 <b>NOTE</b>: This is the translation of the <a href="http://erlang.org.ar/ProcesosEspeciales">original article</a> I wrote in spanish for the
 wiki of <a href="http://erlang.org.ar/">Erlang Argentina</a>.
 </p>
-<h3>Introduction</h3>
+<h3>An overview of the Erlang processes in the OTP environment and the BEAM</h3>
 <p>
 OTP has (in its <a href="http://www.erlang.org/doc/design_principles/des_princ.html">design principles</a>), things like <a href="http://learnyousomeerlang.com/what-is-otp#the-common-process-abstracted">behaviours</a>, <a href="http://www.erlang.org/doc/design_principles/applications.html" >applications</a>,
 <a href="http://www.erlang.org/doc/design_principles/release_structure.html">releases</a>, and <a href="http://www.erlang.org/doc/design_principles/sup_princ.html" >supervision trees</a>.
@@ -80,7 +80,7 @@ termination, hot code upgrades and the like a very hard task (if not impossible)
 A special process complies, <a href="http://www.erlang.org/doc/design_principles/spec_proc.html">by definition</a> with a specification that makes it compatible with all the rules of an OTP environment. Let's now see what this
 spec is all about.
 </p>
-<h3>Nothing new, actually</h3>
+<h3>Erlang Special Processes: Behind the scenes of the standard Behaviors</h3>
 <p>
 As a matter of fact, we deal with special processes a lot, even without knowing it. For example, when we choose to implement a behaviour (like supervisor, gen_server, etc), we are actually coding "inside" a special process. Yes, behaviours are special processes,
 if we look under the hood (see Appendix, at the end of the article), we'll spot a special process just like the one we'll see in the example code.
@@ -90,7 +90,7 @@ The main difference between a common process and a special process, is that the 
 reacts upon them. A special process is also <a href="http://www.erlang.org/doc/man/proc_lib.html#start_link-3">started in a specific way</a>, and all these
 properties allows a process to fit right into supervision trees, and to support features such as hot-code upgrades, debugging, etc.
 </p>
-<h3>What are they good for?</h3>
+<h3>Why erlang special processes are key to understand how the standard behaviors work?</h3>
 <p>
 Knowing how a special process works (and how it should be implemented) is fun, and gives a little "low level" background (which is always good), but it's
 particular useful when we need a process to behave different than the standard provided behaviours (like gen_server, etc). There is a handful of cases where
@@ -99,95 +99,14 @@ coding your own special process is the best solution. But knowing about them mea
 <p>
 And, it might allow you to impress your friends at the parties (well, if any of you goes to a party where people can actually be impressed by such things, please drop me a line!).
 </p>
-<h3>The code (simpleproc.erl)</h3>
+<h3>The example code (simpleproc.erl) of an Erlang Special Process</h3>
 <p>
 The following code is a <a href="https://github.com/basho/rebar">rebar</a> template, which is also available at
 <a href="https://github.com/marcelog/rebar-spec-proc-tpl">GitHub</a>. I though it would be best to show you the
 code first, explaining some of the stuff in the code comments (and pointing out the most useful manual links) and
 then go ahead with a little deeper explanation.
 </p>
-<pre name="code" class="php">
-%%% This is a special process. A special process is aware of system
-%%% messages and also implements some standard functions needed (and
-%%% standarized) in an OTP environment, so it can be supervised
-%%% (started/stop), upgraded in a hot-upgrade fashion, etc.
-%%%
-%%% See http://www.erlang.org/doc/design_principles/spec_proc.html
-%%% For system messages, see: http://www.erlang.org/doc/man/sys.html
--module({{id}}).
-%%-------------------------------------------------------------------
-%% API Function Exports
-%%-------------------------------------------------------------------
--export([start_link/0, init/1]).
-
-%%-------------------------------------------------------------------
-%% Required OTP Exports
-%%-------------------------------------------------------------------
--export([
-    system_code_change/4, system_continue/3,
-    system_terminate/4, write_debug/3
-]).
-
-%%-------------------------------------------------------------------
-%% API Function Definitions
-%%-------------------------------------------------------------------
-%% @doc Starts a new process synchronously. Spawns the process and
-%%% waits for it to start.
-%% See http://www.erlang.org/doc/man/proc_lib.html
-start_link() ->
-    proc_lib:start_link(?MODULE, init, [self()]).
-
-%%-------------------------------------------------------------------
-%% API Function Definitions
-%%-------------------------------------------------------------------
-%% @doc Notifies the parent of a successful start and then runs the
-%% main loop. When the process has started, it must call
-%% init_ack(Parent,Ret) or init_ack(Ret), where Parent is the
-%% process that evaluates this function (see start_link/0 above).
-%% At this time, Ret is returned.
-init(Parent) ->
-    register(?MODULE, self()),
-    Debug = sys:debug_options([]),
-    proc_lib:init_ack(Parent, {ok, self()}),
-    loop(Parent, Debug, []).
-
-%%-------------------------------------------------------------------
-%% Internal Functions
-%%-------------------------------------------------------------------
-%% @doc Our main loop, designed to handle system messages.
-loop(Parent, Debug, State) ->
-    receive
-        {system, From, Request} ->
-            sys:handle_system_msg(
-                Request, From, Parent, ?MODULE, Debug, State
-            );
-        Msg ->
-            % Let's print unknown messages.
-            sys:handle_debug(
-                Debug, fun ?MODULE:write_debug/3, ?MODULE, {in, Msg}
-            ),
-            loop(Parent, Debug, State)
-    end.
-
-%% @doc Called by sys:handle_debug().
-write_debug(Dev, Event, Name) ->
-    io:format(Dev, "~p event = ~p~n", [Name, Event]).
-
-%% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_continue-3
-system_continue(Parent, Debug, State) ->
-    io:format("Continue!~n"),
-    loop(Parent, Debug, State).
-
-%% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_terminate-4
-system_terminate(Reason, _Parent, _Debug, _State) ->
-    io:format("Terminate!~n"),
-    exit(Reason).
-
-%% @doc http://www.erlang.org/doc/man/sys.html#Mod:system_code_change-4
-system_code_change(State, _Module, _OldVsn, _Extra) ->
-    io:format("Changed code!~n"),
-    {ok, State}.
-</pre>
+<script src="https://gist.github.com/marcelog/97708058cd17f86326c82970a7f81d40.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -233,7 +152,7 @@ sys:handle_system_msg/6 to simpleproc:system_continue/3, which will return to th
 In the "Appendix" section, you can see the implementation of the actual behaviours distributed with OTP. As you can see,
 their code is pretty similar to the one shown here, except that they reuse code that "lives" in the <b>gen</b> module.
 </p>
-<h3>Tracing and Debugging</h3>
+<h3>Tracing and Debugging from inside your Special Process</h3>
 <p>
 Another requirement for special process is to support enabling and disabling debug output in the console. To comply with this, our
 debug should go through <a href="http://www.erlang.org/doc/man/sys.html#handle_debug-4">sys:handle_debug/4</a>. In the
@@ -250,25 +169,7 @@ define system events, but usually incoming and outgoing messages are represented
 To give this a try, we use <a href="http://www.erlang.org/doc/man/sys.html#trace-2">sys:trace/2</a>, so we can enable debug for
 our little module:
 </p>
-<pre name="code" class="php">
-1> c(simpleproc).
-{ok,simpleproc}
-2> {ok, Pid} = simpleproc:start_link().
-{ok,<0.38.0>}
-3> Pid ! hi.
-hi
-4> sys:trace(simpleproc, true).
-Continue!
-ok
-5> Pid ! hi.
-simpleproc event = {in, hi}
-hi
-6> sys:trace(simpleproc, false).
-Continue!
-ok
-7> Pid ! hi.
-hi
-</pre>
+<script src="https://gist.github.com/marcelog/756f4fd604c63eb2ad8a66a89afff351.js"></script>
 <p>
 In our case, we use {in, Msg} as the system event, which is standarized.
 </p>
@@ -276,29 +177,13 @@ In our case, we use {in, Msg} as the system event, which is standarized.
 <b>NOTE</b>: The debug options are initialized in simpleproc:init/1, by calling <a href="http://www.erlang.org/doc/man/sys.html#debug_options-1">sys:debug_options/1</a>,
 these are keep along the code, and can be changed by calling sys:trace/2,3 and sys:statistics/2,3.
 </p>
-<h3>Code change</h3>
+<h3>Hot Code change in your Erlang Special Process</h3>
 <p>
 <b>simpleproc:system_code_change/4</b> is invoked by sys:handle_system_msg/6 when a code change is required. This function
 must convert the process actual state (the State argument) to the new structure. What follows is an example of hot-code upgrade,
 by using <a href="http://www.erlang.org/doc/man/sys.html#change_code-4">sys:change_code/4</a>:
 </p>
-<pre name="code" class="php">
-1> c(simpleproc).
-{ok,simpleproc}
-2> {ok, Pid} = simpleproc:start_link().
-{ok,<0.38.0>}
-3> sys:suspend(Pid).
-ok
-4> c(simpleproc).
-{ok,simpleproc}
-5> sys:change_code(simpleproc, simpleproc, [], []).
-Changed code!
-ok
-6> sys:resume(simpleproc).
-Continue!
-ok
-</pre>
-
+<script src="https://gist.github.com/marcelog/5be95d51fb94e537eb9b3682d0f23431.js"></script>
 <h3>Conclusion</h3>
 <p>
 Well that wasn't so hard, was it? :D With a few lines of code, and (relatively) few concepts, we can now
@@ -319,507 +204,13 @@ At the end of the appendix, the <b>gen</b> module is shown, where some code that
 
 <b>Note</b>: Supervisor IS a gen_server.
 
-<pre name="code" class="php">
-%%%  -----------------------------------------------------------------
-%%% Starts a generic server.
-%%% start(Mod, Args, Options)
-%%% start(Name, Mod, Args, Options)
-%%% start_link(Mod, Args, Options)
-%%% start_link(Name, Mod, Args, Options) where:
-%%%    Name ::= {local, atom()} | {global, atom()} | {via, atom(), term()}
-%%%    Mod  ::= atom(), callback module implementing the 'real' server
-%%%    Args ::= term(), init arguments (to Mod:init/1)
-%%%    Options ::= [{timeout, Timeout} | {debug, [Flag]}]
-%%%      Flag ::= trace | log | {logfile, File} | statistics | debug
-%%%          (debug == log && statistics)
-%%% Returns: {ok, Pid} |
-%%%          {error, {already_started, Pid}} |
-%%%          {error, Reason}
-%%% -----------------------------------------------------------------
-start(Mod, Args, Options) ->
-    gen:start(?MODULE, nolink, Mod, Args, Options).
-
-start(Name, Mod, Args, Options) ->
-    gen:start(?MODULE, nolink, Name, Mod, Args, Options).
-
-start_link(Mod, Args, Options) ->
-    gen:start(?MODULE, link, Mod, Args, Options).
-
-start_link(Name, Mod, Args, Options) ->
-    gen:start(?MODULE, link, Name, Mod, Args, Options).
-
-
-%%% ---------------------------------------------------
-%%% Initiate the new process.
-%%% Register the name using the Rfunc function
-%%% Calls the Mod:init/Args function.
-%%% Finally an acknowledge is sent to Parent and the main
-%%% loop is entered.
-%%% ---------------------------------------------------
-init_it(Starter, self, Name, Mod, Args, Options) ->
-    init_it(Starter, self(), Name, Mod, Args, Options);
-init_it(Starter, Parent, Name0, Mod, Args, Options) ->
-    Name = name(Name0),
-    Debug = debug_options(Name, Options),
-    case catch Mod:init(Args) of
-    {ok, State} ->
-        proc_lib:init_ack(Starter, {ok, self()}),
-        loop(Parent, Name, State, Mod, infinity, Debug);
-    {ok, State, Timeout} ->
-        proc_lib:init_ack(Starter, {ok, self()}),
-        loop(Parent, Name, State, Mod, Timeout, Debug);
-    {stop, Reason} ->
-        %% For consistency, we must make sure that the
-        %% registered name (if any) is unregistered before
-        %% the parent process is notified about the failure.
-        %% (Otherwise, the parent process could get
-        %% an 'already_started' error if it immediately
-        %% tried starting the process again.)
-        unregister_name(Name0),
-        proc_lib:init_ack(Starter, {error, Reason}),
-        exit(Reason);
-    ignore ->
-        unregister_name(Name0),
-        proc_lib:init_ack(Starter, ignore),
-        exit(normal);
-    {'EXIT', Reason} ->
-        unregister_name(Name0),
-        proc_lib:init_ack(Starter, {error, Reason}),
-        exit(Reason);
-    Else ->
-        Error = {bad_return_value, Else},
-        proc_lib:init_ack(Starter, {error, Error}),
-        exit(Error)
-    end.
-
-%%% ---------------------------------------------------
-%%% The MAIN loop.
-%%% ---------------------------------------------------
-loop(Parent, Name, State, Mod, hibernate, Debug) ->
-    proc_lib:hibernate(?MODULE,wake_hib,[Parent, Name, State, Mod, Debug]);
-loop(Parent, Name, State, Mod, Time, Debug) ->
-    Msg = receive
-          Input ->
-            Input
-      after Time ->
-          timeout
-      end,
-    decode_msg(Msg, Parent, Name, State, Mod, Time, Debug, false).
-
-%%-----------------------------------------------------------------
-%% Callback functions for system messages handling.
-%%-----------------------------------------------------------------
-system_continue(Parent, Debug, [Name, State, Mod, Time]) ->
-    loop(Parent, Name, State, Mod, Time, Debug).
-
--spec system_terminate(_, _, _, [_]) -> no_return().
-
-system_terminate(Reason, _Parent, Debug, [Name, State, Mod, _Time]) ->
-    terminate(Reason, Name, [], Mod, State, Debug).
-
-system_code_change([Name, State, Mod, Time], _Module, OldVsn, Extra) ->
-    case catch Mod:code_change(OldVsn, State, Extra) of
-    {ok, NewState} -> {ok, [Name, NewState, Mod, Time]};
-    Else -> Else
-    end.
-
-%%% ---------------------------------------------------
-%%% Terminate the server.
-%%% ---------------------------------------------------
-
-terminate(Reason, Name, Msg, Mod, State, Debug) ->
-    case catch Mod:terminate(Reason, State) of
-    {'EXIT', R} ->
-        error_info(R, Name, Msg, State, Debug),
-        exit(R);
-    _ ->
-        case Reason of
-        normal ->
-            exit(normal);
-        shutdown ->
-            exit(shutdown);
-        {shutdown,_}=Shutdown ->
-            exit(Shutdown);
-        _ ->
-            FmtState =
-            case erlang:function_exported(Mod, format_status, 2) of
-                true ->
-                Args = [get(), State],
-                case catch Mod:format_status(terminate, Args) of
-                    {'EXIT', _} -> State;
-                    Else -> Else
-                end;
-                _ ->
-                State
-            end,
-            error_info(Reason, Name, Msg, FmtState, Debug),
-            exit(Reason)
-        end
-    end.
-
-decode_msg(Msg, Parent, Name, State, Mod, Time, Debug, Hib) ->
-    case Msg of
-    {system, From, Req} ->
-        sys:handle_system_msg(Req, From, Parent, ?MODULE, Debug,
-                  [Name, State, Mod, Time], Hib);
-    {'EXIT', Parent, Reason} ->
-        terminate(Reason, Name, Msg, Mod, State, Debug);
-    _Msg when Debug =:= [] ->
-        handle_msg(Msg, Parent, Name, State, Mod);
-    _Msg ->
-        Debug1 = sys:handle_debug(Debug, fun print_event/3,
-                      Name, {in, Msg}),
-        handle_msg(Msg, Parent, Name, State, Mod, Debug1)
-    end.
-</pre>
-
+<script src="https://gist.github.com/marcelog/28937c86b5c1ad1d69a0cb9ce375bf73.js"></script>
 <h3>lib/stdlib/src/gen_fsm.erl</h3>
-<pre name="code" class="php">
-%%% ---------------------------------------------------
-%%% Starts a generic state machine.
-%%% start(Mod, Args, Options)
-%%% start(Name, Mod, Args, Options)
-%%% start_link(Mod, Args, Options)
-%%% start_link(Name, Mod, Args, Options) where:
-%%%    Name ::= {local, atom()} | {global, atom()} | {via, atom(), term()}
-%%%    Mod  ::= atom(), callback module implementing the 'real' fsm
-%%%    Args ::= term(), init arguments (to Mod:init/1)
-%%%    Options ::= [{debug, [Flag]}]
-%%%      Flag ::= trace | log | {logfile, File} | statistics | debug
-%%%          (debug == log && statistics)
-%%% Returns: {ok, Pid} |
-%%%          {error, {already_started, Pid}} |
-%%%          {error, Reason}
-%%% ---------------------------------------------------
-start(Mod, Args, Options) ->
-    gen:start(?MODULE, nolink, Mod, Args, Options).
-
-start(Name, Mod, Args, Options) ->
-    gen:start(?MODULE, nolink, Name, Mod, Args, Options).
-
-start_link(Mod, Args, Options) ->
-    gen:start(?MODULE, link, Mod, Args, Options).
-
-start_link(Name, Mod, Args, Options) ->
-    gen:start(?MODULE, link, Name, Mod, Args, Options).
-
-%%% ---------------------------------------------------
-%%% Initiate the new process.
-%%% Register the name using the Rfunc function
-%%% Calls the Mod:init/Args function.
-%%% Finally an acknowledge is sent to Parent and the main
-%%% loop is entered.
-%%% ---------------------------------------------------
-init_it(Starter, self, Name, Mod, Args, Options) ->
-    init_it(Starter, self(), Name, Mod, Args, Options);
-init_it(Starter, Parent, Name0, Mod, Args, Options) ->
-    Name = name(Name0),
-    Debug = gen:debug_options(Options),
-    case catch Mod:init(Args) of
-    {ok, StateName, StateData} ->
-        proc_lib:init_ack(Starter, {ok, self()}),
-        loop(Parent, Name, StateName, StateData, Mod, infinity, Debug);
-    {ok, StateName, StateData, Timeout} ->
-        proc_lib:init_ack(Starter, {ok, self()}),
-        loop(Parent, Name, StateName, StateData, Mod, Timeout, Debug);
-    {stop, Reason} ->
-        unregister_name(Name0),
-        proc_lib:init_ack(Starter, {error, Reason}),
-        exit(Reason);
-    ignore ->
-        unregister_name(Name0),
-        proc_lib:init_ack(Starter, ignore),
-        exit(normal);
-    {'EXIT', Reason} ->
-        unregister_name(Name0),
-        proc_lib:init_ack(Starter, {error, Reason}),
-        exit(Reason);
-    Else ->
-        Error = {bad_return_value, Else},
-        proc_lib:init_ack(Starter, {error, Error}),
-        exit(Error)
-    end.
-%%-----------------------------------------------------------------
-%% The MAIN loop
-%%-----------------------------------------------------------------
-loop(Parent, Name, StateName, StateData, Mod, hibernate, Debug) ->
-    proc_lib:hibernate(?MODULE,wake_hib,
-               [Parent, Name, StateName, StateData, Mod,
-            Debug]);
-loop(Parent, Name, StateName, StateData, Mod, Time, Debug) ->
-    Msg = receive
-          Input ->
-            Input
-      after Time ->
-          {'$gen_event', timeout}
-      end,
-    decode_msg(Msg,Parent, Name, StateName, StateData, Mod, Time, Debug, false).
-
-wake_hib(Parent, Name, StateName, StateData, Mod, Debug) ->
-    Msg = receive
-          Input ->
-          Input
-      end,
-    decode_msg(Msg, Parent, Name, StateName, StateData, Mod, hibernate, Debug, true).
-
-decode_msg(Msg,Parent, Name, StateName, StateData, Mod, Time, Debug, Hib) ->
-    case Msg of
-        {system, From, Req} ->
-        sys:handle_system_msg(Req, From, Parent, ?MODULE, Debug,
-                  [Name, StateName, StateData, Mod, Time], Hib);
-    {'EXIT', Parent, Reason} ->
-        terminate(Reason, Name, Msg, Mod, StateName, StateData, Debug);
-    _Msg when Debug =:= [] ->
-        handle_msg(Msg, Parent, Name, StateName, StateData, Mod, Time);
-    _Msg ->
-        Debug1 = sys:handle_debug(Debug, fun print_event/3,
-                      {Name, StateName}, {in, Msg}),
-        handle_msg(Msg, Parent, Name, StateName, StateData,
-               Mod, Time, Debug1)
-    end.
-
-%%-----------------------------------------------------------------
-%% Callback functions for system messages handling.
-%%-----------------------------------------------------------------
-system_continue(Parent, Debug, [Name, StateName, StateData, Mod, Time]) ->
-    loop(Parent, Name, StateName, StateData, Mod, Time, Debug).
-
--spec system_terminate(term(), _, _, [term(),...]) -> no_return().
-
-system_terminate(Reason, _Parent, Debug,
-         [Name, StateName, StateData, Mod, _Time]) ->
-    terminate(Reason, Name, [], Mod, StateName, StateData, Debug).
-system_code_change([Name, StateName, StateData, Mod, Time],
-           _Module, OldVsn, Extra) ->
-    case catch Mod:code_change(OldVsn, StateName, StateData, Extra) of
-    {ok, NewStateName, NewStateData} ->
-        {ok, [Name, NewStateName, NewStateData, Mod, Time]};
-    Else -> Else
-    end.
-
-terminate(Reason, Name, Msg, Mod, StateName, StateData, Debug) ->
-    case catch Mod:terminate(Reason, StateName, StateData) of
-    {'EXIT', R} ->
-        error_info(R, Name, Msg, StateName, StateData, Debug),
-        exit(R);
-    _ ->
-        case Reason of
-        normal ->
-            exit(normal);
-        shutdown ->
-            exit(shutdown);
-        {shutdown,_}=Shutdown ->
-            exit(Shutdown);
-        _ ->
-                    FmtStateData =
-                        case erlang:function_exported(Mod, format_status, 2) of
-                            true ->
-                                Args = [get(), StateData],
-                                case catch Mod:format_status(terminate, Args) of
-                                    {'EXIT', _} -> StateData;
-                                    Else -> Else
-                                end;
-                            _ ->
-                                StateData
-                        end,
-            error_info(Reason,Name,Msg,StateName,FmtStateData,Debug),
-            exit(Reason)
-        end
-    end.
-
-</pre>
-
+<script src="https://gist.github.com/marcelog/a5837c72b81be75340962177a14946fb.js"></script>
 <h3>lib/stdlib/src/gen_event.erl</h3>
-<pre name="code" class="php">
-%%---------------------------------------------------------------------------
-
--define(NO_CALLBACK, 'no callback module').
-
--spec start() -> start_ret().
-start() ->
-    gen:start(?MODULE, nolink, ?NO_CALLBACK, [], []).
-
--spec start(emgr_name()) -> start_ret().
-start(Name) ->
-    gen:start(?MODULE, nolink, Name, ?NO_CALLBACK, [], []).
-
--spec start_link() -> start_ret().
-start_link() ->
-    gen:start(?MODULE, link, ?NO_CALLBACK, [], []).
-
--spec start_link(emgr_name()) -> start_ret().
-start_link(Name) ->
-    gen:start(?MODULE, link, Name, ?NO_CALLBACK, [], []).
-
-%% -spec init_it(pid(), 'self' | pid(), emgr_name(), module(), [term()], [_]) ->
-init_it(Starter, self, Name, Mod, Args, Options) ->
-    init_it(Starter, self(), Name, Mod, Args, Options);
-init_it(Starter, Parent, Name0, _, _, Options) ->
-    process_flag(trap_exit, true),
-    Debug = gen:debug_options(Options),
-    proc_lib:init_ack(Starter, {ok, self()}),
-    Name = name(Name0),
-    loop(Parent, Name, [], Debug, false).
-loop(Parent, ServerName, MSL, Debug, true) ->
-     proc_lib:hibernate(?MODULE, wake_hib, [Parent, ServerName, MSL, Debug]);
-loop(Parent, ServerName, MSL, Debug, _) ->
-    fetch_msg(Parent, ServerName, MSL, Debug, false).
-
-fetch_msg(Parent, ServerName, MSL, Debug, Hib) ->
-    receive
-    {system, From, Req} ->
-        sys:handle_system_msg(Req, From, Parent, ?MODULE, Debug,
-                  [ServerName, MSL, Hib],Hib);
-    {'EXIT', Parent, Reason} ->
-        terminate_server(Reason, Parent, MSL, ServerName);
-    Msg when Debug =:= [] ->
-        handle_msg(Msg, Parent, ServerName, MSL, []);
-    Msg ->
-        Debug1 = sys:handle_debug(Debug, fun print_event/3,
-                      ServerName, {in, Msg}),
-        handle_msg(Msg, Parent, ServerName, MSL, Debug1)
-    end.
-terminate_server(Reason, Parent, MSL, ServerName) ->
-    stop_handlers(MSL, ServerName),
-    do_unlink(Parent, MSL),
-    exit(Reason).
-%% First terminate the supervised (if exists) handlers and
-%% then inform other handlers.
-%% We do not know if any handler really is interested but it
-%% may be so !
-handle_exit(From, Reason, MSL, SName) ->
-    MSL1 = terminate_supervised(From, Reason, MSL, SName),
-    {_,MSL2}=server_notify({'EXIT', From, Reason}, handle_info, MSL1, SName),
-    MSL2.
-
-terminate_supervised(Pid, Reason, MSL, SName) ->
-    F = fun(Ha) when Ha#handler.supervised =:= Pid ->
-        do_terminate(Ha#handler.module,
-                 Ha,
-                 {stop,Reason},
-                 Ha#handler.state,
-                 {parent_terminated, {Pid,Reason}},
-                 SName,
-                 shutdown),
-        false;
-       (_) ->
-        true
-    end,
-    lists:filter(F, MSL).
-
-%%-----------------------------------------------------------------
-%% Callback functions for system messages handling.
-%%-----------------------------------------------------------------
-system_continue(Parent, Debug, [ServerName, MSL, Hib]) ->
-    loop(Parent, ServerName, MSL, Debug, Hib).
-
--spec system_terminate(_, _, _, [_]) -> no_return().
-system_terminate(Reason, Parent, _Debug, [ServerName, MSL, _Hib]) ->
-    terminate_server(Reason, Parent, MSL, ServerName).
-
-%%-----------------------------------------------------------------
-%% Module here is sent in the system msg change_code.  It specifies
-%% which module should be changed.
-%%-----------------------------------------------------------------
-system_code_change([ServerName, MSL, Hib], Module, OldVsn, Extra) ->
-    MSL1 = lists:zf(fun(H) when H#handler.module =:= Module ->
-                {ok, NewState} =
-                Module:code_change(OldVsn,
-                           H#handler.state, Extra),
-                {true, H#handler{state = NewState}};
-               (_) -> true
-            end,
-            MSL),
-    {ok, [ServerName, MSL1, Hib]}.
-</pre>
-
+<script src="https://gist.github.com/marcelog/8ef047d374d6b287d95e10d5a16fd5cc.js"></script>
 <h3>lib/stdlib/src/gen.erl</h3>
-<pre name="code" class="php">
-%%-----------------------------------------------------------------
-%% Starts a generic process.
-%% start(GenMod, LinkP, Mod, Args, Options)
-%% start(GenMod, LinkP, Name, Mod, Args, Options)
-%%    GenMod = atom(), callback module implementing the 'real' fsm
-%%    LinkP = link | nolink
-%%    Name = {local, atom()} | {global, term()} | {via, atom(), term()}
-%%    Args = term(), init arguments (to Mod:init/1)
-%%    Options = [{timeout, Timeout} | {debug, [Flag]} | {spawn_opt, OptionList}]
-%%      Flag = trace | log | {logfile, File} | statistics | debug
-%%          (debug == log && statistics)
-%% Returns: {ok, Pid} | ignore |{error, Reason} |
-%%          {error, {already_started, Pid}} |
-%%    The 'already_started' is returned only if Name is given
-%%-----------------------------------------------------------------
-
--spec start(module(), linkage(), emgr_name(), module(), term(), options()) ->
-    start_ret().
-
-start(GenMod, LinkP, Name, Mod, Args, Options) ->
-    case where(Name) of
-    undefined ->
-        do_spawn(GenMod, LinkP, Name, Mod, Args, Options);
-    Pid ->
-        {error, {already_started, Pid}}
-    end.
-
--spec start(module(), linkage(), module(), term(), options()) -> start_ret().
-
-start(GenMod, LinkP, Mod, Args, Options) ->
-    do_spawn(GenMod, LinkP, Mod, Args, Options).
-
-%%-----------------------------------------------------------------
-%% Spawn the process (and link) maybe at another node.
-%% If spawn without link, set parent to ourselves 'self'!!!
-%%-----------------------------------------------------------------
-do_spawn(GenMod, link, Mod, Args, Options) ->
-    Time = timeout(Options),
-    proc_lib:start_link(?MODULE, init_it,
-            [GenMod, self(), self(), Mod, Args, Options],
-            Time,
-            spawn_opts(Options));
-do_spawn(GenMod, _, Mod, Args, Options) ->
-    Time = timeout(Options),
-    proc_lib:start(?MODULE, init_it,
-           [GenMod, self(), self, Mod, Args, Options],
-           Time,
-           spawn_opts(Options)).
-
-do_spawn(GenMod, link, Name, Mod, Args, Options) ->
-    Time = timeout(Options),
-    proc_lib:start_link(?MODULE, init_it,
-            [GenMod, self(), self(), Name, Mod, Args, Options],
-            Time,
-            spawn_opts(Options));
-do_spawn(GenMod, _, Name, Mod, Args, Options) ->
-    Time = timeout(Options),
-    proc_lib:start(?MODULE, init_it,
-           [GenMod, self(), self, Name, Mod, Args, Options],
-           Time,
-           spawn_opts(Options)).
-
-%%-----------------------------------------------------------------
-%% Initiate the new process.
-%% Register the name using the Rfunc function
-%% Calls the Mod:init/Args function.
-%% Finally an acknowledge is sent to Parent and the main
-%% loop is entered.
-%%-----------------------------------------------------------------
-init_it(GenMod, Starter, Parent, Mod, Args, Options) ->
-    init_it2(GenMod, Starter, Parent, self(), Mod, Args, Options).
-
-init_it(GenMod, Starter, Parent, Name, Mod, Args, Options) ->
-    case name_register(Name) of
-    true ->
-        init_it2(GenMod, Starter, Parent, Name, Mod, Args, Options);
-    {false, Pid} ->
-        proc_lib:init_ack(Starter, {error, {already_started, Pid}})
-    end.
-
-init_it2(GenMod, Starter, Parent, Name, Mod, Args, Options) ->
-    GenMod:init_it(Starter, Parent, Name, Mod, Args, Options).
-
-</pre>
-
+<script src="https://gist.github.com/marcelog/33801321eecb3040db600791b3445694.js"></script>
               </div>
             </div>
             <div class="mod view-more">
