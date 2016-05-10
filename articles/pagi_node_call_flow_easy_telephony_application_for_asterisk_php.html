@@ -63,15 +63,15 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Write PHP nodes for your IVR or Telephony Applications for Asterisk PBX</h3>
 <p>
-In the <a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">last article</a> I've talked about how to
-create telephony applications using nothing else than the standard pagi client. Also, in <a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">this article</a>
+In <a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">"<b>PAGI: Quick telephony applications using AGI and PHP</b>"</a> I've talked about how to
+create telephony applications using nothing else than the standard pagi client. Also, in <a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">"<b>Unit test your PHP IVR applications with PAGI</b>"</a>
 I've shown how to unit test them, by using the mocked client pagi. Now, since version 1.10.0, PAGI comes with a neat feature, which is a small
 abstraction layer over the pagi client, called "Nodes". Also, the "NodeController" will orchestrate how those nodes interact with each other. Nodes are essentially call flow nodes.
 <p>
 These new features will allow you to implement complete call flows in no time, and maybe even without using the pagi client by yourself. In
-this article, I'll introduce the nodes by themselves (and how to unit test them), and will talk about the node controller in a <a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">latter article</a>.
+this article, I'll introduce the nodes by themselves (and how to unit test them), and will talk about the node controller in <a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">"<b>Making your ivr nodes (call) flow with PAGI</b>"</a>.
 </p>
 <p>
 First, a couple of useful links:
@@ -84,7 +84,7 @@ First, a couple of useful links:
 <li><u><a href="http://pagi.readthedocs.org/en/latest/PAGI-Node-MockedNode/">MockedNode API</a></u></li>
 </ul>
 </p>
-<h3>What can a Node do</h3>
+<h3>What can you in your VoIP application from your PHP nodes</h3>
 <ul>
 <li><a href="http://en.wikipedia.org/wiki/Fluent_interface">Fluent</a> interface.</li>
 <li>A node has a resulting state after being run: COMPLETE, CANCEL, TIMEOUT, MAX_INPUT_REACHED</li>
@@ -106,31 +106,19 @@ First, a couple of useful links:
 <li>Can carry state: each node has an internal registry where temporal data can be stored/retrieved, useful to pass information between nodes.</li>
 <li>Can execute callbacks: before/after running the node, on validated/failed input.</li>
 </ul>
-<h3>Creating a Node</h3>
+<h3>Creating a PHP Node for your Application</h3>
 <p>
 First, get a pagi client instance:
 </p>
-<pre name="code" class="php">
-$pagiClientOptions = array();
-use PAGI\Client\Impl\ClientImpl as PagiClient;
-$pagiClient = PagiClient::getInstance($pagiClientOptions);
-</pre>
+<script src="https://gist.github.com/marcelog/ee0d08aed7ede3340f56eb22a223f159.js"></script>
 <p>Then, just create a node:</p>
-<pre name="code" class="php">
-$mainMenuNode = $pagiClient->createNode('mainMenu');
-</pre>
+<script src="https://gist.github.com/marcelog/caeb60daf7bc4fa87bdbdec52bf1ba6a.js"></script>
 <p>To run the node:</p>
-<pre name="code" class="php">
-$mainMenuNode->run();
-</pre>
+<script src="https://gist.github.com/marcelog/41303d1bde9811991fd1db909c4d4bc2.js"></script>
 <p>To get what the user entered as input after running the node:</p>
-<pre name="code" class="php">
-$input = $mainMenuNode->getInput();
-</pre>
+<script src="https://gist.github.com/marcelog/81ee2a51d3ae70407336e870b75fab6e.js"></script>
 <p>To access the pagi client used for that node:</p>
-<pre name="code" class="php">
-$client = $mainMenuNode->getClient();
-</pre>
+<script src="https://gist.github.com/marcelog/e4ea530c01f4515a365f683ec78c05aa.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -141,35 +129,12 @@ $client = $mainMenuNode->getClient();
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>A Basic IVR Menu</h3>
+<h3>A Basic IVR (Interactive Voice Response) Menu written in a few PHP nodes</h3>
 <p>
 Let's see a semi-complex example of an ivr menu. Of course this is just an example and it's possible
 you may not need everything shown:
 </p>
-<pre name="code" class="php">
-$mainMenu = $pagiClient->createNode('mainMenu');
-$mainMenu
-    ->saySound('main-menu-prompt')
-    ->expectExactly(1)
-    ->maxAttemptsForInput(3)
-    ->maxTimeBetweenDigits(3000)
-    ->playOnNoInput('please-choose-an-option')
-    ->playOnMaxValidInputAttempts("max-attempts-reached")
-    ->validateInputWith(
-        'standardOptionValidation',
-        function(Node $node) {
-            return in_array(
-                $node->getInput(), array('1', '2', '3', '4')
-            );
-        },
-        'invalid-option'
-    )->executeOnInputFailed(function (Node $node) {
-        if ($node->getTotalInputAttemptsUsed() <= 2) {
-            $node->addPrePromptMessage("please-try-again");
-        }
-    })->run()
-;
-</pre>
+<script src="https://gist.github.com/marcelog/b25a4e2d61b7005ad1cc8db0ce78016c.js"></script>
 <p>
 The above code will setup a node that will prompt the user with the sound
 "main-menu-prompt", will expect exactly 1 digit as input, and will give the user
@@ -194,43 +159,18 @@ validation is allowed).
 <p>
 If you want to play the "no input" message in the last attempt too, you can use:
 </p>
-<pre name="code" class="php">
-$mainMenu->playNoInputMessageOnLastAttempt();
-</pre>
+<script src="https://gist.github.com/marcelog/768ae62478dc3e3fbbb9099d00c60a2f.js"></script>
 <p>
 To check how this node ended up, we could use the following code (note that this is pretty much
 the job of the NodeController, which we are not using *yet*):
 </p>
-<pre name="code" class="php">
-if ($mainMenu->maxInputsReached()) {
-    $mainMenu->getClient()->hangup();
-} else if ($mainMenu->isComplete()) {
-    $input = $mainMenu->getInput();
-    if ($input == 1) {
-        $option1Node->run();
-    } else if ($input == 2) {
-        $option2Node->run();
-    } else if ($input == 3) {
-        $option3Node->run();
-    } else if ($input == 4) {
-        $option4Node->run();
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/114a9f001bdb974c19645b4830ac9307.js"></script>
 <p>
 You can chain as many message prompts as desired. Message prompts can play a sound file, say some digits, a number, or
 a datetime. For example, this plays multiple messages to actually build the prompt:
 </p>
-<pre name="code" class="php">
-$pagiClient->createNode('mainMenu')
-    ->saySound('sound1')
-    ->saySound('sound2')
-    ->sayDigits(123)
-    ->sayDateTime(time(), 'dmY')
-    ->saySound('sound3')
-;
-</pre>
-<h3>Manipulating pre prompt messages</h3>
+<script src="https://gist.github.com/marcelog/813f76865aec39e0b9fcd1afa88e3ae9.js"></script>
+<h3>Manipulating pre prompt messages and audios in your PHP node</h3>
 <p>
 Messages can be played before playing the prompt. These messages are called "Pre Prompt" messages. These messages
 are for example the sound files played when a validation fails, or the "no input" message. These messages are
@@ -238,27 +178,15 @@ interruptable by default, and if a digit is pressed while playing them, it will 
 and the digit counts as input to be handled by the node. This behaviour can be altered. For example, if you would like to
 make the pre prompt messages interruptable but continue to play the prompt messages:
 </p>
-<pre name="code" class="php">
-$mainMenu = $pagiClient->createNode('mainMenu');
-
-// input on pre prompt messages will not interrupt the
-// prompt messages and will not be counted as user input.
-$mainMenu->dontAcceptPrePromptInputAsInput();
-</pre>
+<script src="https://gist.github.com/marcelog/ce01a2ebdff26545dd4dcd839372e135.js"></script>
 <p>
 If you would like to make the pre prompt messages not interruptable:
 </p>
-<pre name="code" class="php">
-$mainMenu = $pagiClient->createNode('mainMenu');
-$mainMenu->prePromptMessagesNotInterruptable();
-</pre>
+<script src="https://gist.github.com/marcelog/f932c6b3c2812655748fdcccd535703b.js"></script>
 <p>
 To programatically add a pre prompt message:
 </p>
-<pre name="code" class="php">
-$mainMenu = $pagiClient->createNode('mainMenu');
-$mainMenu->addPrePromptMessage('myMessage');
-</pre>
+<script src="https://gist.github.com/marcelog/8eea76c1964df699c59da0fcd5215625.js"></script>
 <p>
 Remember that pre prompt messages are dynamic. They are cleared (reset) after playing them, so
 if you want to replay a pre prompt message, you have to add it yourself (probably in one of the callbacks allowed
@@ -269,40 +197,15 @@ for a node, see below).
 Let's now create a node that will play back to the user his/her telephone number and the amount of money available, with a given
 due date. This node wont accept any input and cant be interrupted:
 </p>
-<pre name="code" class="php">
-$clid = $pagiClient->getCallerId();
-$pagiClient->createNode('playCredit')
-    ->unInterruptablePrompts()
-    ->saySound('you-are-calling-from')
-    ->sayDigits($clid->getNumber())
-    ->saySound('and-you-currently-have')
-    ->sayNumber(20)
-    ->saySound('dollars')
-    ->saySound('the-credit-will-expire-on')
-    ->sayDateTime(time(), 'Bd')
-    ->run()
-;
-</pre>
+<script src="https://gist.github.com/marcelog/ae1c3f60abc9f60586722f5491fca45a.js"></script>
 <p>
 To know more about the datetime formats in asterisk, see <a href="http://www.voip-info.org/wiki/view/say+datetime">this</a>.
 </p>
-<h3>Entering a calling card PIN</h3>
+<h3>A sample PHP node: Entering a calling card PIN in your IVR</h3>
 <p>
 Let's see how we could ask a user for their pin number:
 </p>
-<pre name="code" class="php">
-$pagiClient->createNode('inputPin')
-    ->saySound('please-enter-your-pin-number')
-    ->maxTimeBetweenDigits(3000)
-    ->expectAtLeast(10)
-    ->expectAtMost(12)
-    ->cancelWith(Node::DTMF_STAR)
-    ->cancelWithInputRetriesInput()
-    ->endInputWith(Node::DTMF_HASH)
-    ->maxAttemptsForInput(3)
-    ->run()
-;
-</pre>
+<script src="https://gist.github.com/marcelog/867382acd557c9cfcf2369645ffc429a.js"></script>
 <p>
 In this case, we are expecting between 10 and 12 digits for a valid PIN number. If the user
 enters 12 digits, no more digits will be expected. However, a valid PIN number may have 10
@@ -322,148 +225,35 @@ then the node is cancelled and ends. On the other hand, if the user presses some
 will cancel that particular input attempt and then retry it (this is useful when the user enters a wrong digit and wants to
 continue using that particular node, retrying the input). Each cancelled input attempt counts as a failed input attempt.
 </p>
-<h3>Loading a bunch of validators</h3>
+<h3>Validating input in your Telephony Application</h3>
 <p>
 If you have many validators to use for an input, it can be annoying to call
 validateInputWith() for every one of them. In this case, you can use the
 loadValidatorsFrom() method, like so:
 </p>
-<pre name="code" class="php">
-use PAGI\Node\Node;
-
-function getValidators()
-{
-	return array(
-	    'validationName1' => Node::createValidatorInfo(
-	        function(Node $node) {
-	            return true;
-	        },
-	        'validationFailedSound1'
-	    ),
-	    'validationWithoutSound' => Node::createValidatorInfo(
-	        function(Node $node) {
-	            return true;
-	        },
-	    ),
-	    'validationName2' => Node::createValidatorInfo(
-	        function(Node $node) {
-	            return true;
-	        },
-	        'validationFailedSound2'
-	    )
-	);
-}
-
-$pagiClient->createNode('enterCreditCard')
-    ->loadValidatorsFrom(getValidators())
-;
-</pre>
-<h3>Executing custom callbacks</h3>
+<script src="https://gist.github.com/marcelog/08e3cc7b50c38007784ae622a71b68f3.js"></script>
+<h3>Executing custom callbacks during the lifecycle of your nodes in your Telephony Application</h3>
 <p>
 Here's a brief example of all the callbacks available in a node:
 </p>
-<pre name="code" class="php">
-$pagiClient->createNode('callbackTest')
-    ->executeOnValidInput(function (Node $node) {
-        // Will run when all validations passed
-        // for the entered input
-    })->executeOnInputFailed(function (Node $node) {
-        // Will run after all attempts to enter a valid
-        // input have been used. Will only be run 1 or 0
-        // times.
-    })->executeBeforeRun(function (Node $node) {
-        // Will run before the node starts to run.
-    })->executeAfterRun(function (Node $node) {
-        // Will run after the node has completed execution.
-    })->executeAfterFailedValidation(function (Node $node) {
-        // Will run after an input validation has been failed.
-        // May be run 0 or multiple times.
-    })
-;
-</pre>
-<h3>Carrying state: Using the node internal registry</h3>
+<script src="https://gist.github.com/marcelog/ad45aa16590c68883955b2d72589fa82.js"></script>
+<h3>Carrying state: Using the node internal registry to move data from one node to another</h3>
 <p>
 A Node has what is called a registry, where data can be stored, queried, and
 deleted. This is a convenient way to store data in the node so outsiders can
 access it, specially, a chained of validations. Let's go back to our example of
 calling card pin input, adding some validations:
 </p>
-<pre name="code" class="php">
-$inputPinNode = $pagiClient->createNode('inputPin');
-$inputPinNode
-    ->saySound('please-enter-your-pin-number')
-    ->maxTimeBetweenDigits(3000)
-    ->expectAtLeast(10)
-    ->expectAtMost(12)
-    ->cancelWith(Node::DTMF_STAR)
-    ->cancelWithInputRetriesInput()
-    ->endInputWith(Node::DTMF_HASH)
-    ->maxAttemptsForInput(3)
-    ->validateInputWith(
-        'cardExists',
-        function (Node $node) use ($cardService) {
-            // Try to get a calling card entity with the
-            // given PIN.
-            $input = $node->getInput();
-            $cardEntity = $cardService->getByPin($input);
-            if ($cardEntity === null) {
-                return false;
-            }
-            // Success! Save the calling card entity for
-            // other validations.
-            $node->saveCustomData('cardEntity', $cardEntity);
-            return true;
-        },
-        'card-does-not-exist'
-    )
-    ->validateInputWith(
-        'cardHasFunds',
-        function (Node $node)  {
-            // This validator will now have the calling card
-            // entity stored in the registry.
-            $cardEntity = $node->getCustomData('cardEntity');
-            return $cardEntity->hasAtLeast(20);
-        },
-        'insufficient-funds'
-    )
-    ->run()
-;
-
-// Check how the node ended.
-if ($inputPinNode->wasCancelled()) {
-    $mainMenuNode->run();
-} else if ($inputPinNode->maxInputsReached()) {
-    $inputPinNode->getClient()->hangup();
-} else {
-    $cardEntity = $inputPinNode->getCustomData('cardEntity');
-    // Optional, not mandatory cleanup.
-    $inputPinNode->delCustomData('cardEntity');
-    // Continue the application in another node.
-    $anotherNode->saveCustomData('cardEntity', $cardEntity)->run();
-}
-</pre>
-<h3>How to unit test the nodes</h3>
+<script src="https://gist.github.com/marcelog/a0c0e7f717a38ea44f91b2bae9419697.js"></script>
+<h3>How to unit test the IVR nodes with pure PHP Code</h3>
 <p>
 To unit test a node (for example, from a phpunit testcase or event without it), first, get a pagi mocked client:
 </p>
-<pre name="code" class="php">
-$mockedClient = new PAGI\Client\Impl\MockedClientImpl(array(
-    'log4php.properties' => __DIR__ . '/log4php.properties'
-));
-</pre>
+<script src="https://gist.github.com/marcelog/138ced4ad18cf01251c828925436e2ad.js"></script>
 <p>
 Then, mock the node:
 </p>
-<pre name="code" class="php">
-$mockedClient
-    ->onCreateNode('mainMenu')
-    ->runWithInput('123*4#') // simulate this input from the user
-    ->assertSaySound('pp/30', 1)
-    ->assertSayDigits(123, 2)
-    ->assertSayNumber(321, 3)
-    ->assertSayDateTime(11223344, 'dmY', 4)
-;
-</pre>
+<script src="https://gist.github.com/marcelog/8d72ff42bf9397935a25ff37caeafb2c.js"></script>
 <p>
 In the above test, we are configuring the mocked client to expect a node
 to be created by someone else, called "mainMenu". When this node is created,
@@ -487,26 +277,18 @@ when asserting numbers, remember that '123' IS NOT THE SAME AS 123.
 <p>
 Also, there are some other assertions available:
 </p>
-<pre name="code" class="php">
-$mockedNode->assertMaxInputAttemptsReached();
-$mockedNode->assertComplete();
-$mockedNode->assertCancelled();
-</pre>
+<script src="https://gist.github.com/marcelog/52645a733c3e62030b117a1e7ea0b31d.js"></script>
 <h3>Simulating the exact input from the user</h3>
 <p>
 When simulating input from the user, use the method "runWithInput()" in the
 mocked node, like so:
 </p>
-<pre name="code" class="php">
-$mockedNode->runWithInput('123*4#');
-</pre>
+<script src="https://gist.github.com/marcelog/29ae9446cc1acc81d8fd30108b07628f.js"></script>
 <p>
 You can specify every dtmf digit available (1234567890#*). Also, if you want
 to simulate a timeout when entering a digit, you can use a space, for example:
 </p>
-<pre name="code" class="php">
-$mockedNode->runWithInput('1 2  3');
-</pre>
+<script src="https://gist.github.com/marcelog/67a4d61facb5af1dae3c8f2ab839fe98.js"></script>
 <p>
 This simulates the user pressing "1", then nothing, then "2", then nothing (twice),
 and then "3". This is useful to avoid skipping one or more prompt/pre prompt
@@ -535,27 +317,13 @@ an operation is not interruptable, the input string will not be consumed by that
 <p>
 There also some specific callbacks available for the mocked node:
 </p>
-<pre name="code" class="php">
-// Called before running the callback for failed input in
-// the real node.
-$mockedNode->doBeforeFailedInput(function (Node $node) {} );
-
-// Called before running the callback for a validated input
-// in the real node.
-$mockedNode->doBeforeValidInput(function (Node $node) {} );
-</pre>
+<script src="https://gist.github.com/marcelog/d405101d4b6705156ff7639d29b1ef0e.js"></script>
 <p>
 These callbacks are useful (for example) to add some assertions in the pagi
 client, when you expect something to be done from outside the node. Suppose you
 issue a dial() when the node has valid input, you could then do:
 </p>
-<pre name="code" class="php">
-$mockedNode->doBeforeValidInput(function (Node $node) {
-    $node->getClient()->onDial(
-        true, 'peerName', '5555555', 10, 'ANSWER', ''
-    );
-});
-</pre>
+<script src="https://gist.github.com/marcelog/bfb73b28e6223148fa9573f70555256f.js"></script>
 <p>
 So when the node reaches a valid input and the valid input callback is run (and the
 dial is executed), everything works as expected.
@@ -563,42 +331,11 @@ dial is executed), everything works as expected.
 <p>
 So, having this node:
 </p>
-<pre name="code" class="php">
-$pagiClient->createNode('mainMenu')
-    ->saySound('main-menu-prompt')
-    ->expectExactly(1)
-    ->maxTimeBetweenDigits(3000)
-    ->playOnNoInput('please-choose-an-option')
-    ->playOnMaxValidInputAttempts("max-attempts-reached")
-    ->validateInputWith(
-        'standardOptionValidation',
-        function(Node $node) {
-            return in_array(
-                $node->getInput(), array('1', '2', '3', '4')
-            );
-        },
-        'invalid-option'
-    )->executeOnInputFailed(function (Node $node) {
-        if ($node->getTotalInputAttemptsUsed() <= 2) {
-            $node->addPrePromptMessage("please-try-again");
-        }
-    })->run()
-;
-</pre>
+<script src="https://gist.github.com/marcelog/95137591c04c8f43b06093f0252002ef.js"></script>
 <p>
 This can be a test:
 </p>
-<pre name="code" class="php">
-$mockedClient
-    ->onCreateNode('mainMenu')
-    ->runWithInput('   9  1')
-    ->assertSaySound('main-menu-prompt', 1)
-    ->assertSaySound('please-choose-an-option', 1)
-    ->assertSaySound('invalid-option', 1)
-    ->assertSaySound('please-try-again', 1)
-    ->assertComplete()
-;
-</pre>
+<script src="https://gist.github.com/marcelog/27ae3423b0dbb3228736e1da04ef827f.js"></script>
 <p>
 In this way, we're using one space to let the "main-menu-prompt" finish completely, then
 another space to make the call to "WAIT FOR DIGIT" return timeout (no input from the user), the
@@ -606,7 +343,7 @@ message "please-choose-an-option" is played completely, the next input is an inv
 and "please-try-again" (note the 2 spaces). Then the prompt is interrupted with a valid input and the node finishes
 with status complete.
 </p>
-<H3>Conclusion</H3>
+<H3>Writing and testing PHP Telephony Applications and IVRs for the Asterisk PBX has never been easier</H3>
 <p>
 Phew. First of all, thanks for keep on reading! :P I think the conclusion is somewhat clear:
 It's now much more easy to create ivr applications by just configuring the call flow nodes to do
