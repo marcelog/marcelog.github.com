@@ -67,7 +67,7 @@
 <b>NOTE</b>: This is the translation of the <a href="http://erlang.org.ar/WebsocketsConCowboy">original article</a> I wrote in spanish for the
 wiki of <a href="http://erlang.org.ar/">Erlang Argentina</a>.
 </p>
-<h3>Introduction</h3>
+<h3>Why choose Cowboy as the HTTP Framework</h3>
 <p>
 Out of curiosity, and because some of my own projects needed it, I decided to go ahead and try writing a <a href="http://www.websocket.org/">websocket</a>
 server in erlang. After evaluating some of the available options (so I dont have to implement the whole websocket RFC
@@ -80,7 +80,7 @@ might make this article (or the code) any better. By the way, you can find the c
 <a href="https://github.com/marcelog/erws">at GitHub</a>.
 </p>
 
-<h3>So, why Cowboy?</h3>
+<h3>Cowboy: The Most widely used HTTP/SPDY framework for Erlang</h3>
 <p>
 Well, it was the "last man standing" at the end of the tests. Up to now (05/2012), the available alternatives for
 writing a websocket server in erlang are:
@@ -121,7 +121,7 @@ code to find the answers to your questions.</li>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>The code</h3>
+<h3>An example websocket server in Erlang using Cowboy</h3>
 <p>
 So to start trying Cowboy, I decided to create a <a href="https://github.com/basho/rebar">rebar</a> application, which I
 called "erws" (Erlang WebSocket, so much for my creative talent).
@@ -145,111 +145,18 @@ done by cowboy through the module <a href="https://github.com/extend/cowboy/blob
 Once this is done, and through the api that the <a href="https://github.com/extend/cowboy/blob/master/src/cowboy_http_websocket_handler.erl">cowboy_http_websocket_handler</a> behavior imposes,
 we will handle the incoming data as messages, very much like a common gen_server.
 </p>
-<h3>erws_handler.erl</h3>
+<h3>erws_handler.erl: The hearth and soul of our erlang websocket server</h3>
 <p>
 The main module, will handle and serve the requests.
 </p>
-<pre name="code" class="php">
--module(erws_handler).
--behaviour(cowboy_http_handler).
--behaviour(cowboy_websocket_handler).
--export([init/3, handle/2, terminate/3]).
--export([
-    websocket_init/3, websocket_handle/3,
-    websocket_info/3, websocket_terminate/3
-]).
-
-init({tcp, http}, _Req, _Opts) ->
-  {upgrade, protocol, cowboy_websocket}.
-
-
-handle(Req, State) ->
-    lager:debug("Request not expected: ~p", [Req]),
-    {ok, Req2} = cowboy_http_req:reply(404, [{'Content-Type', <<"text/html">>}]),
-    {ok, Req2, State}.
-
-
-websocket_init(_TransportName, Req, _Opts) ->
-    lager:debug("init websocket"),
-    {ok, Req, undefined_state}.
-
-websocket_handle({text, Msg}, Req, State) ->
-    lager:debug("Got Data: ~p", [Msg]),
-    {reply, {text, << "responding to ", Msg/binary >>}, Req, State, hibernate };
-
-
-websocket_handle(_Any, Req, State) ->
-    {reply, {text, << "whut?">>}, Req, State, hibernate }.
-
-websocket_info({timeout, _Ref, Msg}, Req, State) ->
-    {reply, {text, Msg}, Req, State};
-
-websocket_info(_Info, Req, State) ->
-    lager:debug("websocket info"),
-    {ok, Req, State, hibernate}.
-
-websocket_terminate(_Reason, _Req, _State) ->
-    ok.
-
-terminate(_Reason, _Req, _State) ->
-    ok.
-</pre>
-<h3>index.html</h3>
+<script src="https://gist.github.com/marcelog/923546e528d1099247f72d53fc846bb7.js"></script>
+<h3>index.html: The HTML5 and Javascript websocket client</h3>
 <p>
 This is the HTML page we're going to use as a websocket client. I've tried this in Chrome, but it should work
 on any browser with HTML5 capabilities. You can find the Websocket API <a href="http://dev.w3.org/html5/websockets/">here</a>.
 </p>
-<pre name="code" class="html">
-&lt;!DOCTYPE HTML&gt;
-&lt;html&gt;
-&lt;head&gt;
-&lt;script type="text/javascript"&gt;
-var ws = new Object;
-
-function send()
-{
-    ws.send("hello world!");
-    console.log('Message sent');
-}
-
-function open()
-{
-    if (!("WebSocket" in window)) {
-        alert("This browser does not support WebSockets");
-        return;
-    }
-    /* @todo: Change to your own server IP address */
-    ws = new WebSocket("ws://1.1.1.1:10100");
-    ws.onopen = function() {
-        console.log('Connected');
-    };
-    ws.onmessage = function (evt)
-    {
-        var received_msg = evt.data;
-        console.log("Received: " + received_msg);
-        var txt = document.createTextNode("
-            Simon says: " + received_msg
-        );
-        document.getElementById('msgs').appendChild(txt);
-    };
-    ws.onclose = function()
-    {
-        console.log('Connection closed');
-    };
-}
-&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-&lt;div id="sse"&gt;
-   &lt;a href="javascript:open()">Open websocket connection&lt;/a&gt;&lt;br/&gt;
-   &lt;a href="javascript:send()">Send Message&lt;/a&gt;
-&lt;/div&gt;
-&lt;div id="msgs"&gt;
-&lt;/div&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</pre>
-<h3>erws_app.src</h3>
+<script src="https://gist.github.com/marcelog/60cb237f20c186f947eb66d6e231dc56.js"></script>
+<h3>erws_app.src: The erlang application descriptor</h3>
 <p>
 Our erws_app.src will be used by rebar to generate the application descriptor.
 </p>
@@ -259,79 +166,25 @@ trying to figure out why the websocket connection was failing, and it turned out
 missed to include the crypto app, used by cowboy at the handshake stage of the websocket
 connection.
 </p>
-<pre name="code" class="php">
-{application, erws, [
-    {description, ""},
-    {vsn, "1"},
-    {registered, []},
-    {applications, [
-        kernel,stdlib,crypto,cowboy,
-        compiler,lager,syntax_tools
-    ]},
-    {mod, { erws_app, []}},
-    {env, []}
-]}.
-</pre>
+<script src="https://gist.github.com/marcelog/9cf01bdbfc723cd9331843f445c3b875.js"></script>
 <h3>rebar.config</h3>
 <p>
 This is the project configuration file. Our dependencies are cowboy and lager
 (optional).
 </p>
-<pre name="code" class="php">
-{erl_opts, [{parse_transform, lager_transform}]}.
-{lib_dirs,["deps"]}.
-
-{deps, [
-    {'lager', ".*", {
-        git, "git://github.com/basho/lager.git", "master"}
-    },
-    {'cowboy', ".*", {
-        git, "git://github.com/extend/cowboy.git", {tag, "0.9.0"}}
-    }
-]}.
-
-</pre>
-<h3>erws_app.erl</h3>
+<script src="https://gist.github.com/marcelog/895c338b7f92a9bcba10b1bc013e1162.js"></script>
+<h3>erws_app.erl: Configuring the Cowboy framework to listen and dispatch the HTTP requests</h3>
 <p>
 Our application. This code configures cowboy to listen for and accept connections in the
 given port (with the given protocol), and then dispatch the requests to the given modules.
 </p>
-<pre name="code" class="php">
--module(erws_app).
--behaviour(application).
--export([start/2, stop/1]).
-
-start(_StartType, _StartArgs) ->
-  Dispatch = cowboy_router:compile([
-      {'_', [
-        {"/", cowboy_static, {priv_file, erws, "index.html"}},
-        {"/websocket", erws_handler, []}
-      ]}
-    ]),
-    {ok, _} = cowboy:start_http(http, 100, [{port, 8080}],
-        [{env, [{dispatch, Dispatch}]}]),
-      erws_sup:start_link().
-
-stop(_State) ->
-    ok.
-</pre>
-<h3>erws_sup.erl</h3>
+<script src="https://gist.github.com/marcelog/08f796af77ea7773047c8effb80b3553.js"></script>
+<h3>erws_sup.erl: The top level supervisor of our erlang application</h3>
 <p>
 This is our top supervisor. In this case, it does absolutely nothing (pretty much like a human supervisor :D).
 </p>
-<pre name="code" class="php">
--module(erws_sup).
--behaviour(supervisor).
--export([start_link/0]).
--export([init/1]).
-
-start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
-
-init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
-</pre>
-<h3>Conclusion</h3>
+<script src="https://gist.github.com/marcelog/dac3a8fa405c15daa0381294a7cbb721.js"></script>
+<h3>HTTP, Websockets, and Erlang: With Cowboy this is all too easy!</h3>
 <p>
 Although I'm not a big fan of dependencies (and/or using whatever frameworks are out there), Cowboy does a great job, and
 I'm sure that it will be even a better choice for more complex applications, where other kind of content could be served
