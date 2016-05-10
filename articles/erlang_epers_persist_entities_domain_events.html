@@ -64,9 +64,9 @@ fired by epers whenever something interesting occurs with an entity."/>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Extending your erlang application by reacting to domain events from the persistence layer</h3>
 <p>
-In the <a href="erlang_persistence_entities.html">last article</a>, I presented
+In <a href="erlang_persistence_entities.html">"<b>Persisting your entities in Erlang</b>"</a>, I presented
 <a href="https://github.com/marcelog/epers">epers</a>, a small project intended to
 help build erlang applications that need to persist entities to a database.
 </p>
@@ -74,7 +74,7 @@ help build erlang applications that need to persist entities to a database.
 In this new article, I'll describe the built-in <a href="http://martinfowler.com/eaaDev/DomainEvent.html">
 domain events</a> available in the framework.
 </p>
-<h3>How it works</h3>
+<h3>How it works: gen_event is our event hero</h3>
 <p>
 Whenever epers is requested to do certain operations and if they succeed, an event
 will be dispatched using <a href="http://www.erlang.org/doc/man/gen_event.html#notify-2">
@@ -85,19 +85,13 @@ You should start your own event manager (by using any
 of <a href="http://www.erlang.org/doc/man/gen_event.html#start_link-0">start_link/0</a>, <a href="http://www.erlang.org/doc/man/gen_event.html#start_link-1">start_link/1</a>, <a href="http://www.erlang.org/doc/man/gen_event.html#start-0">start/0</a>, <a href="http://www.erlang.org/doc/man/gen_event.html#start-1">start/1</a>), register whatever event handlers you need, and epers will always
 try to dispatch the interesting events through it, but wont fail if it's not present.
 </p>
-<h3>Configuring epers</h3>
+<h3>Configuring an event bus in epers to handle domain events in your erlang code</h3>
 <p>
 The event manager (i.e: gen_event process) reference to be used goes straight
 into the epers configuration. Let's look at the example <a href="https://github.com/marcelog/epers/blob/master/examples/blog/blog.config">
 blog.config</a> file, in the example application shipped with epers. You will notice something like:
 </p>
-<pre name="code" class="erlang">
-  ...
-  {events, [
-    {blog_post, my_event_bus}
-  ]},
-  ...
-</pre>
+<script src="https://gist.github.com/marcelog/d86fae43cd50f49a6cb97f2e46b68113.js"></script>
 <p>
 This simple line of configuration states that for the entity <i>blog_post</i>
 we want to dispatch events to the <i>my_event_bus</i> gen_event reference.
@@ -117,7 +111,7 @@ As the gen_event manual states, an event manager reference can be any of:
   <li>{global, GlobalName}</li>
   <li>{Name, Node}
 </ul>
-<h3>Available domain events</h3>
+<h3>Available domain events triggered by the persistence layer</h3>
 <p>
 All events are dispatched including the entity name (<i>user</i>, <i>blog_post</i>, etc), and
 a list of terms that are additional arguments for the event. Here's a complete
@@ -146,37 +140,13 @@ list:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Handling domain events</h3>
+<h3>Handling domain events in your Erlang code</h3>
 <p>
 A complete example is available with the example application, <a href="https://github.com/marcelog/epers/tree/master/examples/blog/src/blog_event_handler.erl">here</a>.
 The interesting bits of code are:
 </p>
-<pre name="code" class="erlang">
-...
-handle_event({blog_post, schema_created, []}, State) ->
-  lager:info("The blog post schema has been created"),
-  {ok, State};
-
-handle_event({blog_post, deleted, [Id]}, State) ->
-  lager:info("The blog post ~p has been deleted", [Id]),
-  {ok, State};
-
-handle_event({blog_post, deleted_all, []}, State) ->
-  lager:info("All blog posts entries have been deleted"),
-  {ok, State};
-
-handle_event({blog_post, created, [Entity]}, State) ->
-  Id = proplists:get_value(id, Entity),
-  lager:info("Blog post ~p created", [Id]),
-  {ok, State};
-
-handle_event({blog_post, updated, [Entity]}, State) ->
-  Id = proplists:get_value(id, Entity),
-  lager:info("Blog post ~p updated", [Id]),
-  {ok, State};
-...
-</pre>
-<h3>Conclusion</h3>
+<script src="https://gist.github.com/marcelog/148e11879bfbf1274118772e99ed6774.js"></script>
+<h3>Conclusion: Just write your listeners and your business logic in plain and clean erlang code</h3>
 <p>
 Having this feature in epers allows you to create alerts, trigger specific
 jobs, maybe even create tweets, or notify web clients through websockets that
