@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Easy Event Oriented Programming in your PHP Application</h3>
 <p>
 Events in the ding container are strings. This is not a great level of abstraction but still provides a powerful
 tool to work with. Events also have associated data, sent to the listeners as an argument when firing the event. This
@@ -73,33 +73,12 @@ from the rest of the code.
 <p>
 The <a href="http://marcelog.github.com/Ding/manual/toc.html#events">events section of the manual</a> will also be handy.
 </p>
-<h3>Firing an event</h3>
+<h3>Firing an event from your PHP Code</h3>
 <p>
 To fire an event, you need an instance of the container. You can get it by implementing the interface IContainerAware in your
 beans, like:
 </p>
-<pre name="code" class="php">
-use Ding\Container\IContainerAware;
-use Ding\Container\IContainer;
-
-class UserService implements IContainerAware
-{
-    private $container;
-
-    public function setContainer(IContainer $container)
-    {
-        $this->container = $container;
-    }
-
-    public function createUser($username, $password)
-    {
-        $user = new User($username, $password);
-        // ... some more code ...
-        // fire an event!
-        $this->container->eventDispatch('userCreated', $user);
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/a5634815750ee9e37e5b8e31d58256f7.js"></script>
 <p>
 When the container creates a bean that implements the <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Container_IContainerAware.html#%5CDing%5CContainer%5CIContainerAware">IContainerAware</a> interface
 it will automatically inject a container instance through the setContainer() method. So now you have a container instance.
@@ -108,19 +87,11 @@ it will automatically inject a container instance through the setContainer() met
 Notice in the createUser() method how we do our thing, and then dispatch the "userCreated" event throughout the container. The listeners will then receive
 this event and associated data, in this case a User entity. Let's see how to create the listeners.
 </p>
-<p>Listener code</p>
+<p>Listening and Reacting to the Application Events in your PHP Code</p>
 <p>
 A very simple listener code for the above scenario can be:
 </p>
-<pre name="code" class="php">
-class UserAccounting
-{
-    public function onUserCreated($user)
-    {
-        // save some accounting information for this user
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/2901cb4cbbbaaf3b8b925b62763cfd2a.js"></script>
 <p>
 That's it. The container will call (by convention) the method onUserCreated() when the "userCreated" event is dispatched. The general rule is
 to upper camel case the event name, and prepend the "on" to it, so "userCreated" becomes "onUserCreated".
@@ -129,11 +100,9 @@ to upper camel case the event name, and prepend the "on" to it, so "userCreated"
 This will make the container able to dispatch the event, but we still need to register the bean as a listener for the event. Let's now see how to do
 it programatically, and then with the XML, YAML, and Annotations drivers.
 </p>
-<h3>Register a listener programatically</h3>
+<h3>Register an event listener programmatically in PHP</h3>
 <p>The container has the method eventListen() used to register a component as an event listener. Thus, by using a container instance, you could do:</p>
-<pre name="code" class="php">
-$container->eventListen('userCreated', 'aBeanName');
-</pre>
+<script src="https://gist.github.com/marcelog/c29bd400dd7d99d2c451867b9aba26aa.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -144,37 +113,13 @@ $container->eventListen('userCreated', 'aBeanName');
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>The annotations way</h3>
-<pre name="code" class="php">
-/**
- * @Component
- * @ListensOn(value="userCreated")
- */
-class UserAccounting
-{
-    public function onUserCreated($user)
-    {
-        // save some accounting information for this user
-    }
-}
-</pre>
-<h3>The Xml way</h3>
-<pre name="code" class="xml">
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;beans&gt;
-  &lt;bean id="myXmlBean"
-    class="UserAccounting"
-    listens-on="userCreated"/&gt;
-&lt;/beans&gt;
-</pre>
-<h3>The Yaml way</h3>
-<pre name="code" class="php">
-beans:
-  myYamlBean:
-    class: UserAccounting
-    listens-on: userCreated
-</pre>
-<H3>Conclusion</H3>
+<h3>Registering event listeners with PHP Annotations</h3>
+<script src="https://gist.github.com/marcelog/c9ce6ba27757e915d388e57bcbda00ce.js"></script>
+<h3>Registering event listeners with XML</h3>
+<script src="https://gist.github.com/marcelog/c5fb9e2ee0f98edd0fa4f3a30a95b6d5.js"></script>
+<h3>Registering event listeners with YAML</h3>
+<script src="https://gist.github.com/marcelog/1bdd65e9c28de1abb9b208b604d7d7ef.js"></script>
+<H3>Ready to start writing your own event driven application in PHP?</H3>
 <p>
 Some things are still missing, for example listening or catching all the events or all events of a certain type. However, this
 simple schema can also do some good in decoupling your code and separating your concerns in different components throughout your
