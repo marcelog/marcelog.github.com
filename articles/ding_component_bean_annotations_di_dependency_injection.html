@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Ding annotations for dependency injection</title>
+<title>Use Annotations in your PHP Code to achieve Dependency Injection with the Ding Container</title>
 <meta name="Author" content="Marcelo Gornstein"/>
 <meta name="Keywords" content="ding php di container dependency injection bean annotations"/>
 <meta name="description" content="This article will take a look at the available annotations in the ding php dependency injection container"/>
@@ -39,7 +39,7 @@
        <g:plusone></g:plusone>
       </div>
    	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Ding annotations for dependency injection</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Use Annotations in your PHP Code to achieve Dependency Injection with the Ding Container</div>
   </div>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog2 -->
@@ -59,15 +59,15 @@
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
               <div class="inner set-height-1">
-                <h2>Ding annotations for dependency injection</h2>
+                <h2>Use Annotations in your PHP Code to achieve Dependency Injection with the Ding Container</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
 <p>
-In the <a href="http://marcelog.github.com/articles/ding_component_bean_annotations.html">previous article</a> I've shown how to declare
+In <a href="http://marcelog.github.com/articles/ding_component_bean_annotations.html">"<b>Use annotations in your PHP Application to define Reusable Components with Ding</b>"</a> I've shown how to declare
 your beans. Now it's time to see how to achieve DI (dependency injection), also using annotations.
 </p>
-<h3>@Resource</h3>
+<h3>Use @Resource to inject a dependency by name in your PHP Application</h3>
 <p>
 This annotation will inject a dependency based on its name (wire-by-name). Can be used on properties and setter methods. It's pretty cool, but you have
 to know beforehand the name of the bean you want to inject. When used on a property, the name of the property will be used. When used on a
@@ -84,40 +84,12 @@ method, the method <b>MUST</b> be a setter, like "setDependency()". From such a 
 bean. The first one (without the "name" argument) will look a bean whose name is equal to the property name (in this
 case, "dependency"). The second one, specifies that the name IS "dependency", so the name of the property wont matter at all.
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    /** @Resource */
-    protected $dependency;
-    /** @Resource(name="dependency") */
-    protected $myBean;
-}
-</pre>
+<script src="https://gist.github.com/marcelog/625b97127b95afb6ce216586ba8af0a3.js"></script>
 <p>Now let's see how to use it in <b>setter methods</b> to inject properties.
 In the first method (setDependency), the name of the bean is derived from the setter method itself, in this case, "dependency" is
 the name of the bean. In the second method (setOtherStuff) the name is explicitely defined in the "name" argument:
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $dependency;
-    protected $myBean;
-
-    /** @Resource */
-    public function setDependency($something)
-    {
-        $this->dependency = $something;
-    }
-
-    /** @Resource(name="dependency") */
-    public function setOtherStuff($something)
-    {
-        $this->myBean = $something;
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/52b7ebe914b04261436a02b827d289e3.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -128,24 +100,12 @@ class MyBean
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>@Required</h3>
+<h3>Enforce dependencies with the @Required annotation</h3>
 <p>This annotation enforces the configuration of a particular property. It can only be used on setter methods, and the container will
 throw a BeanFactoryException if a @Required annotation is used on a setter method that is not configured to be injected with a property.</p>
 <h4><b>Examples</b></h4>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $myBean;
-
-    /** @Required */
-    public function setOtherStuff($something)
-    {
-        $this->myBean = $something;
-    }
-}
-</pre>
-<h3>@Value</h3>
+<script src="https://gist.github.com/marcelog/f408f6688248d7d9c2167d5778444bde.js"></script>
+<h3>Lookup and inject property values in your PHP code with @Value</h3>
 <p>This annotation can be used on properties, constructors, and @Bean methods. It is used to specify an explicit value or a string that
 resolves to a property injected in the container, either through the <a href="http://marcelog.github.com/Ding/manual/toc.html#config">PropertiesHolder</a>
 bean or through the user properties set when instantiating the container.
@@ -176,62 +136,14 @@ class MyBean
 Using it on a constructor. In the following case, we have a constructor with 2 arguments, named "string1" and "string2". The first one
 will be injected with the value of the property "user.name", and the second will be injected with the value of the property "user.group":
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $string1;
-    protected $string2;
-
-    /**
-     * @Value(name="string1", value="${user.name}")
-     * @Value(name="string2", value="${user.group}")
-     */
-    public function __construct($string1, $string2)
-    {
-        $this->string1 = $string1;
-        $this->string2 = $string2;
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/317d3d0096f5ea7dd204c592202086b0.js"></script>
 <p>
 The above example is equivalent to the next one (where the "name" argument is <b>not</b> specified):
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $string1;
-    protected $string2;
-
-    /**
-     * @Value(value="${user.name}")
-     * @Value(value="${user.group}")
-     */
-    public function __construct($string1, $string2)
-    {
-        $this->string1 = $string1;
-        $this->string2 = $string2;
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/893ce873f2418ff9caa51f24eda49c6e.js"></script>
 <p>For @Bean methods, the usage is similar to using it on a constructor method:</p>
-<pre name="code" class="php">
-/** @Configuration */
-class MyBean
-{
-    /**
-     * @Bean(class="AnotherBean")
-     * @Value(value="${user.name}")
-     * @Value(value="${user.group}")
-     */
-    public function anotherBean($string1, $string2)
-    {
-        return new AnotherBean($string1, $string2);
-    }
-}
-</pre>
-<h3>@Inject</h3>
+<script src="https://gist.github.com/marcelog/555c4a23c30f728e04441e830ffd2fa5.js"></script>
+<h3>Use @Inject to inject dependencies by class type in your code</h3>
 <p>@Inject is the JSR330 counterpart to spring's @Autowired. This one can be used to inject your dependencies by type (instead of by name, like @Resource). It can be used
 on properties, methods, and constructors. Using @Resource has the downside of having to use the name of the bean
 you want to inject. Wiring by type, on the other hand, lets you have the container choose the appropiate bean you need
@@ -255,105 +167,34 @@ where to inject the dependency. If you dont specify the "name" argument, the ord
 <p>
 Let's say you have defined an interface and a component that implements it, like:
 </p>
-<pre name="code" class="php">
-interface IUserRepository
-{
-}
-
-/** @Component */
-class MyUserRepository implements IUserRepository
-{
-}
-</pre>
+<script src="https://gist.github.com/marcelog/34191bdbd260e9cb10f336e4cb135501.js"></script>
 <p>
 And you want another component to be injected with any component that implements it:
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    /** @Inject(type="IUserRepository") */
-    protected $oneRepository;
-}
-</pre>
+<script src="https://gist.github.com/marcelog/b6b4a62706979fed61d33e3ad0150893.js"></script>
 <p>The property "oneRepository" will contain an instance of MyUserRepository. If more than one component is found as a candidate to be injected (i.e: more than 1 component implements IUserRepository),
 the container will throw an exception, because it cant decide by itself which one to inject. In this case, you can opt to use
 something like @Resource to specify a name. But you can also decide to inject all the components found instead of just one:
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    /** @Inject(type="IUserRepository[]") */
-    protected $manyRepositories;
-}
-</pre>
+<script src="https://gist.github.com/marcelog/d4745bba5c5f16960d34a1b72ae8ae2c.js"></script>
 <p>
 In the above case, the property "manyRepositories" will be an array of all the components that implements IUserRepository.
 </p>
 <p>
 If you still need one and not all of the candidate components to be injected, you can specify @Primary in the interesting components:
 </p>
-<pre name="code" class="php">
-interface IUserRepository
-{
-}
-
-/** @Component */
-class MyUserRepository implements IUserRepository
-{
-}
-/**
- * @Component
- * @Primary
- */
-class MyOtherUserRepository implements IUserRepository
-{
-}
-</pre>
+<script src="https://gist.github.com/marcelog/eb49feff8d8efdcc1f331d47256f3779.js"></script>
 <p>Using @Primary (or primary="true" in the @Component annotation) will tell the container that if more than 1 candidate is found
 to be injected by type, then choose the one selected as the primary bean of that type.
 </p>
 <p>
 You can also use this annotation in methods, like:
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $oneRepository;
-    protected $otherBeans;
-
-    /** @Inject */
-    public function pleaseInjectMyRepository(IUserRepository $repository)
-    {
-        $this->oneRepository = $repository;
-    }
-    /** @Inject(name="otherBeans", type="SomeInterface[]") */
-    public function pleaseInjectMyRepository(array $otherBeans)
-    {
-        $this->otherBeans = $otherBeans;
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/0c1839ca61d1d00c739c34c241875e19.js"></script>
 <p>Notice how the container automatically picks up the type of the argument of the method. The name of the method can be any, it wont matter
 when injecting by type. This also applies to constructors:
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $oneRepository;
-    protected $dependency;
-
-    /** @Inject */
-    public function __construct(IUserRepository $repository, IOtherInterface $dependency)
-    {
-        $this->oneRepository = $repository;
-        $this->dependency = $dependency;
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/b53a3a8f040a813b0cb2e3150c537a27.js"></script>
 <p>In the above example, the container will try to inject a component of type IUserRepository and a component of type
 IOtherInterface in the constructor arguments.
 </p>
@@ -361,31 +202,7 @@ IOtherInterface in the constructor arguments.
 the arguments $repository and $dependency will be handled by the @Inject annotation, $otherArgument will be handled by the
 second @Inject that specifies the name of the argument to be injected, and $aString will be handled by the @Value annotation:
 </p>
-<pre name="code" class="php">
-/** @Component */
-class MyBean
-{
-    protected $oneRepository;
-    protected $dependency;
-    protected $otherArgument;
-    protected $aString;
-
-    /**
-     * @Inject
-     * @Inject(name="otherArgument", type="SomeInterface[]")
-     * @Value(name="aString", value="${user.property}")
-     */
-    public function __construct(
-        IUserRepository $repository, IOtherInterface $dependency,
-        array $otherArgument, $aString
-    ) {
-        $this->oneRepository = $repository;
-        $this->dependency = $dependency;
-        $this->otherArgument = $otherArgument;
-        $this->aString = $aString;
-    }
-}
-</pre>
+<script src="https://gist.github.com/marcelog/004bc2085294d56ea1dc9a855935c8bc.js"></script>
 
               </div>
             </div>
