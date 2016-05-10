@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Link or Monitor processes in an Erlang Project</h3>
 <p>
 <a href="http://erlang.org/doc/man/erlang.html#link-1">link/1</a> and
 <a href="http://erlang.org/doc/man/erlang.html#monitor-2">monitor/2</a> are 2
@@ -86,38 +86,11 @@ The signal in question is the exit signal, and the links make this signal
 propagate through processes (i.e: up in the supervisor hierarchy). By default,
 this signal makes your processes terminate as well. Assume the following code:
 </p>
-<pre name="code" class="erlang">
--module(mymodule).
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-...
-crash() ->
-    gen_server:cast(?MODULE, crash).
-...
-handle_cast(crash,State) ->
-    {stop, error, State};
-...
-</pre>
+<script src="https://gist.github.com/marcelog/7ee235979a7f0adc8890f712866a6f56.js"></script>
 <p>
 Let's spawn of those, and try to link our shell to it:
 </p>
-<pre name="code" class="erlang">
-1> self().
-<0.31.0>
-2> mymodule:start_link().
-{ok,<0.34.0>}
-3> mymodule:crash().
-
-=ERROR REPORT==== 30-Dec-2012::15:36:47 ===
-** Generic server a terminating
-** Last message in was {'$gen_cast',crash}
-** When Server state == []
-** Reason for termination ==
-** error
-** exception exit: error
-4> self().
-<0.36.0>
-</pre>
+<script src="https://gist.github.com/marcelog/3efd58bd9209303b862e8030c24be075.js"></script>
 <p>
 As you can see, using <a href="http://www.erlang.org/doc/man/gen_server.html#start_link-4">gen_server:start_link/4</a> automatically creates a link between our shell and the
 newly started process. So when this new process terminates, our shell gets an
@@ -148,28 +121,7 @@ a regular message.
 Let's now try the same thing, but capturing the exit signal with
 <a href="http://erlang.org/doc/man/erlang.html#process_flag-2">process_flag/2</a></p>:
 
-<pre name="code" class="erlang">
-1> process_flag(trap_exit, true).
-false
-2> self().
-<0.31.0>
-3> mymodule:start_link().
-{ok,<0.35.0>}
-4> mymodule:crash().
-ok
-5>
-=ERROR REPORT==== 30-Dec-2012::15:51:20 ===
-** Generic server mymodule terminating
-** Last message in was {'$gen_cast',crash}
-** When Server state == []
-** Reason for termination ==
-** error
-
-5> self().
-<0.31.0>
-6> receive X->X end.
-{'EXIT',<0.35.0>,error}
-</pre>
+<script src="https://gist.github.com/marcelog/a83bf0a59203de99dc758652da529b05.js"></script>
 
 <p>As you can see, the shell didn't died, but got a message instead. Cool!</p>
 <p>
@@ -242,21 +194,8 @@ message when Pid terminates.
 Now, to the very same source code we tried above, let's modify it to add a
 start/0 function:
 </p>
-<pre name="code" class="erlang">
--module(mymodule).
-start() ->
-    gen_server:start({local, ?MODULE}, ?MODULE, [], []).
-...
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-...
-crash() ->
-    gen_server:cast(?MODULE, crash).
-...
-handle_cast(crash,State) ->
-    {stop, error, State};
-...
-</pre>
+<script src="https://gist.github.com/marcelog/70b2fe6ad801f740f772b50781bb326c.js"></script>
+
 <p>
 Note the new start/0 call that uses <a href="http://www.erlang.org/doc/man/gen_server.html#start-4">gen_server:start/4</a> instead of gen_server:start_link/4, so we can avoid
 having our shell linked to the new process when trying it.
@@ -264,27 +203,7 @@ having our shell linked to the new process when trying it.
 <p>
 Let's try it in the shell:
 </p>
-<pre name="code" class="erlang">
-1> self().
-<0.31.0>
-2> mymodule:start().
-{ok,<0.34.0>}
-3> process_flag(trap_exit, true).
-false
-4> erlang:monitor(process, mymodule).
-#Ref<0.0.0.43>
-5> mymodule:crash().
-ok
-=ERROR REPORT==== 30-Dec-2012::16:21:29 ===
-** Generic server mymodule terminating
-** Last message in was {'$gen_cast',crash}
-** When Server state == []
-** Reason for termination ==
-** error
-
-6> receive X->X end.
-{'DOWN',#Ref<0.0.0.43>,process,{mymodule,nonode@nohost},error}
-</pre>
+<script src="https://gist.github.com/marcelog/aa8afbc802eb9aaa340c057b3a8836b7.js"></script>
 <p>
 So our shell, while still was informed about the exit of the other process,
 didn't die (because it didn't got an exit signal).
@@ -298,7 +217,7 @@ A couple of interesting functions related to monitoring:
   <li><a href="http://erlang.org/doc/man/erlang.html#demonitor-1">demonitor/1</a>:
 Removes a monitoring.</li>
 </ul>
-<h3>To link or to monitor: That is the question</h3>
+<h3>To link or to monitor a process in your erlang code: That is the question</h3>
 <p>
 So this brings up the question: should I link to or monitor my processes? Of course
 the answer is 42.. I mean, it depends. Use link if you:
