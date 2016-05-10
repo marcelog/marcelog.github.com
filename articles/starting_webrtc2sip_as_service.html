@@ -63,9 +63,9 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Making webrtc2sip a service</u></H3>
 <p>
-<b>NOTE</b>: If you are trying or want to get rid of webrtc2sip and use a plain asterisk installation, see <a href="webrtc_with_asterisk_without_webrtc2sip">this article</a>.
+<b>NOTE</b>: If you are trying or want to get rid of webrtc2sip and use a plain asterisk installation, see <a href="webrtc_with_asterisk_without_webrtc2sip.html">"<b>WebRTC with Asterisk and Amazon AWS</b>"</a>.
 </p>
 <p>
 <a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> is a much needed tool created by the <a href="http://doubango.org/">Doubango</a> guys, to enable the use of
@@ -88,33 +88,18 @@ So I've made <a href="https://gist.github.com/marcelog/47ef364b43c67f9f359d">thi
 <p>
 To apply the patch just download the gist to your local copy of the <a href="https://webrtc2sip.googlecode.com/svn/trunk/"><b>webrtc2sip svn repo</b></a>:
 </p>
-<pre name="code" class="php">
-svn co https://webrtc2sip.googlecode.com/svn/trunk/ webrtc2sip
-cd webrtc2sip
-wget https://gist.githubusercontent.com/marcelog/47ef364b43c67f9f359d/raw/3c6cf5a98be263bb913fd6ab823d0ee69390f541/webrtc2sip_optional_console.diff
-patch -p0 < webrtc2sip_optional_console.diff
-</pre>
+<script src="https://gist.github.com/marcelog/d9c77395426f7f577b68d2f1df846f4f.js"></script>
 <p>
 Then continue building as usual:
 </p>
-<pre name="code" class="php">
-export PREFIX=/opt/webrtc2sip
-./autogen.sh
-LDFLAGS=-ldl ./configure --prefix=$PREFIX
-make
-make install
-</pre>
+<script src="https://gist.github.com/marcelog/71abcab8dc37bab64329e5f457cf86bf.js"></script>
 <p>
 After that you can start webrtc2sip normally with console:
-<pre name="code" class="php">
-webrtc2sip --config=/etc/webrtc2sip/config.xml
-</pre>
+<script src="https://gist.github.com/marcelog/b011ca77262c470374486d590ae47ab9.js"></script>
 <p>
 Or (by specifying the new option), without a console, like:
 </p>
-<pre name="code" class="php">
-webrtc2sip --config=/etc/webrtc2sip/config.xml --without-console
-</pre>
+<script
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -125,7 +110,7 @@ webrtc2sip --config=/etc/webrtc2sip/config.xml --without-console
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Using it from within daemontools</h3>
+<h3>Using webrtc2sip from within daemontools</h3>
 <p>
 If you use <a href="http://cr.yp.to/daemontools.html/">daemontools</a> (you can find how to install it
 in this article titled <a href="install_daemon_tools_centos_amazon_linux.html">"Installing DaemonTools in Amazon Linux (or CentOS like OS)"</a>), these
@@ -134,30 +119,14 @@ sample scripts will help you run webrtc2sip when the system boots.
 <p>
 Create a user for it, with:
 </p>
-<pre name="code" class="php">
-adduser  -U -s /bin/false -M webrtc2sip
-</pre>
+<script src="https://gist.github.com/marcelog/458e804614ee72b3708e13e1c88d3a60.js"></script>
 <p>
 Then create the following files with the following content for each one:
 </p>
 <h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
-<pre name="code" class="php">
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/command
-exec 2>&1
-mkdir -p /var/log/webrtc2sip
-chown -R webrtc2sip /var/log/webrtc2sip
-exec envuidgid webrtc2sip multilog t s10485760 n5 '!tai64nlocal' /var/log/webrtc2sip
-</pre>
+<script src="https://gist.github.com/marcelog/5b72654e2708a792b90f8410789226ad.js"></script>
 <h3>/etc/service/webrtc2sip/run (mode 0700)</h3>
-<pre name="code" class="php">
-#!/bin/bash
-mkdir -p /var/run/webrtc2sip
-chown -R webrtc2sip /var/run/webrtc2sip
-exec 2>&1
-cd /opt/webrtc2sip/sbin
-exec setuidgid webrtc2sip envdir /etc/service/webrtc2sip/env ./webrtc2sip --without-console
-</pre>
+<script src="https://gist.github.com/marcelog/c8fc2c271a05174b37d999cf2d422983.js"></script>
 <h3>Create the directory /etc/service/webrtc2sip/env (mode 0700)</h3>
 <p>
 No contents needed for this one.
