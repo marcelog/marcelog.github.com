@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Publishing surefire reports for your Common Test code</h3>
 <p>
 <b>UPDATE</b>: There's an example <a href="https://github.com/marcelog/jenkins_erlang_rebar_example">at github</a> with a template for a complete otp/rebar application, being builded <a href="http://ci.marcelog.name/job/jenkins_erlang_rebar_example/">at this jenkins</a>.
 </p>
@@ -71,18 +71,18 @@
 JUnit/Surefire -style reports are very useful, because you can make <a href="http://jenkins-ci.org/">Jenkins</a> use them to display
 nice reports for <b>erlang projects</b>. Fortunately, since <a href="https://github.com/erlang/otp/commit/11908525cfd1f048296ef3718a367d7c34e7cdb4">Mar 20th</a>, the default common test distribution comes with a <a href="https://github.com/erlang/otp/blob/maint/lib/common_test/src/cth_surefire.erl">cth_surefire</a> hook (see more about <a href="http://www.erlang.org/doc/apps/common_test/ct_hooks_chapter.html">common test hooks</a>) that will generate what we need.
 </p>
-<h3>Using it</h3>
+<h3>Configuring the surefire output format for your Erlang code in your rebar project</h3>
 <p>
 To enable it, we just need to specify the <b>-ct_hooks cth_surefire</b> option when running ct. If you're using rebar, add something like this to your rebar.config file:
 </p>
-<pre name="code" class="erlang">
-{ct_extra_params, "-ct_hooks cth_surefire -logdir logs/ct"}.
-</pre>
+<p>
+<b>{ct_extra_params, "-ct_hooks cth_surefire -logdir logs/ct"}.</b>
+</p>
 <p>
 After the tests are run, you should see a <b>junit_report.xml</b> file, inside your
 logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
 </p>
-<h3>Publishing the results in Jenkins</h3>
+<h3>Publishing the results of your Common Test tests in Jenkins</h3>
 <p>
   Just add a <b>Post build action</b>, the <b>Publish JUnit test result report</b>:
 </p>
@@ -97,7 +97,7 @@ logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Sample report</h3>
+<h3>Sample JUnit report after running your Common Test tests</h3>
 <p>
 <b>NOTE</b>: Test suite names are intentionally obfuscated.
 </p>
