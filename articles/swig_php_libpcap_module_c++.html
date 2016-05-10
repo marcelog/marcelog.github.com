@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>The motivation for a network sniffer written in PHP</u></H3>
   <p>
   <B>Note</B>: This article has been updated to include packet injection!
   </p>
@@ -87,7 +87,7 @@ A couple of links:
 <li>The <a href="http://www.tcpdump.org/pcap3_man.html">PCAP man page</a>, with pcap_t and pcap_*() function descriptions.</li>
 <li>You can get a linux x86_64 build at <a href="http://ci.marcelog.name:8080/view/C%20C++/?">the CI server</a></li>
 </ul>
-<H3><u>What the SWIG?</u></H3>
+<H3><u>What the SWIG? The library to rapidly develop PHP extensions in C/C++</u></H3>
 <p>
 For those of you who dont know what SWIG is: let's say you have a given C or C++ code, and you want or need to
 access it from a scripting language (let's call that, a "target language"). Well, SWIG is a tool that generates the
@@ -99,17 +99,13 @@ Basically speaking, you feed SWIG an <a href="http://www.swig.org/Doc2.0/SWIGDoc
 how do you want to expose the C/C++ code to the scripting language, and then it will autogenerate the needed C/C++ files that will be the
 "glue" between your code and the target language.
 </p>
-<h3>SimplePcap (PHP side)</h3>
+<h3>SimplePcap (PHP side): List your network interfaces and sniff traffic from PHP Code</h3>
 <p>
 NOTE: A "complete" php sniffer that dumps the packets like tcpdump is included as an example in the
 <a href="https://github.com/marcelog/SimplePcap/blob/master/example/sniff.php">GitHub repository</a> for the source code.
 </p>
 <p>This is how you can use SimplePcap from PHP to list all available devices:</p>
-<pre name="code" class="php">
-foreach (SimplePcap::findAllDevs() as $name => $description) {
-    echo "$name => $description\n";
-}
-</pre>
+<script src="https://gist.github.com/marcelog/444bf3627ebfbe9df309eeb95e199aed.js"></script>
 <p>To capture packets, first, get an instance of the SimplePcap class. You will need:</p>
 <ul>
 <li>The network interface name, can be something like "any", or "eth0"</li>
@@ -118,26 +114,11 @@ foreach (SimplePcap::findAllDevs() as $name => $description) {
 <li>The read timeout in milliseconds. This goes directly to pcap_open_live(). Use 0 for a blocking operation. If you
 get an exception saying that pcap_next() returned null, try incrementing this one, or setting it to 0.</li>
 </ul>
-<pre name="code" class="php">
-$simplePcap = new SimplePcap($interfaceName, $filter, $snapLen, $timeout);
-
-// Then, loop!
-while(true) {
-    // Get a packet
-    $packet = $simplePcap->get(); // Returns a 'Packet' Object.
-}
-</pre>
+<script src="https://gist.github.com/marcelog/129e4ed11d5b562457bda6ac3e079f1c.js"></script>
 <p>To get the data sniffed on a given packet:</p>
-<pre name="code" class="php">
-$data = $packet->getData(); // Returns a string
-</pre>
+<script src="https://gist.github.com/marcelog/1246c50c5b660c53fa404d86f96b3dfc.js"></script>
 <p>Also, you can get other packet information:</p>
-<pre name="code" class="php">
-$capturedLen = $packet->getCapturedLen();
-$realLen = $packet->getRealLen();
-$timeSeconds = $packet->getSecondsOffset();
-$timeMicroSeconds = $packet->getMicroSecondsOffset();
-</pre>
+<script src="https://gist.github.com/marcelog/4efedce3f41eb75ee8b116a88d3f66aa.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -149,39 +130,19 @@ $timeMicroSeconds = $packet->getMicroSecondsOffset();
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 <H3>A sample output from running the included example</H3>
-<pre name="code" class="php">
-$ php -c php.ini list.php
-any => Pseudo-device that captures on all interfaces
-eth0 =>
-lo =>
-</pre>
-<pre name="code" class="php">
-$ php -c php.ini sniff.php eth0 "port 80" 4096 0
-...
-00184   63 63 65 70    74 2d 45 6e    ccep   t-En
-00192   63 6f 64 69    6e 67 3a 20    codi   ng:
-00200   67 7a 69 70    2c 20 64 65    gzip   , de
-00208   66 6c 61 74    65 2c 20 62    flat   e, b
-00216   7a 69 70 32    0d 0a 41 63    zip2   ..Ac
-00224   63 65 70 74    2d 43 68 61    cept   -Cha
-00232   72 73 65 74    3a 20 75 73    rset   : us
-</pre>
-<H3>UPDATE: Injecting packets</H3>
+<script src="https://gist.github.com/marcelog/2166f0da370aec9f0ee75a1bf22d39d1.js"></script>
+<script src="https://gist.github.com/marcelog/73579ad44f7e54bcaca4ef0ec40c9a86.js"></script>
+<H3>UPDATE: Inject forged packets in the network using only PHP</H3>
 <p>
 If you want to inject packets in the interface, you will be glad to know that I've added a method send() just for that:
 </p>
-<pre name="code" class="php">
-$totalBytesSent = $simplePcap->send($rawPacketData);
-</pre>
+<script src="https://gist.github.com/marcelog/42900cf3a55a0dd1b947d1dcfce927c2.js"></script>
 <p>
 An example file is provided, inject.php that when run, will inject the data contained in the given file. Here's a sample run
 sending an ICMP echo request captured with sniff.php:
 </p>
-<pre name="code" class="php">
-$ php -c php.ini inject.php eth0 "" 4096 10000 myRawPacketData.raw
-Injected 98 in: eth0
-</pre>
-<h3>SimplePcap (C++ side)</h3>
+<script src="https://gist.github.com/marcelog/73619370b02a3105ab3cda260cb5309c.js"></script>
+<h3>SimplePcap (C++ side): How the C++ code that calls libpcap looks like</h3>
 <p>
 SimplePcap is actually pretty simple, since it was done only to try SWIG. There is a <a href="https://github.com/marcelog/SimplePcap/blob/master/include/SimplePcap.h">SimplePcap class</a>
 that provides the core functionality and a <a href="https://github.com/marcelog/SimplePcap/blob/master/include/Packet.h">Packet class</a> that wraps around a pcap_t structure. Both
@@ -234,7 +195,7 @@ The typemap(out) for deviceList specifies how SWIG will translate a deviceList i
 this case). So that code snippet is used to return the associative array to PHP, where the key is the interface name and the value is
 the interface description coming in directly from libpcap.
 </p>
-<H3><u>Conclusions</u></H3>
+<H3><u>Conclusions: Using SWIG to write a network sniffer with C++, libpcap and PHP and loving it!</u></H3>
 <p>
 SWIG is really great. I just did some C++ code and then worried about how to integrate it to PHP. Althought it seems that you really need lots of experience with it to actually do more advanced things in the
 right way. For example, I could not find out yet how to throw my custom C++ exceptions right into PHP (don't know if that's possible
