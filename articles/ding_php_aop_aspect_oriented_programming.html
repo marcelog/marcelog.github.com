@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<H3><u>Introduction</u></H3>
+<H3><u>What is Aspect Oriented Programming and how we can do it in PHP</u></H3>
 <p>
 <a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">Aspect Oriented Programming</a> (just AOP from now on),
 is a very powerful tool we can use to implement the infamous <a href="http://en.wikipedia.org/wiki/Cross-cutting_concern">cross cutting
@@ -75,7 +75,7 @@ the <a href="http://marcelog.github.com/Ding/">Ding container</a>.
 <li>Complete source code for this article at <a href="https://github.com/marcelog/Ding-Aop-Example">GitHub</a>.</li>
 <li><a href="http://marcelog.github.com/Ding/manual/toc.html#aop">AOP Section</a> of the ding manual.</li>
 </ul>
-<h3>How it works</h3>
+<h3>How AOP works in PHP by using the Ding DI container</h3>
 <p>
 Ding uses 2 patterns to achieve AOP in PHP:
 </p>
@@ -111,27 +111,7 @@ Each method call generates a <a href="http://ci.marcelog.name:8080/job/Ding/java
 is the only argument that advices receive. Thus, your interceptor code, would look like (the names are
 just for illustrative purposes):
 </p>
-<pre name="code" class="php">
-    public function methodInterceptor(MethodInvocation $invocation)
-    {
-        $originalInvocation = $invocation->getOriginalInvocation();
-        $originalArguments = $originalInvocation->getArguments();
-        $originalMethodName = $originalInvocation->getMethod();
-        $originalClassName = $originalInvocation->getClass();
-
-        // Code to be run before calling the next method in the chain.
-        $result = $invocation->proceed('new', 'optional', 'arguments');
-
-        // Code to be run after the method has finished.
-        return $result;
-    }
-
-    public function exceptionInterceptor(MethodInvocation $invocation)
-    {
-        // Code to handle the exception that intercepted method threw
-        $exceptionThrown = $invocation->getException();
-    }
-</pre>
+<script src="https://gist.github.com/marcelog/47fbb9a5f40923117b98125e66ddf4e8.js"></script>
 <p>
 And that is pretty much you need to add AOP to your projects :)
 </p>
@@ -145,7 +125,7 @@ And that is pretty much you need to add AOP to your projects :)
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Proxies</h3>
+<h3>How to apply the Proxy pattern in PHP to achieve AOP</h3>
 <p>
 In environments like the JVM, <a href="http://www.eclipse.org/aspectj/">AspectJ</a> manipulates the bytecode
 at runtime to achieve doing lots of cool things. In PHP we cant do that (or at least, I cant do that.. ). So
@@ -161,7 +141,7 @@ So for each bean that has aspects applied, ding generates the necessary proxies.
 cached. See the <a href="http://marcelog.github.com/Ding/manual/toc.html#config">configuration section of the container</a> in the
 ding manual to see how.
 </p>
-<h3>Defining Aspects and Pointcuts</h3>
+<h3>Defining Aspects and Pointcuts in your PHP Code</h3>
 <p>
 When defining an <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect_AspectDefinition.html#%5CDing%5CAspect%5CAspectDefinition">Aspect</a>, you will need:
 </p>
@@ -184,7 +164,7 @@ When defining a <a href="http://ci.marcelog.name:8080/job/Ding/javadoc/db_Aspect
 You can then associate pointcuts to aspects in the configuration files (if using xml or yaml). You can reuse
 aspect definitions and pointcut definitions as well.
 </p>
-<H3>Examples</H3>
+<H3>Where to find examples of doing PHP Aspect Oriented Programming with XML, YAML, and Annotations</H3>
 <p>
 In the <a href="https://github.com/marcelog/Ding-Aop-Example">github repository</a> for the source of this article, you can find an example with each one
 of the drivers,
@@ -192,7 +172,7 @@ of the drivers,
 <a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/yaml">YAML</a>,
 and <a href="https://github.com/marcelog/Ding-Aop-Example/tree/master/annotations">Annotations</a>.
 </p>
-<H3><u>Conclusions</u></H3>
+<H3>So how about some AOP in PHP?</H3>
 <p>AOP is really great. Definitely not a silver bullet, but a tool that will just fit in certain
 ocassions.
 </p>
