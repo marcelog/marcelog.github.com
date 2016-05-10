@@ -63,9 +63,9 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Link the PHP nodes of your Telephony Application or IVR for Asterisk PBX</h3>
 <p>
-The <a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">last article</a> was about how to create
+<a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">"<b>Advanced telephony applications with PHP and PAGI using call flow nodes</b>"</a> was about how to create
 call flow nodes for asterisk, using pagi and php, to easily create telephony applications. It's now time to add a layer on top of it,
 and create a complete call flow with several nodes.
 </p>
@@ -80,7 +80,7 @@ First, a couple of useful links:
 <li><u><a href="http://pagi.readthedocs.org/en/latest/PAGI-Node-NodeController/">NodeController API</a></u></li>
 </ul>
 </p>
-<h3>So what is a NodeController?</h3>
+<h3>So what is a NodeController and how it can be used from PHP for your Asterisk PBX Application?</h3>
 <p>
 A NodeController is what controls the execution flow of the nodes in your ivr application. You can register nodes in a
 node controller, and also register <b>actions</b>, to be executed based on their specific <b>result</b> when they are done executing.
@@ -93,7 +93,7 @@ maximum input attempts to enter a valid option in a menu, or when the node has b
 This is effectively a complete Call Flow, composed by different nodes and some specific behavior to control how the user
 navigates through them.
 </p>
-<h3>Why should I use them?</h3>
+<h3>Why should I use nodes in my VoIP Application?</h3>
 <p>
 It's not like you wont be able to do your application without them. Their main purpose is to save yourself from coding
 if's and switch-case's to make decisions in your code after executing every node. So instead of coding these, you will
@@ -103,35 +103,29 @@ just write declarative code that defines how a node controller will control and 
 Below is a brief description of the available results and actions that a NodeController can evalute and carry on when dealing with the
 Nodes execution.
 </p>
-<h3>List of available Results</h3>
+<h3>List of available Results of your IVR nodes</h3>
 <ul>
 <li>onCancel(): Execute an action when the node is cancelled with the cancel digit.</li>
 <li>onComplete(): Execute an action when the node is completed successfully (not a cancelled node, and not an exceeded input attempts). Often used in conjunction with withInput().</li>
 <li>onMaxAttemptsReached(): Execute an action when the node ended with maximum attempts exceeded for a valid input.</li>
 <li>withInput($input): Will check that the user has entered $input before executing the action.</li>
 </ul>
-<h3>List of available Actions</h3>
+<h3>List of available Actions for an IVR node</h3>
 <ul>
 <li>hangup($cause): Hangup the communication with the given cause code.</li>
 <li>jumpTo($nodeName): Jump to the given node (by name).</li>
 <li>jumpAfterEval(Closure $callback): Evaluates the given callback. This callback must accept the currently running node, and return a string which is the name of the next node to jump to.</li>
 <li>execute(Closure $callback): Execute a callback.</li>
 </ul>
-<h3>Creating a NodeController</h3>
+<h3>Creating a NodeController to put it all together and create a full VoIP Application</h3>
 <p>
 Creating a node controller is as easy as this. First, get a pagi client instance, as usual:
 </p>
-<pre name="code" class="php">
-$pagiClientOptions = array();
-use PAGI\Client\Impl\ClientImpl as PagiClient;
-$pagiClient = PagiClient::getInstance($pagiClientOptions);
-</pre>
+<script src="https://gist.github.com/marcelog/c22caff2804180144f5a437ae0372d7b.js"></script>
 <p>
 Then, instantiate a NodeController:
 </p>
-<pre name="code" class="php">
-$nodeController = $pagiClient->createNodeController('appName');
-</pre>
+<script src="https://gist.github.com/marcelog/2cef64a57c2cdc6ba4817c9b73dc6022.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -142,26 +136,17 @@ $nodeController = $pagiClient->createNodeController('appName');
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Registering a Node</h3>
+<h3>Registering a Node in the NodeController</h3>
 <p>
 Nodes can be registered through the register() method, which returns a Node, creating a fluent
 interface for it:
 </p>
-<pre name="code" class="php">
-$nodeController->register('mainMenu')
-    ->saySound('menu')
-    ->maxAttemptsForInput(3)
-    ->expectExactly(1)
-    ->playOnNoInput('please-enter-an-option')
-;
-</pre>
+<script src="https://gist.github.com/marcelog/34a8c2cf78eb03f00ae9ba37a0e206cd.js"></script>
 <h3>Executing the node controller</h3>
 <p>
 Once you registered your nodes, you can execute them by jump()ing to them:
 </p>
-<pre name="code" class="php">
-$nodeController->jumpTo('mainMenu');
-</pre>
+<script src="https://gist.github.com/marcelog/3f6d896ed77a2216a4e2cbd6cd4ceb76.js"></script>
 <p>
 Typically you would only do this when starting your application. At this stage, you
 are jumping to the first node, and then the NodeController will figure how to execute
@@ -173,21 +158,12 @@ We havent done anything useful yet. We only have 1 node and we are executing it
 programatically. Let's add a node that will play a sound file to the user when it has
 reached the maximum input attempts for the above main menu:
 </p>
-<pre name="code" class="php">
-$nodeController->register('maxAttemptsReached')
-    ->saySound('max-attempts-reached')
-;
-</pre>
+<script src="https://gist.github.com/marcelog/2208fec600270bbb75a1bf2343cade72.js"></script>
 <p>
 And let's now register a result handler for this node, that will hangup the communication after playing the
 sound file:
 </p>
-<pre name="code" class="php">
-$nodeController->registerResult('maxAttemptsReached')
-    ->onComplete()
-    ->hangup(16)
-;
-</pre>
+<script src="https://gist.github.com/marcelog/ea2a3bd7c9b595fb3ce6a8b87421ad8a.js"></script>
 <p>
 So far we have added a new node that will just play a sound file. When the node completes, the NodeController
 will execute the action configured, in this case a hangup with the cause code 16.
@@ -196,82 +172,26 @@ will execute the action configured, in this case a hangup with the cause code 16
 Let's now configure a result handler for the main menu, that will jump to the "maxAttemptsReached" node when the user
 has exceeded the maximum input attempts to enter a valid option:
 </p>
-<pre name="code" class="php">
-$nodeController->registerResult('mainMenu')
-    ->onMaxAttemptsReached()
-    ->jumpTo('maxAttemptsReached')
-;
-</pre>
-<h3>Completing the menu with conditional jumps</h3>
+<script src="https://gist.github.com/marcelog/c4993bb2994fab99f5fa3ca74f11369c.js"></script>
+<h3>Completing the menu with conditional jumps in PHP</h3>
 <p>Let's add some behavior to the main menu so it will jump to other nodes based on the option chosen by the user:</p>
-<pre name="code" class="php">
-$nodeController->registerResult('mainMenu')
-    ->onComplete()
-    ->withInput('1')
-    ->jumpTo('menuOption1')
-;
-$nodeController->registerResult('mainMenu')
-    ->onComplete()
-    ->withInput('2')
-    ->jumpTo('menuOption2')
-;
-$nodeController->registerResult('mainMenu')
-    ->onComplete()
-    ->withInput('3')
-    ->jumpTo('menuOption3')
-;
-$nodeController->registerResult('mainMenu')
-    ->onComplete()
-    ->withInput('3')
-    ->jumpTo('help')
-;
-</pre>
+<script src="https://gist.github.com/marcelog/38b43368504361aeee9b070530ddcaa5.js"></script>
 <p>
 Let's now add the help node, that when completed or cancelled will go back to the main menu:
 </p>
-<pre name="code" class="php">
-$nodeController->register('help')
-    ->saySound('help')
-    ->cancelWith(Node::DTMF_STAR)
-;
-$nodeController->registerResult('help')
-    ->onComplete()
-    ->jumpTo('mainMenu')
-;
-$nodeController->registerResult('help')
-    ->onCancel()
-    ->jumpTo('mainMenu')
-;
-</pre>
-<h3>Coding complex logic</h3>
+<script src="https://gist.github.com/marcelog/8aea87896295a7f76d242f5877eafb45.js"></script>
+<h3>Coding complex application logic in PHP</h3>
 <p>
 Sometimes you need to take decisions based on some more complex logic, for example if the user has input a
 calling card pin, you will sure need to validate it or try to get that entity from the database, and jump to one node
 or another based on these things. For this particular case, you can use the action jumpAfterEval(), like so:
 </p>
-<pre name="code" class="php">
-$nodeController->registerResult('pinEntry')
-    ->onComplete()
-    ->jumpAfterEval(function (Node $node) {
-	    // Try to get a calling card entity with the
-	    // given PIN.
-	    $input = $node->getInput();
-	    $cardEntity = $cardService->getByPin($input);
-	    if ($cardEntity === null) {
-	        return 'invalid-calling-card';
-	    }
-	    // Success! Save the calling card entity for
-	    // other validations.
-	    $node->saveCustomData('cardEntity', $cardEntity);
-	    return 'good-calling-card'
-    })
-;
-</pre>
+<script src="https://gist.github.com/marcelog/9a8c2863830b90d3027a27ec3661317c.js"></script>
 <p>
 Note that the Nodes have validators, that will usually suffice to do whatever needed before marking a node as complete. The code
 above is just an example, and a better implementation would be to use a node validator.
 </p>
-<H3>Conclusion</H3>
+<H3>Start writing full PHP Telephony Applications for the Asterisk PBX</H3>
 <p>
 Using a NodeController clearly allows you to code less if's and switch-cases's and concentrate on the really important stuff
 of you ivr application. It might not be a killer feature, and maybe the nodes themselves are more important than the node controllers, but
