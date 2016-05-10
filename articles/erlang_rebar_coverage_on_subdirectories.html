@@ -63,43 +63,32 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Code Coverage with Common Test in your Erlang Projects</h3>
 <p>
 Sometimes its useful to organice your source files into subdirectories. Thing is, it's not
 that easy to create html reports for code coverage for them. Let's see why, and a possible
 solution for this.
 </p>
-<h3>The situation</h3>
+<h3>General overview of running Common Test and Generating Code Coverage with Rebar</h3>
 <p>
 Typically, you would use <a href="https://github.com/basho/rebar">rebar</a> in your erlang project, to make it easier to get dependencies, compile, and run tests, either with <a href="http://www.erlang.org/doc/apps/common_test/index.html">common_test</a> or <a href="http://www.erlang.org/doc/apps/eunit/chapter.html">eunit</a>.
 </p>
 <p>
 Surely you will have your <a href="https://github.com/basho/rebar/blob/master/rebar.config.sample">rebar.config</a> file with at least the following entries:
 </p>
-<pre name="code" class="php">
-{eunit_opts, [verbose, {skip_deps, true}]}.
-{eunit_exclude_deps, true}.
-{cover_enabled, true}.
-</pre>
+<script src="https://gist.github.com/marcelog/0f2a1b6e9b5ae6b9930208a3b5663ecd.js"></script>
 
 <p>
 And of course, a <a href="http://www.erlang.org/doc/apps/common_test/cover_chapter.html#id78510">cover.spec</a> file in the directory of the application, similar to this:
 </p>
 
-<pre name="code" class="php">
-{incl_app, myapp, details}.
-{excl_mods, myapp, [app_SUITE]}.
-{incl_dirs_r, ["src", "test"]}.
-{src_dirs, myapp, ["src", "test"]}.
-</pre>
+<script src="https://gist.github.com/marcelog/719c4840502540f8d65011f3743fe3a0.js"></script>
 
 <p>
 Then you can run common_test via rebar quite easily, like:
 </p>
 
-<pre name="code" class="php">
-$ rebar -v 3 skip_deps=true ct
-</pre>
+<script src="https://gist.github.com/marcelog/6243dc7bf5580a26b9d3e90722e7d835.js"></script>
 
 <p>
 All of this will allow you to run the tests and generate coverage reports, but
@@ -107,7 +96,7 @@ you will notice that there aren't any html reports for the source files that
 "live" into subdirectories in your
 <b>src</b> directory.
 
-<h3>The reason why you won't get coverage reports in src subdirectories</h3>
+<h3>The reason why you won't get code coverage reports inside src subdirectories in your Erlang projects</h3>
 <p>
 The application that generates code coverage is actually shipped with erlang/otp, and it's
 called <a href="http://www.erlang.org/doc/man/cover.html">cover</a>. Common test uses it but,
@@ -128,18 +117,11 @@ page</a>, there's the following note:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Quick fix</h3>
+<h3>Quick fix to get code coverage with your Common Test tests</h3>
 <p>
 So a kind of dirty solution is to add to your Makefile something along these lines:
 </p>
-<pre name="code" class="php">
-test: compile
-  @rm -rf ${CT_LOG}
-  @find ${APP_DIR}/src -type f -exec cp {} ${APP_DIR}/ebin \;
-  @find ${APP_DIR}/test -type f -exec cp {} ${APP_DIR}/ebin \;
-  ${REBAR} -v 3 skip_deps=true ct
-  @find ${APP_DIR}/ebin -type f -name "*.erl" -exec rm {} \;
-</pre>
+<script src="https://gist.github.com/marcelog/fe6312b54c3e7d10a7f29cd5ea16fb95.js"></script>
 <p>
 This will copy all source files (*.erl) into the <b>ebin</b> directory (where the .beam files are
 generated), run the tests, and then remove the source files, allowing common test to generate
