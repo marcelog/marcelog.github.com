@@ -91,12 +91,7 @@ syntax of (some.. ) languages and (lot of) protocols.
 The ABNF specification defines how to write a set of <i>rules</i> so a parser can reduce a set of given <i>input symbols</i> into something
 that our code can use. For example, a rule named "email-address" could be defined as:
 </p>
-<pre name="code" class="php">
-email-address = local-part "@" domain-part
-local-part = 1*ALPHA ; And this is a comment, by the way
-domain-part = 1*ALPHA *("." 1*ALPHA)
-ALPHA = %x41-5A / %x61-7A ; Upper and lower case ASCII letters (A-Z, a-z)
-</pre>
+<script src="https://gist.github.com/marcelog/564c4d67464a8320009e0b714df8d49d.js"></script>
 <p>
 and is telling us that an <u>"email address"</u> is composed of a <u>"local part"</u>, followed by the <u>"@"</u> symbol and then followed by
 the <u>"domain part"</u>.
@@ -114,17 +109,12 @@ The <u>"domain-part"</u> rule is telling us that a domain name is composed of on
 <p>
 Our code could then parse the input <u>"user@domain.com"</u> and give us a map structure like:
 </p>
-<pre name="code" class="php">
-%{
-  user: "user",
-  domain: "domain.com"
-}
-</pre>
+<script src="https://gist.github.com/marcelog/44e70ba5cde0ecb497405b3215217f35.js"></script>
 <p>
 In the same way the input could be something very complex, like a <a href="https://tools.ietf.org/html/rfc3261#page-12">SIP INVITE</a> request, or
 an <a href="http://tools.ietf.org/html/rfc7230#page-8">HTTP REQUEST</a>, etc.
 </p>
-<h3>What is ex_abnf</h3>
+<h3>What is ex_abnf: ABNF and Elixir altogether</h3>
 <p>
 <a href="https://github.com/marcelog/ex_abnf"><b>ex_abnf</b></a> is a library for <b>elixir</b> that you can use in
 your own applications and/or libraries to <b>parse ABNF grammars</b> in a very simple way. You can also write your own code
@@ -152,11 +142,7 @@ at <a href="https://hex.pm/"><b>hex.pm</b></a> at <a href="https://hex.pm/packag
 <p>
 To use it in your application just add to your <b>mix.exs</b> file:
 </p>
-<pre name="code" class="php">
-def deps do
-  [{:ex_abnf, "~> 0.2.7"}]
-end
-</pre>
+<script src="https://gist.github.com/marcelog/36b9e26b065b3efb94b923f3980d44ad.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -189,46 +175,12 @@ When <b>ex_abnf</b> parses the grammar file, it <u>will automatically put all th
 module</u>, so all the code is precompiled, and also the optional code section is very useful to declare helper functions or "require" any other modules
 that are used from other pieces of code inside the grammar. For example, our previous example could also be written as:
 </p>
-<pre name="code" class="php">
-!!!
-# This is how you can write the optional code section.
-require Logger
-
-def normalize(input) do
-  String.downcase to_string(input)
-end
-!!!
-
-; And the grammar follows afterwards
-email-address = local-part "@" domain-part !!!
-  [user, _, domain] = string_values
-  Logger.debug "Howdy!"
-  {:ok, %{state | completed: true}, %{
-    user: normalize(user),
-    domain: normalize(domain)
-  }}
-!!!
-
-local-part = 1*ALPHA
-
-domain-part = 1*ALPHA *("." 1*ALPHA)
-
-ALPHA = %x41-5A / %x61-7A ; Upper and lower case ASCII letters (A-Z, a-z)
-</pre>
+<script src="https://gist.github.com/marcelog/1c81f28ad1b62c6c852e2f069de0e9f9.js"></script>
 <p>
 Once the file is loaded and parsed, a structure will be returned that you can later on use to
 apply the grammar to an input with the function <b>ABNF.apply/4</b>:
 </p>
-<pre name="code" class="php">
-grammar = ABNF.load_file "/tmp/mail.abnf"
-optional_initial_state = %{completed: false}
-result = ABNF.apply(
-  grammar,
-  "email-address",
-  'user@domain.com',
-  optional_initial_state
-)
-</pre>
+<script src="https://gist.github.com/marcelog/8bdfcd8eb6d903d16fd689e78f76dc58.js"></script>
 <p>
 The arguments for the function are:
 <ul>
@@ -243,21 +195,7 @@ The arguments for the function are:
 <p>
 The result is a structure like:
 </p>
-<pre name="code" class="php">
-%ABNF.CaptureResult{
-  input: 'user@domain.com',
-  rest: [],
-  state: %{completed: true},
-  string_text: 'user@domain.com',
-  string_tokens: ['user', '@', 'domain.com'],
-  values: [
-    %{
-      domain: "domain.com",
-      user: "user"
-    }
-  ]
-}
-</pre>
+<script src="https://gist.github.com/marcelog/79c9549885d0c343d1db24b5ccb8d500.js"></script>
 <p>
 Where:
 <ul>
@@ -320,160 +258,16 @@ we define (just for fun) a macro and a "global" function used throughout the red
 <p>
 Also, all the predefined variables are used as a demo (state, rule, values, string_values).
 </p>
-<pre name="code" class="php">
-!!!
-###
-# These are some helper functions and macros used throughout the parser
-###
-require Logger
-
-def get_val(token) do
-  case :lists.flatten(token) do
-    [] -> nil
-    r -> hd r
-  end
-end
-
-defmacro to_s() do
-  quote do
-    _ = var!(string_values)
-    _ = var!(values)
-    state = var!(state)
-    rule = var!(rule)
-    {:ok, state, to_string(rule)}
-  end
-end
-!!!
-
-; This grammar is taken from
-; https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_Form#Example
-postal-address   = name-part street zip-part !!!
-  _ = rule
-  _ = string_values
-  [name, street, zip] = values
-  {:ok, state, %{
-    name: get_val(name),
-    street: get_val(street),
-    zip: get_val(zip)
-  }}
-!!!
-
-name-part        = personal-part SP *(personal-part SP) [suffix] CRLF !!!
-  _ = rule
-  _ = values
-  # Remove CRLF and get the name
-  [_|name] = Enum.reverse string_values
-  name = to_string Enum.reverse(name)
-  {:ok, state, name}
-!!!
-
-personal-part    = first-name / (initial ".") !!! to_s !!!
-
-first-name       = *ALPHA !!! to_s !!!
-
-initial          = ALPHA !!! to_s !!!
-
-last-name        = *ALPHA !!! to_s !!!
-
-suffix           = ("Jr." / "Sr." / 1*("I" / "V" / "X")) !!! to_s !!!
-
-street           = [apt SP] house-num SP street-name CRLF !!!
-  _ = rule
-  _ = string_values
-  [apt, house, _, street, _] = values
-  apt = get_val apt
-  house = get_val house
-  street = get_val street
-  {:ok, state, %{
-    apartment: apt,
-    house: house,
-    street: street
-  }}
-!!!
-
-apt              = 1*4DIGIT !!!
-  _ = values
-  _ = string_values
-  {apt, ""} = Integer.parse to_string(rule)
-  {:ok, state, apt}
-!!!
-
-house-num        = 1*8(DIGIT / ALPHA) !!! to_s !!!
-
-street-name      = 1*VCHAR !!! to_s !!!
-
-zip-part         = town-name "," SP state 1*2SP zip-code CRLF !!!
-  _ = rule
-  _ = string_values
-  [town, _, _, st, _, zip, _] = values
-  town = get_val town
-  st = get_val st
-  zip = get_val zip
-  {:ok, state, %{
-    town: town,
-    state: st,
-    zip: zip
-  }}
-!!!
-
-town-name        = 1*(ALPHA / SP) !!! to_s !!!
-
-state            = 2ALPHA !!! to_s !!!
-
-zip-code         = 5DIGIT ["-" 4DIGIT] !!!
-  _ = rule
-  _ = values
-  [code, extended] = string_values
-  {code, ""} = Integer.parse to_string(code)
-  extended = case extended do
-    [] -> nil
-    [?-|extended] ->
-      {extended, ""} = Integer.parse to_string(extended)
-      extended
-  end
-  {:ok, state, %{
-    code: code,
-    extended: extended
-  }}
-!!!
-
-DIGIT = %x30-39 ; Decimal digits (0-9)
-ALPHA = %x41-5A / %x61-7A ; Upper and lower case ASCII letters (A-Z, a-z)
-VCHAR = %x21-7E  ; visible (printing) characters
-SP = %x20 ; space
-CRLF = CR LF ; Internet standard newline
-CR = %x0D ; carriage return
-LF = %x0A ; linefeed
-</pre>
+<script src="https://gist.github.com/marcelog/be11a55acb5a96568870d3e6b033789a.js"></script>
 <p>
 A <a href="https://github.com/marcelog/ex_abnf_example/blob/master/test/ex_abnf_example_test.exs">simple test</a> shows us a simple use case:
 </p>
-<pre name="code" class="php">
-input = 'John M. Doe Jr.\r\n4 6th 18ave\r\nMiami, FL 33166-1234\r\n'
-result = ABNFApp.init |> ABNFApp.parse(input, "postal-address")
-</pre>
+<script src="https://gist.github.com/marcelog/3f045082905187e68859d4ea8881ebff.js"></script>
 <p>
 The first element in <b>result.values</b> will then be:
 </p>
-<pre name="code" class="php">
-%{
-  name: "John M. Doe Jr.",
-  street: %{
-    apartment: 4,
-    house: "6th",
-    street: "18ave"
-  },
-  zip: %{
-    town: "Miami",
-    state: "FL",
-    zip: %{
-      code: 33166,
-      extended: 1234
-    }
-  }
-}
-</pre>
-<h3>Conclusion</h3>
+<script src="https://gist.github.com/marcelog/6468bd51583755f57251c19daae5ba55.js"></script>
+<h3>Start using ABNF grammars in your Elixir code right away!</h3>
 <p>
 <b>ex_abnf</b> (although a very simple tool in its inner workings) has been tested with protocols like SDP, SIP, and others. It has proven to be
 really useful to just copy'n'paste the grammar from a RFC and have a protocol working in a matter
