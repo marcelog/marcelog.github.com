@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>An Erlang Persistence layer for Erlang</h3>
 <p>
 In this article, I'll describe <a href="https://github.com/marcelog/epers/">epers</a>, which is a
 small project I've been working on. It's currently a "small" project, but quite ambitious, and the idea
@@ -103,7 +103,7 @@ Planned to have are: <a href="http://www.erlang.org/doc/man/mnesia.html">Mnesia<
 <p>
 For the impatient, there's a complete example (a blog website) <a href="https://github.com/marcelog/epers/tree/master/examples/blog">here</a>.
 </p>
-<h3>General overview</h3>
+<h3>General overview: Decoupling your business logic from your persistence layer in your Erlang Applications</h3>
 <p>
 The "programming model" that epers offers, forces you to write code that
 completely decouples state from the code that handles behavior, and the code
@@ -132,7 +132,7 @@ So let's start by defining some concepts used in epers.
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>A preview</h3>
+<h3>A preview: How to use the persistence framework</h3>
 <p>
 Your main entry point to epers is the <a href="https://github.com/marcelog/epers/blob/master/src/epers.erl">epers</a> module. So if you want to skip
 some reading and go straight to the code, remember that you should have
@@ -155,50 +155,38 @@ From the epers module, you can call:
  <li><i>delete_all/1</i>: Deletes all entities of the given type.</li>
 </ul>
 
-<h3>Basic usage</h3>
+<h3>Basic usage of your erlang repositories</h3>
 <p>
 Once you have your entities and your repositories properly configured (see
 below), you can use them right away. Let's say we want to create a new user:
 </p>
-<pre name="code" class="erlang">
-    NewUser = epers:persist(mywebsite_user, User).
-    % NewUser contains a new id if it was generated.
-</pre>
+<script src="https://gist.github.com/marcelog/0de18294e2f81ed473f49f76dfa67436.js"></script>
 <p>
 Let's delete it:
 </p>
-<pre name="code" class="erlang">
-    epers:delete(mywebsite_user, Id).
-</pre>
+<script src="https://gist.github.com/marcelog/98f4582f1f22b2d4b3d452b828e7db1c.js"></script>
 <p>
 Getting by id:
 </p>
-<pre name="code" class="erlang">
-    User = epers:find(mywebsite_user, Id).
-</pre>
+<script src="https://gist.github.com/marcelog/2536d043fa097d910f3aec3878ec7f8a.js"></script>
 <p>
 Getting by age:
 </p>
-<pre name="code" class="erlang">
-    Users = epers:find_by(mywebsite_user, [{age, Age}]).
-</pre>
+<script src="https://gist.github.com/marcelog/e9976c82d3d196e7bc7c032a024a3902.js"></script>
 <p>
 Same as above but paginated:
 </p>
-<pre name="code" class="erlang">
-    Users = epers:find_by(mywebsite_user, [{age, Age}], Limit, Offset).
-</pre>
+<script src="https://gist.github.com/marcelog/1284b8681f29dfaaf0543186508e671a.js"></script>
 <p>
 Finding one by email:
 </p>
-<pre name="code" class="erlang">
-    User = epers:find_one(mywebsite_user, [{email, Email}]).
-</pre>
+<script src="https://gist.github.com/marcelog/e4d837d9de0d64fa709999cec5d03952.js"></script>
+
 <h3>Concepts</h3>
 <p>
 Let's go over a few key concepts of epers.
 </p>
-<h3>Entities</h3>
+<h3>Entities: The key to decouple your repositories from your business logic</h3>
 <p>
 epers works with "<b>entities</b>". An entity is, conceptually speaking, "something"
 in your software that needs to be persisted, has its own business rules, has
@@ -210,19 +198,7 @@ implements the <a href="https://github.com/marcelog/epers/blob/master/src/epers_
 <i>Users</i> in a website, can be represented and implemented into the erlang module
 <i>mywebsite_user</i>:
 </p>
-<pre name="code" class="erlang">
-    -module(mywebsite_user).
-    -behavior(epers_doc).
-
-    epers_sleep(State) ->
-      ...
-
-    epers_wakeup(Fields) ->
-      ...
-
-    epers_schema() ->
-      ...
-</pre>
+<script src="https://gist.github.com/marcelog/b29ffc375c94a2a2f216b4bbcb2755e8.js"></script>
 <p>
 Don't worry about the <i>epers_</i> functions, we'll see more about them later.
 </p>
@@ -236,12 +212,7 @@ say it's a proplist:
 </p>
 
 <h3>Example</h3>
-<pre name="code" class="erlang">
-    [
-      {id, 1}, {name, "Peter"}, {lastname, "Cantropus"},
-      {age, 45}, {email, "peteca@host.com"}
-    ]
-</pre>
+<script src="https://gist.github.com/marcelog/4b875d31d9f9004ec52657a6c5abe5d1.js"></script>
 <h3>Behavior</h3>
 <p>
 The behavior of your entites is represented by code. With epers, the functions
@@ -264,18 +235,12 @@ Let's say you have a story that states something like:<br/>
 <br/>
 You would write (in the <i>mywebsite_user</i> module):</br>
 <br/>
-<pre name="code" class="erlang">
-    change_email(State, NewEmail) ->
-      set(State, email, NewEmail).
-</pre>
+<script src="https://gist.github.com/marcelog/ce3e844f92ccfc18dfb5fded038d0b29.js"></script>
 <p>
 The <i>set/3</i> function can be something like:
 </p>
-<pre name="code" class="erlang">
-    set(State, Field, Value) ->
-      lists:keystore(Field, 1, State, {Field, Value}).
-</pre>
-<h3>Business Rules</h3>
+<script src="https://gist.github.com/marcelog/62ba2d22e15533fc7ec2f7ab5b19e062.js"></script>
+<h3>Business Rules for your business logic in your Erlang application</h3>
 <p>
 The business rules are what your entities can or can't do. The behavior is
 shaped by the business rules, and they should be enforced by throwing errors or
@@ -287,21 +252,12 @@ reporting them somehow. You will usually have these as "requirements",
 If <b><i>A user can't change his/her email if age > 40</i></b>, you could rewrite
 <i>change_email/2</i> like this:
 </p>
-<pre name="code" class="erlang">
-    change_email(State, NewEmail) ->
-      Age = get(State, age),
-      if
-        Age > 40 -> throw(cant_change_email_if_over_40);
-        _ -> set(State, email, NewEmail)
-      end.
-</pre>
+<script src="https://gist.github.com/marcelog/cee529f688b7966672055a5b782b4468.js"></script>
 <p>
 The <i>get/2</i> function can be something like:
 </p>
-<pre name="code" class="erlang">
-      get(State, Field) ->
-        proplists:get_value(Field, State).
-</pre>
+<script src="https://gist.github.com/marcelog/eebcbf8e195485b9ab582ed262167037.js"></script>
+
 <h3>The epers_doc behavior</h3>
 <p>
 Note that, in the example code shown so far, there's almost nothing that couples
@@ -318,17 +274,9 @@ your state representation into <a href="https://github.com/marcelog/epers/blob/m
 Is called when <i>epers:create_schema/0</i> is called. This
 should return the schema for your entity. Example:
 </p>
-<pre name="code" class="erlang">
-    epers_schema() ->
-      epers:new_schema(?MODULE, [
-        epers:new_field(id, integer, [not_null, auto_increment, id]),
-        epers:new_field(name, string, [{length, 128}, not_null]),
-        epers:new_field(lastname, string, [{length, 128}, not_null]),
-        epers:new_field(age, integer, [index]),
-        epers:new_field(email, string, [{length, 64}, not_null, unique])
-      ]).
-</pre>
-<h3>Defining a schema</h3>
+<script src="https://gist.github.com/marcelog/d58bc3d78f60d92d61c85f511b7b7b94.js"></script>
+
+<h3>Defining a database schema for your entities</h3>
 <p>
 To create an <i>#epers_schema{}</i>, call <i>epers:new_schema/2</i>. The 1st argument is the
 name of the entity (will directly translate into tables, collections, etc), and
@@ -387,18 +335,7 @@ are persisted or fetched. Epers come with a
 Repositories are configured somewhere in your application configuration, and
 then associated to entities like this:
 </p>
-<pre name="code" class="erlang">
-    {epers, [
-      {repositories, [
-        {my_repo_name, module_with_implementation, [
-          proplists with specific options
-        ]},
-      ]}
-      {docs, [
-        {my_entity, my_repo_name},
-      ]}
-    ]}
-</pre>
+<script src="https://gist.github.com/marcelog/e5091ef8a4fe7ebc88a06c3edc8de695.js"></script>
 <p>
 This is needed so epers knows which repo to call when persisting or querying
 entities. This also allows you to change repo implementations easily, and
@@ -409,48 +346,18 @@ hopefully, without needing to change code.
 Let's say we want to setup a mysql repository (with the default implementation)
 for our <i>ebsite_user</i> entity:
 </p>
-<pre name="code" class="erlang">
-    {epers, [
-      {repositories, [
-        {users_repo, epers_repo_mysql, [
-          {username, "root"},
-          {password, "pass"},
-          {host, "127.0.0.1"},
-          {port, 3306},
-          {database, "users"}
-        ]}
-      ]},
-      {docs, [
-        {mywebsite_user, users_repo}
-      ]}
-    ]}
-</pre>
+<script src="https://gist.github.com/marcelog/4e43f59a7085a07d2867615e5c3fde3a.js"></script>
 <p>
 It's possible that if you are using the default implementation of a repo
 (any of the modules <i>epers_repo_*</i> modules) you can change implementations
 without changing your code, and only reconfiguring your application. Let's see
 how would the configuration look like to use mongodb:
 </p>
-<pre name="code" class="erlang">
-    {epers, [
-      {repositories, [
-        {users_repo, epers_repo_mongo, [
-          {username, "root"},
-          {password, "pepe"},
-          {host, "127.0.0.1"},
-          {port, 27017},
-          {database, "blog"}
-        ]}
-      ]},
-      {docs, [
-        {mywebsite_user, users_repo}
-      ]}
-    ]}
-</pre>
+<script src="https://gist.github.com/marcelog/9719b918ac2a91650343d9bcf671e93f.js"></script>
 <p>
 Which is pretty much the same as mysql :)
 </p>
-<h3>Default repositories</h3>
+<h3>Default repositories for specific or complex queries</h3>
 <p>
 The default repositories support the following api:
 </p>
@@ -465,7 +372,7 @@ The default repositories support the following api:
   <li><i>call/4</i>: If you have a custom repo implementation, this is the way to
   call a custom function.</li>
 </ul>
-<h3>Custom repositories</h3>
+<h3>Custom repositories for all your database queries</h3>
 <p>
 Sooner or later you will need to do some more complex queries to your database,
 and the default repo implementations wont help you much. For these special
@@ -479,28 +386,11 @@ Let's say that you want to extend the default repo implementation for
 mywebsite_user, to add a count, and you choose to use mysql for this. You can
 write the following <i>mywebsite_user_repo</i> module:
 </p>
-<pre name="code" class="erlang">
-    -module(blog_post_repo).
-
-    -include_lib("emysql/include/emysql.hrl").
-    -include_lib("epers_doc.hrl").
-
-    -extends(epers_repo_mysql).
-
-    total_users(DocName, State) ->
-      Sql = "SELECT COUNT(1) FROM `" ++ atom_to_list(DocName) ++ "`",
-      Result = epers_repo_mysql:execute(Sql, State),
-      case Result of
-        #result_packet{rows=[[N]]} -> {ok, {raw, N}, State};
-        _ -> {ok, error, State}
-      end.
-</pre>
+<script src="https://gist.github.com/marcelog/9dac3367a421ae422fd8fc11e85adb8d.js"></script>
 <p>
 And you can access it by calling:
 </p>
-<pre name="code" class="erlang">
-    epers:call(mywebsite_user, total_users).
-</pre>
+<script src="https://gist.github.com/marcelog/7c5d0ae961a34e3f2a8c86324ddf4ac9.js"></script>
 <p>
 Epers will locate the repo implementation for the entity <i>mywebsite_user</i> and
 call the <i>total_users</i> function.<br/>
@@ -512,14 +402,12 @@ repo features, like persist, find, etc.
 <p>
 You can all:
 </p>
-<pre name="code" class="erlang">
-    epers:call(mywebsite_user, crazy_query, [Arg1, Arg2, Arg3]).
-</pre>
+<script src="https://gist.github.com/marcelog/fbad2f1c59aa8151377e55995920fe63.js"></script>
 <p>
 This will invoke the function crazy_query(Arg1, Arg2, Arg3) on your custom
 repo.
 </p>
-<h3>Built-in domain events</h3>
+<h3>Built-in domain events for your business logic</h3>
 <p>
 Since this article is a little too long already, this subject is covered in depth
 <a href="erlang_epers_persist_entities_domain_events.html">here</a>.
