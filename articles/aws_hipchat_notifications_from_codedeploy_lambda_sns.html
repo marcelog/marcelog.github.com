@@ -63,13 +63,13 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Using Amazon AWS CodeDeploy and HipChat for your development team and software projects?</h3>
 <p>
 In a previous article I described <a href="aws_sns_hipchat_integration_notifications_with_lambda.html">how you can create a Lambda function and use it through SNS to send HipChat notifications</a>. In this article we're going to take
 this one step further and integrate another awesome Amazon service, <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> so we can receive HipChat notifications
 during the lifecycle of a deploy, and keep the whole team updated about the deploy status.
 </p>
-<h3>Create your Lambda</h3>
+<h3>Create your Amazon AWS Lambda with NodeJS</h3>
 <p>
 As in the previous article, our Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
 Amazon has made recently available for the public. Also, the code is almost the same, except for a slight difference in the handler function, that is adapted to handle the <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-notify-json-format.html">CodeDeploy JSON payload</a>:
@@ -88,7 +88,7 @@ I recommend you to read the <a href="aws_sns_hipchat_integration_notifications_w
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Setup your CodeDeploy Application</h3>
+<h3>Setup your Amazon AWS CodeDeploy Application and Software Project</h3>
 <p>
 Head to your <a href="https://us-west-2.console.aws.amazon.com/codedeploy/home">AWS CodeDeploy Console</a>, select your application, a deployment group, and edit it. Under <b>Triggers</b> click on <b>Create Trigger</b>
 pick a name, and choose all the events. In the SNS topic choose the SNS topic with the subscription that points to your Lambda function and then save it.
@@ -96,7 +96,7 @@ pick a name, and choose all the events. In the SNS topic choose the SNS topic wi
 <p>
 That's it!
 </p>
-<h3>Conclusion</h3>
+<h3>Easy deploy your software projects with Amazon AWS CodeDeploy and receive updated status with HipChat</h3>
 <p>
 Now you can have notifications in your HipChat room whenever a deploy is created, finished, and in the middle as it goes through all your EC2 instances. Cool, uh?
 </p>
