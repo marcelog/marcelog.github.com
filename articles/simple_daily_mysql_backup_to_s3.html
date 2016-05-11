@@ -63,12 +63,12 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Easy and scalable solution for your MySQL backups by using Amazon AWS RDS Service</u></H3>
 <p>
 If you are not using <a href="https://aws.amazon.com/rds/"><b>RDS</b></a> to host your databases, it is very probable that you are doing your own
 backups. In this article we'll see a very simple shell script to do <b>automatic daily backups</b> for your mysql databases into an <a href="https://aws.amazon.com/s3/"><b>S3 bucket</b></a>.
 </p>
-<h3>Requirements</h3>
+<h3>What you need to upload your MySQL backups to S3</h3>
 <p>
   <ul>
     <li>An S3 bucket <a href="http://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html">created already</a></li>
@@ -77,7 +77,7 @@ backups. In this article we'll see a very simple shell script to do <b>automatic
   </ul>
 </p>
 
-<h3>The script</h3>
+<h3>The shell script used to backup your database and upload it to S3</h3>
 <p>
 The idea is to create the following script and run it with the appropiate environment variables, and what it does is actually pretty simple.<br/><br/>
 First, it gets the short name for the current day (let's say <b>mon</b>, for monday), and then uses <a href="https://dev.mysql.com/doc/refman/5.1/en/mysqldump.html"><b>mysqldump</b></a> to dump
@@ -88,25 +88,7 @@ using the <a href="http://docs.aws.amazon.com/cli/latest/reference/s3/index.html
 Note that this will allow you to have at most 7 backups, since every day the backup will overwrite the last backup corresponding to that day. You can change this
 behavior easily by editing the <b>file</b> variable to suit your needs (perhaps using a format like <b>%Y-%m-%h</b>).
 </p>
-<pre name="code" class="php">
-#!/bin/bash
-cd /tmp
-file=$(date +%a).sql
-mysqldump \
-  --host ${MYSQL_HOST} \
-  --port ${MYSQL_PORT} \
-  -u ${MYSQL_USER} \
-  --password="${MYSQL_PASS}" \
-  ${MYSQL_DB} > ${file}
-if [ "${?}" -eq 0 ]; then
-  gzip ${file}
-  aws s3 cp ${file}.gz s3://${S3_BUCKET}
-  rm ${file}.gz
-else
-  echo "Error backing up mysql"
-  exit 255
-fi
-</pre>
+<script src="https://gist.github.com/marcelog/2d50b295e8641d45a32b3269b42e8eb3.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -117,26 +99,13 @@ fi
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Sample run</h3>
-<pre name="code" class="php">
-AWS_ACCESS_KEY_ID=my_key \
-AWS_SECRET_ACCESS_KEY=my_secret \
-AWS_DEFAULT_REGION=us-west-2 \
-S3_BUCKET=my_bucket \
-MYSQL_HOST=host \
-MYSQL_PORT=port \
-MYSQL_USER=myuser \
-MYSQL_PASS=pass \
-MYSQL_DB=db \
-backup.sh
-</pre>
-<h3>Crontabing the script</h3>
+<h3>Sample run of the backup script</h3>
+<script src="https://gist.github.com/marcelog/368c32ce5635de983b133dfa4fd84af1.js"></script>
+<h3>Crontab the script to achieve automated and periodic MySQL backups in Amazon S3</h3>
 <p>
 Add the following line to your <a href="http://crontab.org/"><b>crontab</b></a>:
 </p>
-<pre name="code" class="php">
-0 0 * * * root /usr/bin/my_backup.sh
-</pre>
+<script src="https://gist.github.com/marcelog/bf0d33e5fa7ec9be783d81217681588b.js"></script>
 <p>
 This will be run every day at 12:00am. Notice how we are not specifying any environment variables here. This is to prevent that
 someone without enough privileges can see the passwords and other sensible information. The "crontabed"
