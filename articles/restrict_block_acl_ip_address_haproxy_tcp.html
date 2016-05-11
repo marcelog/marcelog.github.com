@@ -63,12 +63,12 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>HaProxy: An awesome load balancer that allows security rules by IP Addresse</u></H3>
 <p>
 <a href="http://www.haproxy.org/"><b>haproxy</b></a> is an awesome <b>load balancer</b> for <b>TCP</b> and
 <b>HTTP</b> connections. Let's see how to add some simple security rules based on the <b>source IP address</b>.
 </p>
-<h3>Configuration</h3>
+<h3>Configuration of HaProxy to allow and reject connections by IP Address</h3>
 <p>
 HaProxy supports different <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#4-mode">modes</a>,
 in this case we're going to look at the <b>TCP mode</b> so we can <b>restrict access by IP address</b>.
@@ -93,14 +93,7 @@ The configuration is actually pretty simple, and here's a small snippet that wil
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<pre name="code" class="php">
-frontend www
-  bind *:80
-  mode tcp
-  acl network_allowed src 1.1.1.1 2.2.2.2
-  tcp-request connection reject if !network_allowed
-  use_backend my_backend_server
-</pre>
+<script src="https://gist.github.com/marcelog/c3a6a49a830af1d083191effad6cd620.js"></script>
 <p>
 A simple <a href="http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#7.2"><b>ACL Condition</b></a>
 will negate the list, so the TCP connection is closed if the source ip address is not there.
