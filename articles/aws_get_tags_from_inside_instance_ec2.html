@@ -63,6 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
+<h3>Need to read the values of your Amazon AWS EC2 instance tags?</h3>
 <p>
 There's a quick way that you can use to read the tags of your EC2 instance from inside the same instance. If you have the instance id (and you
 can get it by using the <a href="get_aws_instance_id_ec2_read_metadata.html">EC2 MetaData</a>) you can use the <a href="https://aws.amazon.com/cli/">AWS Command Line tools</a>.
@@ -71,9 +72,7 @@ can get it by using the <a href="get_aws_instance_id_ec2_read_metadata.html">EC2
 More specifically, by using the <a href="http://docs.aws.amazon.com/cli/latest/reference/ec2/describe-tags.html">Describe Tags</a> command of the AWS CLI you can get your instance tags
 in the following way:
 </p>
-  <pre name="code" class="php">
-aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}"
-</pre>
+<script src="https://gist.github.com/marcelog/b2559fd8ffee888cdbbecc645f0d7fb2.js"></script>
 <p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -88,11 +87,9 @@ aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}"
 <p>
 Let's say you want to get the value of the <b>Environment</b> tag, you could do:
 </p>
-<pre name="code" class="php">
-aws ec2 describe-tags --filters "Name=resource-id,Values=${instance_id}" | grep -2 Environment | grep Value | tr -d ' ' | cut -f2 -d: | tr -d '"' | tr -d ',')
-</pre>
+<script src="https://gist.github.com/marcelog/b2e84a5446bf14de2bdc2a53cfd06a11.js"></script>
 
-<h3>Permissions</h3>
+<h3>Permissions needed to get the Amazon AWS EC2 instance tags</h3>
 <p>
 For this to work, you have to have the <b>ec2:DescribeTags</b> permission in your user policies or in the IAM Profile of your instance.
 </p>
