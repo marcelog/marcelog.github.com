@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>The EC2 Metadata: Getting your Amazon Instance ID and more</h3>
 <p>
 Sometimes it can be quite useful to be able to get the instance information from within the EC2 instance. A clear example is
 to be able to get the instance id.
@@ -71,7 +71,7 @@ to be able to get the instance id.
 <p>
 Luckily for us, Amazon made this information available through the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">EC2 instance MetaData</a>
 </p>
-<h3>How to get the Instance Metadata</h3>
+<h3>How to get the EC2 Instance Metadata</h3>
 <p>
 The instance metadata is available in all amazon EC2 instances at the following address:
 </p>
@@ -80,20 +80,16 @@ http://169.254.169.254/latest/meta-data/
 </pre>
 <p>
 In there you can find quite a lot of useful information, including the instance id.
-<h3>Getting the instance id with CURL and WGET</h3>
+<h3>Getting the Amazon AWS EC2 instance id with CURL and WGET</h3>
 <p>
 To get the instance id of your EC2 instance, just query <b>http://169.254.169.254/latest/meta-data/instance-id</b>, either with
 CURL or WGET. To get the instance id with CURL from the command line, use:
 </p>
-<pre name="code" class="php">
-curl http://169.254.169.254/latest/meta-data/instance-id
-</pre>
+<script src="https://gist.github.com/marcelog/38dc88dbf5cc6ecdde82a94ec9512bc3.js"></script>
 <p>
 Or rather by using wget:
 </p>
-<pre name="code" class="php">
-wget -q -O - http://169.254.169.254/latest/meta-data/instance-id
-</pre>
+<script src="https://gist.github.com/marcelog/4b7d0bd16b7b0a5473571d3f91060752.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -105,7 +101,7 @@ wget -q -O - http://169.254.169.254/latest/meta-data/instance-id
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-<h3>Using the MetaData tool</h3>
+<h3>Using the Amazon AWS MetaData tool</h3>
 <p>
 Amazon has also made publicly available its <a href="https://aws.amazon.com/items/1825?externalID=1825
 ">EC2 MetaData tool</a> so it can be used from the command line to get all this information.
@@ -113,15 +109,9 @@ Amazon has also made publicly available its <a href="https://aws.amazon.com/item
 <p>
 To install the metadata tool, follow these steps:
 </p>
-<pre name="code" class="php">
-wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
-chmod u+x ec2-metadata
-./ec2-metadata --help
-</pre>
+<script src="https://gist.github.com/marcelog/20e71b794222ba678e8263417cd29314.js"></script>
 To get the instance if by using it, just do:
-<pre name="code" class="php">
-./ec2-metadata -i
-</pre>
+<script src="https://gist.github.com/marcelog/5d74c62633b1d1a033f8a2809552537c.js"></script>
 <p>
 And it will yield the instance id in a pinch.
 </p>
