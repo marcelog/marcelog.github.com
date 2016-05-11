@@ -63,7 +63,7 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>Allowing inbound and outbound Traffic for your Amazon AWS Lambda code</u></H3>
 <p>
 <a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html"><b>AWS Lambda</b></a> is a great service from Amazon that can be
 used for a lot of things. It is the key to a <a href="http://docs.serverless.com/"><b>Server Less</b></a> architecture/application but it can
@@ -78,7 +78,7 @@ made publicly available this new feature.
 <p>
 In this article we're going to see what is needed to access both public and private IP addresses from within your Lambda functions. This is essentially giving your Lambdas access to one of your <a href="https://aws.amazon.com/vpc/"><b>VPCs</b></a>.
 </p>
-<H3><u>Configuring your Lambda</u></H3>
+<H3><u>Configuring your Amazon AWS Lambda with a VPC</u></H3>
 <p>
 This part is actually pretty easy. In your <a href="https://us-west-2.console.aws.amazon.com/lambda/home">AWS Console for Lambda</a> click in one of your functions, and then go to the <b>Configuration</b> tab, and then click in <b>Advanced Settings</b>.
 </p>
@@ -87,7 +87,7 @@ You will notice that you can select a <b>VPC</b>, one or more <a href="http://do
 We will see some details about how to create these later, but for now, the trick here is to select <b>ONLY</b> <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Scenario2.html"><b>Private Subnets</b></a> (in case you need to access
 Internet resources, otherwise any subnet will do <b>as long as your other AWS resources reside in the same VPC as your Lambdas</b>).
 </p>
-<H3><u>Create a VPC</u></H3>
+<H3><u>Create a VPC for your Amazon AWS Lambda</u></H3>
 <p>
 If you already have a VPC, you can use it. Otherwise, if you prefer to create a new one (fair enough), go to the <a href="https://console.aws.amazon.com/vpc/home?#vpcs:">VPC Section of your AWS Console</a>, and click
 <b>Create VPC</b>. Fill in a name and the tenancy type (usually "Default"), and the key here is the CIDR block to choose.
@@ -111,7 +111,7 @@ different subnets inside that VPC.
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<H3><u>Create a Private Subnet</u></H3>
+<H3><u>Create a Private Subnet in your Amazon AWS VPC</u></H3>
 <p>
 A private subnet is a subnet that has a routing table with a default route
 that goes through a <a href="http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-nat-gateway.html"><b>NAT instance or a gateway</b></a>.
@@ -127,19 +127,19 @@ Let's create our private subnet then. Go to the <a href="https://console.aws.ama
 <p>Pick a CIDR block that is covered by the VPC CIDR block. In our case
 we can use something like <b>192.168.20.0/24</b> (see how we have "split" our /16 network now, into one /24 subnet).
 </p>
-<H3><u>Create a Public Subnet</u></H3>
+<H3><u>Create a Public Subnet in your AWS VPC</u></H3>
 <p>
 The public subnet is where our NAT Gateway will "live", and will only be used to provide Internet access to our private subnet where our Lambdas will be deployed.
 </p>
 <p>
 Follow the same procedure as above so you can create a new subnet. Pick a different CIDR block (but again, one that is covered by your VPC CIDR block), for example: <b>192.168.10.0/24</b>.
 </p>
-<H3><u>Create an Internet Gateway</u></H3>
+<H3><u>Create an Internet Gateway for your VPC</u></H3>
 <p>
 Let's now create an Internet Gateway so we can provide Internet access to our new VPC. Head over to the <a href="https://console.aws.amazon.com/vpc/home?#igws:">Internet Gateways section of your AWS Console</a>
 and click <b>Create Internet Gateway</b>, pick a name and save it. Then locate your new Internet Gateway created in the listing, select it, click <b>Attach to VPC</b> and select the VPC you just created.
 </p>
-<H3><u>Create a NAT Gateway</u></H3>
+<H3><u>Create a NAT Gateway in your VPC</u></H3>
 <p>
 So far we have created a VPC and attached an Internet Gateway to it, and inside the VPC we have two subnets. This step will place a NAT gateway in the public subnet
 so the private subnet can use it to route traffic to/from the Internet.
@@ -173,7 +173,7 @@ The procedure is pretty much the same, create a new Route Table and associate it
 <b>instead of using your Internet Gateway</b> as the default target, you have to specify your <b>NAT Gateway</b>, so all traffic from the private subnet (and
 heading to the Internet) will flow through the NAT Gateway.
 </p>
-<H3><u>Setup your Lambdas</u></H3>
+<H3><u>Setup your Amazon AWS Lambdas</u></H3>
 <p>
 As described in the very first section of this article, you can now configure your Lambdas so they are deployed in the
 VPC and private subnets you just created, and use a Security Group that will allow them any outgoing traffic (inbound traffic will not be
