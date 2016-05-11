@@ -63,9 +63,9 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>What is WebRTC2SIP and how to use it with the Asterisk PBX in the Amazon AWS EC2 service</u></H3>
 <p>
-<b>NOTE</b>: If you are trying or want to get rid of webrtc2sip and use a plain asterisk installation, see <a href="webrtc_with_asterisk_without_webrtc2sip">this article</a>.
+<b>NOTE</b>: If you are trying or want to get rid of webrtc2sip and use a plain asterisk installation, see <a href="webrtc_with_asterisk_without_webrtc2sip.html">"<b>WebRTC with Asterisk and Amazon AWS</b>"</a>.
 </p>
 <p>
 A lot of sources around the Internet explain how to <b>compile and install</b> <a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> so one can have <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a> as the signaling protocol in
@@ -86,34 +86,11 @@ software will violate or not each one the licenses. A good starting point is the
 <p>
 webrtcsip is made by <a href="http://doubango.org/">Doubango</a>, so a big thanks for them to make this available to everyone!
 </p>
-<h3>Installing Base Packages</h3>
+<h3>Installing Base Packages needed to build WebRTC2SIP</h3>
 <p>
 We first need to install some basic packages, to compile <b>webrtc2sip</b>, <b>doubango</b>, and <b>Asterisk</b>, later on.
 </p>
-<pre name="code" class="php">
-$ sudo yum install \
-  nginx \
-  make \
-  libogg-devel \
-  libsqlite-devel \
-  libxml2-devel \
-  libjpeg-devel \
-  openssl-devel \
-  ncurses-devel \
-  libuuid-devel \
-  libtool \
-  autoconf \
-  subversion \
-  git \
-  cvs \
-  wget \
-  gcc \
-  gcc-c++ \
-  pkgconfig \
-  nasm \
-  patch \
-  screen
-</pre>
+<script src="https://gist.github.com/marcelog/3596f8cc103c2662c26705d21b21bac1.js"></script>
 <p>
 <a href="http://nginx.org/">Nginx</a> is installed so we can serve our own <a href="https://en.wikipedia.org/wiki/HTML5">HTML5</a> application in the
 same server, but you can skip it if that will not be your case.
@@ -122,7 +99,7 @@ same server, but you can skip it if that will not be your case.
 In a similar way, <a href="http://www.gnu.org/software/screen/">GNU Screen</a> is installed becase I still like to use it, so feel free to also skip it
 or replace it with another thing.
 </p>
-<h3>Install DaemonTools</h3>
+<h3>Install DaemonTools so we can start WebRTC2SIP as a service</h3>
 <p>
 It is highly recommended that you manage your asterisk and webrtc2sip installations with daemontools. You can find out how to install
 them in this article titled: <a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a>.
@@ -142,261 +119,100 @@ them in this article titled: <a href="install_daemon_tools_centos_amazon_linux.h
 <a href="https://github.com/cisco/libsrtp"><b>libsrtp</b></a> is used to provide audio by using
 <a href="https://en.wikipedia.org/wiki/Secure_Real-time_Transport_Protocol"><b>SRTP</b></a> and its mandatory for
   webrtc communications. We need to install libsrtp <b>as a shared library</b>:
-<pre name="code" class="php">
-# cd /usr/src
-# git clone https://github.com/cisco/libsrtp/
-# cd libsrtp
-# git checkout v1.5.2
-# CFLAGS="-fPIC" ./configure --enable-pic && make shared_library && make install
-</pre>
+<script src="https://gist.github.com/marcelog/745731af8af9bbf1e90ab1678e268fe0.js"></script>
 
 <h3>Install speex</h3>
 <p>
 The <a href="http://speex.org/">Speex</a> codec has been superseded by <a href="http://www.opus-codec.org/">Opus</a>, and it is
 optional.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# wget http://downloads.xiph.org/releases/speex/speex-1.2beta3.tar.gz
-# tar -xvzf speex-1.2beta3.tar.gz
-# cd speex-1.2beta3
-# ./configure && make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/d1b27dcf4ae0b31d57a0712584377e98.js"></script>
 
 <h3>Install YASM</h3>
 <p>
 If you want codecs like <a href="https://en.wikipedia.org/wiki/VP8"><b>VP8</b></a> or <a href="https://en.wikipedia.org/wiki/H.264/MPEG-4_AVC"><b>H.264</b></a>, then you will need <a href="http://yasm.tortall.net/"><b>YASM</b></a> to build the libraries <a href="http://www.webmproject.org/code/"><b>VPX</b></a> and <a href="http://www.videolan.org/developers/x264.html"><b>x264</b></a> respectively.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# wget http://www.tortall.net/projects/yasm/releases/yasm-1.2.0.tar.gz
-# tar -xvzf yasm-1.2.0.tar.gz
-# cd yasm-1.2.0
-# ./configure && make && make install
-# export PATH=$PATH:/usr/local/bin
-</pre>
+<script src="https://gist.github.com/marcelog/852fb1a290ecb824300892e4878989d1.js"></script>
 <h3>Install libvpx (for VP8/9 codecs)</h3>
 <p>
 This one is optional but recommended to support <b>video in Chrome or Firefox</b>.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# git clone https://chromium.googlesource.com/webm/libvpx
-# cd libvpx
-# ./configure \
-  --enable-realtime-only \
-  --enable-error-concealment \
-  --disable-examples \
-  --enable-vp8 \
-  --enable-pic \
-  --enable-shared \
-  --as=yasm
-# make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/ea79e9203835e550e68e348d77d93af7.js"></script>
 <h3>Install libopus</h3>
 <p>
 One of the <a href="https://tools.ietf.org/html/draft-ietf-rtcweb-audio-08">Mandatory to Implement (MTI)</a> audio codecs for WebRTC is <a href="http://www.opus-codec.org/">Opus</a>.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# wget http://downloads.xiph.org/releases/opus/opus-1.0.2.tar.gz
-# tar -xvzf opus-1.0.2.tar.gz
-# cd opus-1.0.2
-# ./configure --with-pic --enable-float-approx && make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/e552697ae66fca3bd3dcf8370f6a1228.js"></script>
 <h3>Install opencore-amr</h3>
 <p>
 The <a href="https://en.wikipedia.org/wiki/Adaptive_Multi-Rate_audio_codec">AMR Codec</a> is optional, but you can support it by installing
 the <a href="http://sourceforge.net/projects/opencore-amr/">opencore-amr</a> library.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# git clone git://opencore-amr.git.sourceforge.net/gitroot/opencore-amr/opencore-amr
-# cd opencore-amr
-# autoreconf --install && ./configure && make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/d7319c9aabb0ccbd8cf4ac82d97c4054.js"></script>
 <h3>Install libgsm</h3>
 <p>
 <a href="http://libgsm.sourcearchive.com/"><b>libgsm</b></a> is optional and you can install it if you want to provide support for the <a href="https://en.wikipedia.org/wiki/Full_Rate"><b>GSM codec</b></a>.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# wget http://www.quut.com/gsm/gsm-1.0.13.tar.gz
-# tar -xvzf gsm-1.0.13.tar.gz
-</pre>
+<script src="https://gist.github.com/marcelog/11fef211dcd259cb8923f72b3a55380e.js"></script>
 <p>
 You have to download and apply <a href="https://gist.github.com/marcelog/9b5410706640279218ba">the following patch</a> so you can build libgsm as a shared library:
 </p>
-<pre name="code" class="php">
-# wget https://gist.githubusercontent.com/marcelog/9b5410706640279218ba/raw/017e98f03187ebd12e059f0170f7ca764a81edfa/libgsm-shared.patch
-# patch -p0 < libgsm-shared.patch
-</pre>
-<p>
-Then you can proceed to build and install:
-<pre name="code" class="php">
-# cd gsm-1.0-pl13 && make && make install
-# ln -s /usr/local/include /usr/local/inc
-# mkdir -p /usr/local/man/man3
-# make GSM_INSTALL_ROOT=/usr/local install
-# cp lib/libgsm.so* /usr/local/lib
-</pre>
+<script src="https://gist.github.com/marcelog/57ef7d9509a11335f16c74dd2da1263b.js"></script>
 <h3>Install G729</h3>
 <p>
 <a href="https://code.google.com/p/g729/"><b>g729</b></a> is optional, build it and install it to enable support for the <a href="https://en.wikipedia.org/wiki/G.729"><b>G.729</b></a> codec.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# svn co http://g729.googlecode.com/svn/trunk/ g729b
-# cd g729b
-# ./autogen.sh && ./configure --enable-static --disable-shared && make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/befb49699ddc5e7f6822f581de534dea.js"></script>
 
 <h3>Install iLBC</h3>
 <p>
 The <a href="https://en.wikipedia.org/wiki/Internet_Low_Bitrate_Codec"><b>iLBC</b></a> codec is also optional, but you can enable support for it
 by installing the iLBC library that comes with Doubango:
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# svn co http://doubango.googlecode.com/svn/branches/2.0/doubango/thirdparties/scripts/ilbc
-# cd ilbc
-# wget http://www.ietf.org/rfc/rfc3951.txt
-# awk -f extract.awk rfc3951.txt
-# ./autogen.sh && ./configure
-# make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/c4fb4e45f9e4bf0017819168bfc491a8.js"></script>
 
 <h3>Install x264</h3>
 <p>
 The <a href="http://www.videolan.org/developers/x264.html"><b>x264 library</b></a> will provide support for the <a href="https://en.wikipedia.org/wiki/H.264/MPEG-4_AVC"><b>H.264</b></a> codec (also, optional).
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# wget ftp://ftp.videolan.org/pub/x264/snapshots/last_x264.tar.bz2
-# tar -xvjf last_x264.tar.bz2
-# cd x264-snapshot-*
-# ./configure --enable-shared --enable-pic && make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/087c671e5429393f13a1d001d2bea852.js"></script>
 
 <h3>Install FFMpeg</h3>
 <p>
 <a href="https://www.ffmpeg.org/"><b>FFMpeg</b></a> is required to support (the optional codecs) <a href="https://en.wikipedia.org/wiki/H.263"><b>H.263 codec</b></a>, <a href="https://en.wikipedia.org/wiki/H.264/MPEG-4_AVC"><b>H.264</b></a> (requires x264), and MP4V-ES.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# git clone git://source.ffmpeg.org/ffmpeg.git ffmpeg
-# cd ffmpeg
-# git checkout n1.2
-# ./configure \
-  --extra-cflags="-fPIC" \
-  --extra-ldflags="-lpthread" \
-  --enable-pic \
-  --enable-memalign-hack \
-  --enable-pthreads \
-  --enable-shared \
-  --disable-static \
-  --disable-network \
-  --enable-pthreads \
-  --disable-ffmpeg \
-  --disable-ffplay \
-  --disable-ffserver \
-  --disable-ffprobe \
-  --enable-gpl \
-  --enable-nonfree \
-  --disable-debug \
-  --enable-libx264 \
-  --enable-encoder=libx264 \
-  --enable-decoder=h264 \
-  --enable-encoder=h263 \
-  --enable-encoder=h263p \
-  --enable-decoder=h263
-# make && make install
-</pre>
+<script src="https://gist.github.com/marcelog/c989d349ea44ab98d4166762e7d72c96.js"></script>
 
 <h3>Install openh264</h3>
 <p>
 According to the original instructions, if you want to support the H.264 "constrained baseline video", you will need <a href="http://www.openh264.org/"><b>openh264</b></a>, the main repo is located at GitHub: <a href="https://github.com/cisco/openh264">https://github.com/cisco/openh264</a>.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# git clone https://github.com/cisco/openh264.git
-# cd openh264
-# git checkout v1.1
-# make ENABLE64BIT=Yes
-# make install
-</pre>
+<script src="https://gist.github.com/marcelog/0b676a57a00eeae488c20526911c6b68.js"></script>
 
 <h3>Install Doubango</h3>
 <p>
 <a href="http://doubango.org/"><b>Doubango</b></a> are the guys behind the <a href="https://code.google.com/p/doubango/">Doubango Cross-platform 3GPP IMS/LTE framework for embedded systems</a> and it's needed
 to support all what webrtc2sip does:
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# svn checkout https://doubango.googlecode.com/svn/branches/2.0/doubango doubango
-# cd doubango
-# ./autogen.sh
-</pre>
+<script src="https://gist.github.com/marcelog/17879790c9dc4d723ad2a694d08bc87a.js"></script>
 <p>
 If you are building with g.729 support, open up the file <b>configure</b> and locate the following couple of lines:
 </p>
-<pre name="code" class="php">
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char Init_Decod_ld8a ();
-int
-main ()
-{
-return Init_Decod_ld8a ();
-  ;
-  return 0;
-}
-</pre>
+<script src="https://gist.github.com/marcelog/aa802afba5ae3e0f7f2a2da2381b36b1.js"></script>
 <p>
 Just above the line that reads <b>char Init_Decod_ld8a ();</b> add:
-<pre name="code" class="php">
-int bad_lsf = 0;
-</pre>
+<script src="https://gist.github.com/marcelog/2417aadca7fe1dcab893e395455506c1.js"></script>
 <p>
 This is needed because the symbol <b>bad_lsf</b> is declared as "extern" in the g729 library. Perhaps this changed later on in the
 g729 library and the doubango framework was not updated to reflect that. Let's move on now with building and installing the framework.
 </p>
-<pre name="code" class="php">
-# ./configure \
-  --with-ssl \
-  --with-srtp \
-  --with-vpx \
-  --with-amr \
-  --with-speex \
-  --with-speexdsp \
-  --with-opus \
-  --with-gsm \
-  --with-ilbc \
-  --with-g729 \
-  --with-ffmpeg
-# make
-# make install
-</pre>
+<script src="https://gist.github.com/marcelog/f2b6269c45cc6f64022f260e1ae3aadb.js"></script>
 
 <h3>Install WebRTC2SIP</h3>
 <p>
 Finally, we can build the webrtc2sip tool!
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# svn co https://webrtc2sip.googlecode.com/svn/trunk/ webrtc2sip
-# export PREFIX=/opt/webrtc2sip
-# cd webrtc2sip
-# ./autogen.sh
-# LDFLAGS=-ldl ./configure --prefix=$PREFIX
-# make
-# make install
-# cp -f ./config.xml $PREFIX/sbin/config.xml
-</pre>
+<script src="https://gist.github.com/marcelog/0d455ebd94491f16e385d2dfc9c354e0.js"></script>
 <h3>Configuring webrtc2sip</h3>
 <p>
 Doubango has written a guide about how to install and configure webrtc2sip, you can find it here: <a href="http://webrtc2sip.org/technical-guide-1.0.pdf">http://webrtc2sip.org/technical-guide-1.0.pdf</a>. Once
@@ -406,7 +222,7 @@ you're satisfied with your configuration file, you can use the flag <b>--config<
 <p>
 To start webrtc2sip when the system boots, you can refer to the article titled <a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a>.
 </p>
-<h3>Conclusion</h3>
+<h3>That's it! Start writing cool HTML5 and VoIP enabled applications using WebRTC and the Asterisk PBX</h3>
 <p>
 Phew! That was long and tedious, but hopefully effective as well :) You now have your own webrtc2sip installation, clean and shiny to start playing around
 with webrtc, a fun topic indeed!
