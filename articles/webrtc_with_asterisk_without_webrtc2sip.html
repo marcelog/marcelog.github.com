@@ -63,19 +63,19 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Introduction</u></H3>
+  <H3><u>If WebRTC2SIP is not working for you, use embedded WebRTC support in the Asterisk PBX</u></H3>
 <p>
-In a <a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">previous article</a> I described how to install <a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> to include SIP signalling in your
+In a <a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">"<b>Compiling and Installing WebRTC2SIP</b>"</a> I described how to install <a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> to include SIP signalling in your
 <a href="http://www.webrtc.org/"><b>webrtc</b></a> applications. Unluckily there were some issues with webrtc2sip reported by <a href="https://twitter.com/RosSantoro1">Rosario Santoro (@RosSantoro1)</a> and further discussed in the
 <a href="https://groups.google.com/forum/#!topic/doubango/oPpXlSRcz2E">Doubango Google Group</a>. Without having a solution yet, I decided to give Asterisk another shot. So in this article I'll describe how to use
 Asterisk only (<b>without webrtc2sip</b>) to setup a webrtc scenario without any other third party applications. This article is loosely based on <a href="http://manuals.loway.ch/QM_AdvancedConfig-chunked/ch25.html">this one</a>.
 </p>
-<h3>Creating the EC2 instance</h3>
+<h3>Creating the EC2 instance and installing the Asterisk PBX for WebRTC</h3>
 <p>
 I selected <a href="https://aws.amazon.com/amazon-linux-ami/">Amazon Linux</a> for this, but the instructions should work on any
 CentOS like operating system, and should be easily adaptable to other linux distros like Ubuntu.
 </p>
-<h3>Security Group</h3>
+<h3>Security Group to allow WebRTC traffic into the Asterisk PBX</h3>
 <p>
 The security group should allow:
 </p>
@@ -86,69 +86,35 @@ The security group should allow:
   <li>Inbound and outbound to the UDP port range setup in your <a href="http://doxygen.asterisk.org/trunk/Config_rtp.html">rtp.conf</a> file</li>
   <li>Inbound connections to the TCP port 443 (if you're going to serve your webrtc application from this instance, we're going to do this by using the <a href="http://sipml5.org/">SIPML5 example</a>)</li>
 
-<h3>Installing Base Packages</h3>
+<h3>Installing Base Packages needed in Amazon Linux or CentOS to install Asterisk PBX</h3>
 <p>
 We first need to install some basic packages, to compile everything:
 </p>
-<pre name="code" class="php">
-$ sudo yum install \
-  gcc \
-  gcc-c++ \
-  make \
-  autoconf \
-  libtool \
-  ncurses-devel \
-  libuuid-devel \
-  libxml2-devel \
-  sqlite-devel \
-  git \
-  speex-devel \
-  patch \
-  screen \
-  pkgconfig \
-  wget \
-  nginx \
-  svn
-</pre>
+<script src="https://gist.github.com/marcelog/6db42124a56f325cacd1ab4456ded726.js"></script>
 <p>
 <a href="http://nginx.org/">Nginx</a> is installed so we can serve our own <a href="https://en.wikipedia.org/wiki/HTML5">HTML5</a> application in the
 same server, but you can skip it if that will not be your case.</p>
 <p>
 <b>NOTE</b>: In CentOS you will need to install <a href="http://fedoraproject.org/wiki/EPEL">epel-release</a> to install nginx.
-<pre name="code" class="php">
-yum install epel-release
-</pre>
+<script src="https://gist.github.com/marcelog/b55740648ae3f73333cc4c12cdd2050a.js"></script>
 <p>
 In a similar way, <a href="http://www.gnu.org/software/screen/">GNU Screen</a> is installed becase I still like to use it, so feel free to also skip it
 or replace it with another thing.
 </p>
-<h3>Install DaemonTools</h3>
+<h3>Install DaemonTools to start the Asterisk PBX as a service</h3>
 <p>
 It is highly recommended that you manage your asterisk installations with daemontools. You can find out how to install
 them in this article titled: <a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a>.
 </p>
 <h3>Install libgsm 1.0.13</h3>
-<pre name="code" class="php">
-# cd /usr/src
-# wget http://www.quut.com/gsm/gsm-1.0.13.tar.gz
-# tar -xvzf gsm-1.0.13.tar.gz
-</pre>
+<script src="https://gist.github.com/marcelog/ff9ffb62cd02adb8ef7fa2bfd5301d20.js"></script>
 <p>
 You have to download and apply <a href="https://gist.github.com/marcelog/9b5410706640279218ba">the following patch</a> so you can build libgsm as a shared library:
 </p>
-<pre name="code" class="php">
-# wget https://gist.githubusercontent.com/marcelog/9b5410706640279218ba/raw/017e98f03187ebd12e059f0170f7ca764a81edfa/libgsm-shared.patch
-# patch -p0 < libgsm-shared.patch
-</pre>
+<script src="https://gist.github.com/marcelog/d5653e28db77d96fd6356e2b8bca014e.js"></script>
 <p>
 Then you can proceed to build and install:
-<pre name="code" class="php">
-# cd gsm-1.0-pl13 && make && make install
-# ln -s /usr/local/include /usr/local/inc
-# mkdir -p /usr/local/man/man3
-# make GSM_INSTALL_ROOT=/usr/local install
-# cp lib/libgsm.so* /usr/local/lib
-</pre>
+<script src="https://gist.github.com/marcelog/c349042ee22cc71fe3c41aeaac8ebcb5.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -160,250 +126,80 @@ Then you can proceed to build and install:
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 <h3>Install OpenSSL 1.0.2d</h3>
-<pre name="code" class="php">
-# cd /usr/src
-# wget https://www.openssl.org/source/openssl-1.0.2d.tar.gz
-# tar zxf openssl-1.0.2d.tar.gz
-# cd openssl-1.0.2d
-# ./config shared --prefix=/usr --openssldir=/usr/openssl-1.0.2d
-# make
-# make install
-</pre>
+<script src="https://gist.github.com/marcelog/eff126c47cf7921ece5436b9066fc960.js"></script>
 <h3>Install libsrtp 1.5.2 as a shared library</h3>
 <p>
 <a href="https://github.com/cisco/libsrtp"><b>libsrtp</b></a> is used to provide audio by using
 <a href="https://en.wikipedia.org/wiki/Secure_Real-time_Transport_Protocol"><b>SRTP</b></a> and its mandatory for
   webrtc communications. We need to install libsrtp <b>as a shared library</b>:
-<pre name="code" class="php">
-# cd /usr/src
-# git clone https://github.com/cisco/libsrtp/
-# cd libsrtp
-# git checkout v1.5.2
-# CFLAGS="-fPIC" ./configure --enable-pic && make shared_library && make install
-</pre>
+<script src="https://gist.github.com/marcelog/019e63ba8f144c81be790441b9d7368f.js"></script>
 
 <h3>Install libjansson 2.7</h3>
-<pre name="code" class="php">
-# cd /usr/src
-# wget http://www.digip.org/jansson/releases/jansson-2.7.tar.gz
-# tar zxf jansson-2.7.tar.gz
-# cd jansson-2.7
-# ./configure --prefix=/usr/libjansson-2.7
-# make
-# make install
-</pre>
+<script src="https://gist.github.com/marcelog/c9ab8a8dbb56e22b9bf3bdf5f8b4bb6f.js"></script>
 
 <h3>Install PjProject 2.4</h3>
 <p>
 <a href="http://www.pjsip.org/">PJSip</a> is a new full SIP stack, used to replace chan_sip. And although we're still going to use chan_sip here, pjsip is needed
 to correctly handle ICE and STUN.
 </p>
-<pre name="code" class="php">
-# cd /usr/src
-# git clone https://github.com/asterisk/pjproject pjproject
-# cd pjproject/
-# CFLAGS="-I/usr/srtp-2.4/include -I/usr/libsrtp-1.5.2/include" \
-  LDFLAGS="-L/usr/srtp-2.4/lib -L/usr/libsrtp-1.5.2/lib" \
-  ./configure \
-    --prefix=/usr/pjproject-2.4 \
-    --enable-shared \
-    --disable-sound \
-    --disable-resample \
-    --disable-video \
-    --disable-opencore-amr \
-    --with-external-speex \
-    --with-external-srtp \
-   --with-external-gsm
-# make dep
-# make
-# make install
-</pre>
+<script src="https://gist.github.com/marcelog/14a7b1e03227d135adc4ba2a362e3495.js"></script>
 
 <h3>Install Asterisk 13.6.0</h3>
 <p>
 </p>
-<pre name="code" class="php">
-cd /usr/src
-wget http://downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-13.6.0.tar.gz
-tar zxf asterisk-13.6.0.tar.gz
-cd asterisk-13.6.0
-PKG_CONFIG_PATH=${PKG_CONFIG}:/usr/pjproject-2.4/lib/pkgconfig \
-LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/pjproject-2.4/lib:/usr/libsrtp-1.5.2/lib:/usr/openssl-1.0.2d/lib \
-CFLAGS="-I/usr/srtp-2.4/include \
--I/usr/libsrtp-1.5.2/include \
--I/usr/pjproject-2.4/include" \
-LDFLAGS="-L/usr/libsrtp-1.5.2/lib \
--L/usr/libsrtp-1.5.2/lib \
--L/usr/pjproject-2.4/lib" ./configure \
-  --with-jansson=/usr/libjansson-2.7 \
-  --prefix=/usr/asterisk-13.6.0 \
-  --with-ssl=/usr/openssl-1.0.2d \
-  --with-crypto=/usr/openssl-1.0.2d \
-  --with-pjproject=/usr/pjproject-2.4 \
-  --with-srtp=/usr/libsrtp-1.5.2
-</pre>
+<script src="https://gist.github.com/marcelog/e5db88d22c13e0eea29347e22fbc7f3e.js"></script>
 <p>Configure Asterisk. <b>Make sure</b> that all the pj* resources are enabled, as well as the res_srtp and res_http_websocket ones.</p>
-<pre name="code" class="php">
-make menuconfig
-</pre>
-<pre name="code" class="php">
-make
-make install
-make samples
-ln -s /usr/asterisk-13.6.0 /usr/asterisk
-</pre>
+<script src="https://gist.github.com/marcelog/7fe5a05f34b3686d1f2a54fec5a57aed.js"></script>
 
 <h3>Add library paths to /etc/profile</h3>
 <p>You might want to add this to your <b>/etc/profile</b> so the correct libraries will be used in your shell:</p>
-<pre name="code" class="php">
-export LD_LIBRARY_PATH=/usr/libjansson-2.7/lib:/usr/pjproject-2.4/lib:/usr/openssl-1.0.2d/lib:/usr/libsrtp-1.5.2/lib:/usr/local/lib
-PATH=$PATH:/usr/asterisk/sbin
-PATH=$PATH:/command
-export PATH
-</pre>
+<script src="https://gist.github.com/marcelog/c7c0b43b46c79112c986633b81c3c4eb.js"></script>
 <h3>Setup /usr/asterisk/etc/asterisk/sip.conf</h3>
 <p>
 In the <b>general</b> section of your <a href="http://doxygen.asterisk.org/trunk/Config_sip.html">sip.conf</a> file set:
 </p>
-<pre name="code" class="php">
-[general]
-externaddr=a.b.c.d                   ; Your public ElasticIP
-media_address=a.b.c.d                ; Your public ElasticIP
-localnet=q.q.q.q/w.w.w.w             ; Your internal network and mask
-context=public
-realm=your-web-domain.net            ; Used for authentication
-transport=udp,wss
-</pre>
+<script src="https://gist.github.com/marcelog/92b556f3062dd224c4431648420c5ebe.js"></script>
 
-<h3>Sample SIP Peer</h3>
-<pre name="code" class="php">
-[100]
-context=wrtc
-host=dynamic
-type=friend
-encryption=yes
-avpf=yes
-icesupport=yes
-directmedia=no
-canreinvite=no
-disallow=all
-allow=ulaw
-transport=ws,wss,udp
-force_avp=yes
-nat=force_rport,comedia
-qualify=yes
-secret=100
-dtlsenable=yes
-dtlsverify=no
-dtlscertfile=/etc/ssl/certs/your-ssl-cert-with-intermediate-certificates.pem
-dtlsprivatekey=/etc/ssl/certs/your-ssl-cert-key.key
-dtlscafile=/etc/ssl/certs/your-ca-cert.pem
-dtlssetup=actpass
-srtpcapable=yes
-videosupport=no
-</pre>
+<h3>Sample SIP Peer for WebRTC in Asterisk</h3>
+<script src="https://gist.github.com/marcelog/02de6d6dee147b22614365a2aa209eaf.js"></script>
 
-<h3>Setup /usr/asterisk/etc/asterisk/http.conf</h3>
+<h3>Setup the HTTP webserver in Asterisk PBX to support the WebRTC websocket in /usr/asterisk/etc/asterisk/http.conf</h3>
 <p>In your <a href="http://doxygen.asterisk.org/trunk/http.conf.html">http.conf</a> file:</p>
-<pre name="code" class="php">
-servername=your-web-domain.net
-enabled=yes
-bindaddr=0.0.0.0
-tlsenable=yes
-tlsbindaddr=0.0.0.0:8089
-tlscertfile=/etc/ssl/certs/your-ssl-cert-with-intermediate-certificates.pem
-tlsprivatekey=/etc/ssl/certs/your-ssl-cert-key.key
-</pre>
+<script src="https://gist.github.com/marcelog/b081895a9a5fe8c441ce742561261896.js"></script>
 
-<h3>Setup /usr/asterisk/etc/asterisk/rtp.conf</h3>
+<h3>Setup the RTP ports in Asterisk in /usr/asterisk/etc/asterisk/rtp.conf</h3>
 <p>In your <a href="http://doxygen.asterisk.org/trunk/Config_rtp.html">rtp.conf</a> file:</p>
-<pre name="code" class="php">
-stunaddr=stun.l.google.com:19302
-icesupport=true
-</pre>
+<script src="https://gist.github.com/marcelog/a27bd74478e685be0c5e9df605e9931f.js"></script>
 <h3>Create a user for Asterisk</h3>
 <p>
 <b>NOTE</b>: You can skip this step if you're not using daemontools.
 </p>
-<pre name="code" class="php">
-useradd -s /bin/false -M -U asterisk
-</pre>
+<script src="https://gist.github.com/marcelog/5579ae891ac1b3a6a06be37a4034fe48.js"></script>
 
 <h3>Setup daemontools to start asterisk</h3>
 <p>
 <b>NOTE</b>: You can skip this step if you're not using daemontools.
 </p>
-<pre name="code" class="php">
-mkdir /tmp/asterisk
-cd /tmp/asterisk
-mkdir env
-mkdir log
-echo "/usr/libjansson-2.7/lib:/usr/pjproject-2.4/lib:/usr/openssl-1.0.2d/lib:/usr/libsrtp-1.5.2/lib:/usr/local/lib" > env/LD_LIBRARY_PATH
-</pre>
+<script src="https://gist.github.com/marcelog/ab91d70b928ebe714245ebd2b680584f.js"></script>
 <p>Create the <b>./log/run</b> file with the following contents:</p>
-<pre name="code" class="php">
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/command
-exec 2>&1
-mkdir -p /var/log/asterisk
-chown -R asterisk:asterisk /var/log/asterisk
-exec envuidgid asterisk multilog t s10485760 n5 '!tai64nlocal' /var/log/asterisk
-</pre>
-<pre name="code" class="php">
-chmod 700 log/run
-</pre>
+<script src="https://gist.github.com/marcelog/52a8bd0f3e7f1fbf9c682a338ff45af5.js"></script>
 <p>Create the <b>./run</b> file with the following contents:</p>
-<pre name="code" class="php">
-#!/bin/bash
-mkdir -p /var/run/asterisk
-chown -R asterisk /var/run/asterisk
-exec 2>&1
-exec setuidgid root envdir /etc/service/asterisk/env /usr/asterisk/sbin/asterisk -f
-</pre>
-<pre name="code" class="php">
-chmod 700 run
-</pre>
+<script src="https://gist.github.com/marcelog/11aa934b3b3f0674aecdb02eae76ec8f.js"></script>
 <p>Make daemontools start Asterisk automatically:</p>
-<pre name="code" class="php">
-cd ..
-mv asterisk /etc/service
-</pre>
+<script src="https://gist.github.com/marcelog/be41b4c3458a3f4da6cf9f329a378d05.js"></script>
 <h3>Install SIPML5</h3>
 <p><b>NOTE</b>: You can skip this step if you already have your own webrtc application or other means to test
 the installation.</p>
-<pre name="code" class="php">
-cd /usr/share/nginx/html
-svn checkout http://sipml5.googlecode.com/svn/trunk/ sipml5
-</pre>
-<h3>Setup the nginx host</h3>
+<script src="https://gist.github.com/marcelog/9f0595b3d2c1aff4d4ff3750e893a62d.js"></script>
+<h3>Setup the nginx host to serve your WebRTC VoIP Application</h3>
 <p><b>NOTE</b>: You can skip this step if you already have your own webrtc application or other means to test
 the installation.</p>
-<p>Generate a stronger DHE for key exchange</p>
-<pre name="code" class="php">
-cd /etc/ssl/certs
-openssl dhparam -out dhparam.pem 4096
-</pre>
+<p>Generate a stronger DHE for SSL key exchange</p>
+<script src="https://gist.github.com/marcelog/2075622b09482bb8d0481d1c9f2c0bba.js"></script>
 <p>Setup the nginx host:</p>
-<pre name="code" class="php">
-    listen       443;
-    server_name  your-web-domain.net;
-    root         /usr/share/nginx/html/sipml5;
-    ssl on;
-    ssl_trusted_certificate /etc/ssl/certs/your-ca-cert.pem;
-    ssl_certificate /etc/ssl/certs/your-ssl-cert-with-intermediate-certificates.pem;
-    ssl_certificate_key /etc/ssl/certs/your-ssl-cert-key.key;
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-ssl_ciphers "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE
--RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-
-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4";
-    ssl_prefer_server_ciphers on;
-    ssl_dhparam /etc/ssl/certs/dhparam.pem;
-    ssl_session_cache shared:SSL:10m;
-    ssl_stapling on;
-    ssl_stapling_verify on;
-</pre>
+<script src="https://gist.github.com/marcelog/9b6ba07b90d95e6d9437b102f37d6a03.js"></script>
 <p>After starting nginx, you should be able to point your browser to: <b>https://your-web-domain.net/call.htm?svn=230#</b> and see the SIPML5 demo.
-<h3>SIPML5 configuration</h3>
+<h3>SIPML5 configuration for the Asterisk PBX</h3>
 <p>
 In the <b>Expert</b> section:
 <ul>
@@ -432,7 +228,7 @@ You have to manually add the certificate to the browser's trusted vault. To do t
 to https://your-web-domain.net:8089/ws and confirm the security exception. That should solve the issue and you should
 be able to connect to the websocket port from SIPML5.
 </p>
-<h3>Conclusion</h3>
+<h3>Conclusion: Use WebRTC without the hassle of WebRTC2SIP in Asterisk</h3>
 <p>
 This will hopefully save you some hours of despair and debugging :) And also get rid of a
 "moving part" in your webrtc ecosystem, so you can connect directly all your softphones, voip providers, and
