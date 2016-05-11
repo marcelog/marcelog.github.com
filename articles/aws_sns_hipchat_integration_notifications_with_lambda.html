@@ -63,12 +63,12 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Introduction</h3>
+<h3>Communicate with your team using HipChat and Amazon AWS SNS and Lambda functions</h3>
 <p>
 <a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html">Amazon AWS Lambda</a> is a great service and really fun to use. In this article, I'm going to describe
 how we are using it for a project in combination with <a href="http://aws.amazon.com/sns/">Amazon Simple Notification Service</a> to send notifications to <a href="http://hipchat.com/">HipChat</a>.
 </p>
-<h3>Create your Lambda</h3>
+<h3>Create your Amazon AWS Lambda using NodeJS</h3>
 <p>
 The code for this Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
 Amazon has made recently available for the public.
@@ -106,13 +106,13 @@ You can test the function with an event like this:
   "color": "green"
 }
 </pre>
-<h3>Create your SNS Topic</h3>
+<h3>Create your Amazon AWS SNS Topic to route messages to your HipChat room</h3>
 <p>
 Head to your <a href="https://us-west-2.console.aws.amazon.com/sns/v2/home?region=us-west-2#/topics">AWS SNS Console</a>, click on <b>Create New Topic</b>, pick a name and save your new topic. Once created, locate it in
 the topics list, select it, and click on <b>Create Subscription</b>. As the protocol, choose <b>AWS Lambda</b>, and choose your newly created
 function in the <b>Endpoint</b> dropdown. Save it.
 </p>
-<h3>Create your SNS Topic</h3>
+<h3>Test your HipChat and Amazon AWS SNS Integration</h3>
 <p>
 To test the function through SNS select your topic and click on <b>Publish To Topic</b>, use the following message that will be sent as the <b>event</b> argument of your lambda handler:
 </p>
@@ -122,7 +122,7 @@ To test the function through SNS select your topic and click on <b>Publish To To
 "lambda": "{\"text\": \"hello world\", \"color\": \"yellow\"}"
 }
 </pre>
-<h3>Conclusion</h3>
+<h3>Integrate your development workflow and your team with HipChat notifications through Amazon AWS SNS</h3>
 <p>
 As you can see, SNS and Lambdas are absolutely fun to use! In no time we can integrate different kind of systems (in this case we chose HipChat, but <a href="https://slack.com/">Slack</a> would work exactly the same
 -although with a different API, point taken-). Hint: we are actually using this from <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> in order to
