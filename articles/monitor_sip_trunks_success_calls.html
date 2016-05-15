@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Setting DND (Do Not Disturb) in FOP2 Programmatically</title>
+  <title>Monitoring SIP trunks for availability by issuing test calls with SIPp</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="asterisk fop2 flash operator panel set do not disturb state in an extension dnd"/>
-<meta name="description" content="This article shows how one can change an extension status in the Asterisk PBX and set it to DND or any other and show it in the FOP2 (Flash Operator Panel) panel."/>
+<meta name="Keywords" content="asterisk pbx freeswitch test or monitor sip trunks for availability by using sipp send alerts offline"/>
+<meta name="description" content="This article shows an interesting way for setting up a scenario xml file to test your PBXs either Asterisk, FreeSWITCH or any other kind of SIP trunk for availability and uptime"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Setting DND (Do Not Disturb) in FOP2 Programmatically</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Monitoring SIP trunks for availability by issuing test calls with SIPp</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,34 +58,52 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Setting DND (Do Not Disturb) in FOP2 Programmatically</h2>
+                <h2>Monitoring SIP trunks for availability by issuing test calls with SIPp</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Change agents or extensions DND status in FOP2 by using plain Asterisk events</h3>
+<h3>Motivation for periodically checking your SIP trunks or PBXs for inbound calls</h3>
 <p>
-<a href="https://www.fop2.com/"><b>FOP2</b></a> (from Flash Operator Panel) is one of the most used graphical interfaces to the <a href="http://www.asterisk.org/"><b>Asterisk PBX</b></a>.
-By using it we can see in realtime what is going on with the queues and extensions (or agents). In this article we're going to see how we
-can integrate our systems with FOP2 so we can change the status of the extensions without using the graphical interface.
-</p>
-<h3>FOP2 Version required so DND can be set via Asterisk PBX Events</h3>
-<p>
-As a side note, you might want to use the latest FOP2 version (<a href="http://forum.fop2.com/4204-fop2-version-2-31-released">2.31</a> at this time). Each FOP2 release fixes
-bugs in the previous versions and also takes into account new bugs/fixes in each Asterisk release.
-</p>
-<h3>Using the UserEvent action in Asterisk PBX to signal FOP2 about the DND change</h3>
-<p>
-FOP2 will pickup what you send in a <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+11+ManagerEvent_UserEvent">Custom UserEvent</a> with some specific values, and we can use this to our own advantage.
+<a href="http://sipp.sourceforge.net/"><b>SIPp</b></a> is an awesome tool to do load testing for your SIP infrastructure or applications, it uses
+a simple XML file to setup a test scenario and then you can pick up the results in different ways. And we can also use it to <b>test the availability of
+our own VoIP infrastructure</b>.
 </p>
 <p>
-We can send our own custom events by using the <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+11+ManagerAction_UserEvent">Asterisk action UserEvent</a>, and the <a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">Asterisk Manager Interface connection to the Asterisk PBX</a> with these values:
+It may happen that your business relies on an <b>Asterisk PBX</b> or <b>FreeSWITCH</b> system to take calls (for example inbound calls for
+customer support), and it may also happen that these servers might be temporarily down for some reason (perhaps
+a misconfiguration ot any other temporal errors). This is emabarrasing when the customer wants to reach out to you by phone and it's not possible.
+</p>
+<p>
+But VoIP sometimes fail, so it is really useful that we can check that calls to one or more of these
+telephone numbers (or <a href="https://en.wikipedia.org/wiki/Direct_inward_dial">DIDs</a>) actually work as they should, and in case they don't take
+some action before the customers actually note it.
+</p>
+<p>
+So the general idea is to use a real VoIP provider to periodically issue a call to a public telephone number and check that the
+call has been answered by for example an <a href="https://en.wikipedia.org/wiki/Automated_attendant">Automated Attendant</a> playing a menu
+to the customer.
+</p>
+<p>
+In this article we are going to see how we can use SIPp for such a task, essentially to monitor our PBXs or SIP trunks (it doesn't matter if we use Asterisk PBX, FreeSWITCH, or any other
+kind of SIP UAS).
+</p>
+<h3>Running the test to issue one call to check your SIP trunk for availability</h3>
+<p>
+  We are going to use the following shell script to run SIPp with our scenario file:
+</p>
+<script src="https://gist.github.com/marcelog/1753e2885bb55f71b0d9648d7f71c9b5.js"></script>
+<p>
+The script takes the following arguments (in order):
 </p>
 <ul>
-  <li><b>UserEvent</b>: "FOP2ASTDB"</li>
-  <li><b>Family</b>: "fop2state"</li>
-  <li><b>Value</b>: "Do not Disturb" (and we can also set this to a blank value to clear the DND status).</li>
-  <li><b>Channel</b>: The SIP peer where you want to set DND.</li>
-  </ul>
+  <li><b>Scenario File</b>: Full path to the XML file with our scenario.</li>
+  <li><b>VoIP Gateway</b>: IP address of where we should send this call to. This should be a real VoIP provider that is connected to the
+    <a href="https://en.wikipedia.org/wiki/Public_switched_telephone_network">PSTN (the Public switched telephone network)</a> so the call
+    can actually make progress like it would in a real use case when a customer is calling.</li>
+  <li><b>From</b>: A valid DID, or telephone number as required by the VoIP Gateway above. This should be seen in our calls as the Caller ID.</li>
+  <li><b>To</b>: The DID we want to test, for example our customer support number.</li>
+  <li><b>Local IP Address</b>: This should be the internal IP of the host running the script.</li>
+</ul>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -96,20 +114,52 @@ We can send our own custom events by using the <a href="https://wiki.asterisk.or
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Using NAMI to set and unset DND status in FOP2 with Javascript code</h3>
 <p>
-We can also do this in plain javascript code, in this case from <a href="nodejs.org">NodeJS code</a> by using <a href="http://marcelog.github.io/Nami/">NAMI, which is a Javascript client for the AMI Protocol of the Asterisk PBX</a>.
+The script runs SIPp by specifying the following arguments:
 </p>
+<ul>
+  <li><b>-aa</b>: Replies with 200 to INFO, UPDATE and NOTIFY messages (so we don't fail the test for these unexpected messages).</li>
+  <li><b>-d 30</b>: Set duration of pauses to 30secs by default.</li>
+  <li><b>-r 1</b>: Set the call rate to 1 call per second (we are not going to do more than 1 call ever, actually).</li>
+  <li><b>-rp 1s</b>: Period duration, 1 sec. This means that option <b>-r</b> will do N calls per this period length.</li>
+  <li><b>-sf ${scenario}</b>: Sets scenario file.</li>
+  <li><b>-l 1</b>: Limit to 1 simultaneous call at most.</li>
+  <li><b>-m 1</b>:Quit SIPp once this many number of calls have been processed, either with success or error.</li>
+  <li><b>-trace_err</b>: Save unexpected messages to a file, useful for tracing.</li>
+  <li><b>-i ${my_ip}</b>: Sets the local IP address.</li>
+  <li><b>-rtp_echo</b>: Echo back all the audio we get once the call is answerwed.</li>
+  <li><b>-set from ${from}</b>: Sets the global variable <b>from</b> that will be used in the scenario file.</li>
+  <li><b>-set to ${to}</b>: Sets the global variable <b>to</b> that will be used in the scenario file.</li>
+</ul>
 <p>
-In the following code, the NAMI client is being instantiated and used to connect to Asterisk. Afterwards, the UserEvent action is being sent with the right values to setup DND (Do not Disturb) status in the SIP/1000 peer.
+After SIPp runs it will set an <a href="http://tldp.org/LDP/abs/html/exit-status.html">exit status code</a> of 0 on success (all calls finished ok) and non-zero on errors,
+and that's how we can check it in our script and take an action accordingly (like sending an email on errors).
 </p>
-<script src="https://gist.github.com/marcelog/d05eff5db439830ce41a84f01da40a5f.js"></script>
+<h3>Complete SIPp scenario</h3>
 <p>
-The same code can be used to clear the DND status if we leave the <b>Value</b> property as an empty string.
+Now this is where all the fun things happen, our XML scenario file for SIPp.
 </p>
-<h3>Control the FOP2 DND status in the agents or extensions from your own code</h3>
+<script src="https://gist.github.com/marcelog/b4b8f84ce985d8561c1039f87a8df767.js"></script>
 <p>
-This opens up a lot of interesting possibilities for your own applications, since now you can control this in any way you like. For example, an operator would be able to change this via a web application, or perhaps an <a href="php_asterisk_agi_protocol_tutorial.html">AGI application, like an IVR</a> could change an extension status when it picks up a call.
+This will essentially:
+</p>
+<ul>
+  <li>Send a <a href="https://tools.ietf.org/html/rfc3261#section-13.2.1">SIP INVITE</a> to the VoIP Gateway to establish a call
+    to our public telephone number (or DID) by using a predefined caller id. In this case we also specify <a href="https://en.wikipedia.org/wiki/G.729">G729 as our desired codec</a>, and
+    there's a chance that you will need to adjust this.</il>
+  <li>Expect a <a href="https://en.wikipedia.org/wiki/List_of_SIP_response_codes#2xx.E2.80.94Successful_Responses">SIP OK message (200)</a> (and save the contents of the <a href="https://tools.ietf.org/html/rfc3261#page-175">Record-Route</a> headers if any, <b>rrs</b> argument of the <b>recv</b> command).</li>
+  <li>Optionally expect the <a href="https://en.wikipedia.org/wiki/List_of_SIP_response_codes#1xx.E2.80.94Provisional_Responses">Provisional Response Messages: 100, 183, and 180</a>. It will specifically fail the
+    test on <a href="https://en.wikipedia.org/wiki/List_of_SIP_response_codes#6xx.E2.80.94Global_Failure_Responses">the 603 Rejected message</a> (this one is used a lot by VoIP providers for example
+    when issuing calls from an unauthorized IP address).</li>
+  <li>When the 200 is received, it will <a href="https://tools.ietf.org/html/rfc3261#page-129">Send a SIP 200 ACK for it</a> and honor the recorded routes and the contents of the <a href="https://tools.ietf.org/html/rfc3261#page-40"><b>Contact</b> header</a> by using <b>next_url</b>.</li>
+  <li>At this point the call is established, so we pause for 5 seconds. This is useful for example if we have an <a href="https://en.wikipedia.org/wiki/Automated_attendant">Automated Attendant</a> that will for example play
+    a menu for the user, so waiting 5 seconds seems reasonable to simulate a user listening to the menu.</li>
+  <li>After the pause the call is hanged up by sending the <a href="https://tools.ietf.org/html/rfc3261#page-90">BYE Method</a> and expecting a 200 in response.</li>
+</ul>
+<h3>An awesome tool to check that your PBX and SIP trunks are available, running, and taking inbound calls</h3>
+<p>
+Now you can set this up in a crontab and send emails when you detect that the calls are failing, giving you a heads up early, without
+waiting for the customer to notice. No more lost calls due to PBXs being offline :) Enjoy!
 </p>
               </div>
             </div>
@@ -146,7 +196,7 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="monitor_sip_trunks_success_calls.html">Monitoring SIP trunks for availability by issuing test calls with SIPp</a></li>
+                  <li><a href="fop2_set_dnd_status_asterisk_db_event_reload.html">Setting DND (Do Not Disturb) in FOP2 Programmatically</a></li>
                   <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
                   <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
                   <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
