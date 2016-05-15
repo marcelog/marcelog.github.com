@@ -72,7 +72,7 @@ exporting an API in <a href="http://swagger.io/"><b>Swagger</b></a> format.
 your REST API specification and also generate clients for it, so it was really important that this worked perfectly.
 </p>
 <p>
-The bug in question is that when <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/create-api-using-import-export-api.html"> exporting your Amazon AWS API Gateway specification to the Swagger format</a> an invalid format can be generated if your API uses path parameters and you have enabled CORS.
+The bug in question is that when <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/create-api-using-import-export-api.html"> exporting your Amazon AWS API Gateway specification to the Swagger format</a> an invalid format can be generated if one or more of your Resources use path parameters and you have enabled CORS for them.
 </p>
 <p>
 The invalid format can also be noticed in the <a href="http://editor.swagger.io/#/"><b>Online Swagger Editor</b></a>,
