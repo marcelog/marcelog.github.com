@@ -68,8 +68,14 @@
 A few days ago I stumbled upon what it seems to be a bug in <a href="https://aws.amazon.com/api-gateway/"><b>AWS API Gateway</b></a>, triggered when
 exporting an API in <a href="http://swagger.io/"><b>Swagger</b></a> format.
 </p>
+<p>As you may know already, Swagger makes it really easy to share
+your REST API specification and also generate clients for it, so it was really important that this worked perfectly.
+</p>
 <p>
-The bug in question generates an invalid Swagger file format that can be noticed when using the <a href="http://editor.swagger.io/#/"><b>Online Swagger Editor</b></a>,
+The bug in question is that when <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/create-api-using-import-export-api.html"> exporting your Amazon AWS API Gateway specification to the Swagger format</a> an invalid format can be generated if your API uses path parameters and you have enabled CORS.
+</p>
+<p>
+The invalid format can also be noticed in the <a href="http://editor.swagger.io/#/"><b>Online Swagger Editor</b></a>,
 that will show errors like this one:
 </p>
 <p>
@@ -99,7 +105,7 @@ lineNumber: xxx<br/>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 <p>
-The bug seems to manifest itself <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html">when enabling <b>CORS</b> on an API Gateway Resource</a> (that <b>automatically generates</b> the OPTIONS method).
+The bug seems to manifest itself <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html">when enabling <b>CORS</b> on an API Gateway Resource</a> (that <b>automatically generates</b> the OPTIONS method) that uses path parameters.
 </p>
 <p>The Resource in question has to
 <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-mappings.html#getting-started-mappings-add-methods">use path parameters</a>, for example: <b>/users/{id}</b>. It seems that when you enable CORS on resources like this one, the exportation will not take into account the arguments needed for the <b>OPTIONS</b> method.
