@@ -1,0 +1,3 @@
+Disallow: /Ding/php-*
+Disallow: /PAMI/php-*
+Disallow: /PAGI/php-*
