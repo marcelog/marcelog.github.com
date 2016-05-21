@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Getting the AWS instance ID from within the EC2 instance</title>
+  <title>Using Comodo SSL Certificates in Amazon API Gateway</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services instance id ec2 metadata curl wget"/>
-<meta name="description" content="This article shows how one can get the instance id from inside an EC2 instance by using the instance metadata made available by amazon web services."/>
+<meta name="Keywords" content="aws amazon web services api gateway SSL certificate from Comodo"/>
+<meta name="description" content="This article shows how to use Comodo SSL Certificates in Amazon AWS API Gateway"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Getting the AWS instance ID from within the EC2 instance</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using Comodo SSL Certificates in Amazon API Gateway</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,37 +58,46 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Getting the AWS instance ID from within the EC2 instance</h2>
+
+                <h2>Using Comodo SSL Certificates in Amazon API Gateway</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>The EC2 Metadata: Getting your Amazon Instance ID and more</h3>
+<h3>How to install Comodo SSL Certificates in Amazon API Gateway</h3>
 <p>
-Sometimes it can be quite useful to be able to get the instance information from within the EC2 instance. A clear example is
-to be able to get the instance id.
+If you want to <a href="https://aws.amazon.com/api-gateway/">host your REST API in <b>Amazon API Gateway</b></a> with a <a href="https://ssl.comodo.com/"><b>Comodo SSL Certificate</b></a>
+you will have to a few things in order to correctly setup the <a href="https://support.dnsimple.com/articles/what-is-ssl-certificate-chain/"><b>SSL Certificate Chain for your domain</b></a>.
 </p>
 <p>
-Luckily for us, Amazon made this information available through the <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">EC2 instance MetaData</a>
+When creating the domain by clicking in <b>Custom Domain Name</b> in your API Gateway Console, you will notice these options used to
+setup SSL:
 </p>
-<h3>How to get the EC2 Instance Metadata</h3>
+<ul>
+  <li><b>Certificate name</b></li>
+  <li><b>Certificate body</b></li>
+  <li><b>Certificate private key</b></li>
+  <li><b>Certificate chain</b></li>
+</ul>
 <p>
-The instance metadata is available in all amazon EC2 instances at the following address:
+<b>Certificate name</b> needs no further explanation, it's just a name that you can use to
+identify this specific certificate installation.
 </p>
-  <pre name="code" class="php">
-http://169.254.169.254/latest/meta-data/
-</pre>
 <p>
-In there you can find quite a lot of useful information, including the instance id.
-<h3>Getting the Amazon AWS EC2 instance id with CURL and WGET</h3>
-<p>
-To get the instance id of your EC2 instance, just query <b>http://169.254.169.254/latest/meta-data/instance-id</b>, either with
-CURL or WGET. To get the instance id with CURL from the command line, use:
+<b>Certificate private key</b> is the private key you generated when creating the <a href="https://en.wikipedia.org/wiki/Certificate_signing_request">Certificate Signing Request</a>,
+so just paste your private key here, including the headers <b>-----BEGIN PRIVATE KEY-----</b> and <b>-----END PRIVATE KEY-----</b>. This is needed so Amazon can
+actually serve your API with your certificate.
 </p>
-<script src="https://gist.github.com/marcelog/38dc88dbf5cc6ecdde82a94ec9512bc3.js"></script>
 <p>
-Or rather by using wget:
+The other two options are the reason for this article and are related to the files that you get
+from Comodo once your certificate is ready. You probably got these files separately or packed altogether in
+a ZIP file:
 </p>
-<script src="https://gist.github.com/marcelog/4b7d0bd16b7b0a5473571d3f91060752.js"></script>
+<ul>
+  <li><b>STAR_domain_com.crt</b> (where domain_com is actually YOUR domain)</li>
+  <li><b>COMODORSADomainValidationSecureServerCA.crt</b></li>
+  <li><b>COMODORSAAddTrustCA.crt</b></li>
+  <li><b>AddTrustExternalCARoot.crt</b></li>
+</ul>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -99,24 +108,19 @@ Or rather by using wget:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-
-<h3>Using the Amazon AWS MetaData tool</h3>
 <p>
-Amazon has also made publicly available its <a href="https://aws.amazon.com/items/1825?externalID=1825
-">EC2 MetaData tool</a> so it can be used from the command line to get all this information.
+  <b>Certificate body</b> can be filled with literally the contents of the STAR_domain_com.crt file, including
+  the headers <b>-----BEGIN CERTIFICATE-----</b> and <b>-----END CERTIFICATE-----</b>.
 </p>
 <p>
-To install the metadata tool, follow these steps:
+<b>Certificate chain</b> is the tricky one and is the result of <b>concatenating the files
+COMODORSADomainValidationSecureServerCA.crt COMODORSAAddTrustCA.crt AddTrustExternalCARoot.crt</b> in that order and
+pasting the result literally. This command can get you the full contents:
 </p>
-<script src="https://gist.github.com/marcelog/20e71b794222ba678e8263417cd29314.js"></script>
-To get the instance if by using it, just do:
-<script src="https://gist.github.com/marcelog/5d74c62633b1d1a033f8a2809552537c.js"></script>
+<script src="https://gist.github.com/marcelog/dc5c3683f737f74e5825236d808f13ff.js"></script>
 <p>
-And it will yield the instance id in a pinch.
-</p>
-<p>
-Enjoy!
-</p>
+As a result, you can paste the contents of the file <b>full.crt</b> directly into the <b>Certificate chain</b> field. Amazon API Gateway should
+be then able to pickup your brand new Comodo SSL Certificate.
               </div>
             </div>
             <div class="mod view-more">
@@ -152,11 +156,11 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
                   <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
-                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
+                  <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
