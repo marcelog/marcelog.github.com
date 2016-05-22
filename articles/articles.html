@@ -59,6 +59,14 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</h2>
+                <div class="hr-1"><hr /></div>
+<p><a href="http://www.restapitutorial.com/httpstatuscodes.html">HTTP status codes in a REST API</a> are a very useful way to
+communicate operation results to the clients. For example you should use <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#4xx_Client_Error">the HTTP status 400s family of codes</a> to
+signal client errors, meaning that the request has something that is syntactically or semantically wrong (also meaning that the client should probably never
+try the same request again because it will never work as it is). And you should use
+<a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#5xx_Server_Error">the 500s family of errors</a> to signal that something went wrong at
+the server side, so perhaps the client might return the operation later.&nbsp;<a href="aws_api_gateway_return_custom_http_status_codes.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Using Comodo SSL Certificates in Amazon API Gateway</h2>
                 <div class="hr-1"><hr /></div>
 <p>If you want to <a href="https://aws.amazon.com/api-gateway/">host your REST API in <b>Amazon API Gateway</b></a> with a <a href="https://ssl.comodo.com/"><b>Comodo SSL Certificate</b></a>

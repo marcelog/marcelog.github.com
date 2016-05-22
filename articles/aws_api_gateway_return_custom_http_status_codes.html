@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</title>
+<meta name="Author" content="Marcelo Gornstein"/>
+<meta name="Keywords" content="aws amazon web services api gateway lambda return custom http status codes and custom errors json"/>
+<meta name="description" content="This article describes how to use the return value of your aws lambda function to return different http status codes for your clients in Amazon API Gateway"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
+<link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
+<link href='../dphighlighter/SyntaxHighlighter.css' rel='stylesheet' type='text/css' />
+<!--[if IE]>
+<link type="text/css" rel="stylesheet" media="screen" href="../css/fix-ie.css" />
+<![endif]-->
+<!--[if IE 6]>
+<script type="text/javascript" src="../js/fix-png.js"></script>
+<![endif]-->
+<script type="text/javascript" src="http://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript" src="../js/lib/jquery-core.js"></script>
+<script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <!-- <a class="logo" href="index.html">Marcelo G</a>-->
+    <ul id="nav">
+      <li><a href="../index.html"><span>Home</span></a></li>
+      <li class="active"><a href="articles.html"><span>Articles</span></a></li>
+      <li><a href="../software.html"><span>Software</span></a></li>
+      <li><a href="mailto:marcelog@gmail.com"><span>Contact</span></a></li>
+    </ul>
+  </div>
+  <div class="header">
+    <div class="line">
+      <h1>Articles</h1>
+      <div class="social-network">
+       <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
+       <g:plusone></g:plusone>
+      </div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</div>
+  </div>
+  <div class="main-outer">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
+          <div id="content">
+            <div class="mod simple article-detail-style">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- blog2 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6947936742546167"
+     data-ad-slot="2769853059"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+                <h2>How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</h2>
+<a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                <div class="hr-1"><hr /></div>
+<h3>Making use of HTTP Status codes to return better responses to your API Clients</h3>
+<p>
+<a href="http://www.restapitutorial.com/httpstatuscodes.html">HTTP status codes in a REST API</a> are a very useful way to
+communicate operation results to the clients.
+</p>
+<p>
+For example you should use <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#4xx_Client_Error">the HTTP status 400s family of codes</a> to
+signal client errors, meaning that the request has something that is syntactically or semantically wrong (also meaning that the client should probably never
+try the same request again because it will never work as it is).
+</p>
+<p>And you should use
+<a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#5xx_Server_Error">the 500s family of errors</a> to signal that something went wrong at
+the server side, so perhaps the client might return the operation later.
+</p>
+<p>
+Successful requests that will eventually be processed (i.e: asynchronously) can be acked with <a href="https://httpstatuses.com/202">202 code</a>, and synchronous requests
+can be acked with <a href="https://httpstatuses.com/200">a 200 code</a>.
+</p>
+<p>
+In this article we're going to see how we can return <b>ANY custom HTTP status CODE</b> from <b>Amazon API Gateway</b> and also
+(in case of errors) send a <b>generic error response based on a <a href="http://json-schema.org/">JSON Schema Model</a></b> to our API clients.
+</p>
+<h3>How to combine a JSON Schema Model with HTTP Status Codes and Mapping Templates in API Gateway</h3>
+<p>
+The general idea of how all of this works is:
+</p>
+<ul>
+  <li>A request is handled by a lambda function (e.g. PUT /users/1).</li>
+  <li>The lambda function <b>MUST</b> return a string to API Gateway.</li>
+  <li>The Resource/Method of your API has all the HTTP Status codes that can be returned.</li>
+  <li>A regular expression is used by API Gateway to match the string returned from the lambda function, and map it to the right HTTP Status code.</li>
+  <li>A mapping template translates the output into the right JSON Schema Model.</li>
+</ul>
+<p>
+In the end, you will be returning a custom JSON string and a custom HTTP status code to your clients.
+</p>
+<h3>Creating a JSON Schema Model in API Gateway to return generic errors</h3>
+<p>
+Let's create a JSON schema so we can use it to return generic error responses to our clients like this:
+</p>
+<script src="https://gist.github.com/marcelog/09ed553f2ac9c8ea5bef5666e0d6c023.js"></script>
+<p>
+The model can be defined in your <b>API Gateway Console</b> in the <b>Models section</b> of your API. Click on <b>Create</b> and enter the name
+(any name will do), and also the <b>Content Type</b> (that should be "application/json" in this case).
+</p>
+<p>
+The schema can be something like this:
+</p>
+<script src="https://gist.github.com/marcelog/2b16d59bb99cfdedae270280e7e0f265.js"></script>
+<p>
+Now that we have the JSON Schema Model that we are going to use to return errors, let's see how to
+actually use it and combine it with different HTTP Status codes from our API.
+</p>
+<h3>Adding a HTTP Status code to the list of possible returned HTTP Codes of your API</h3>
+<p>
+You can't return a HTTP status code directly from your lambda code, you have to return a string, and this string will be later on associated
+and mapped to a specific status code (we'll see how in a moment). For now, let's add all the possible HTTP status code that we can
+return from our API.
+</p>
+<p>
+Click on a Method in your Resource, you will see the <b>Method Execution</b> diagram/flow for it.
+</p>
+<p>Then click on <b>Method Response</b>,
+and then click on <b>Add Response</b> and enter the HTTP status code that you want to return for this method. Add as many as you wish o rneed.
+</p>
+<p>Once created you can click on the new row and optionally associate one or more headers and one or more response models
+(for example, you could have a model named ErrorResponse to generically return errors for 400s and 500s). In this case we can associate the model
+that we created before.
+</p>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+<!-- blog1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6947936742546167"
+     data-ad-slot="6142121850"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<p>
+Here's an example of how a Method with several HTTP status codes defined looks like:
+</p>
+<img alt="Amazon API Gateway Method Response setup with several custom http status codes" width="580" src="method-response.png"/>
+
+<h3>Associating API responses to a HTTP Status Code</h3>
+<p>
+Now that we have a JSON schema that defines how our errors are returned, and that we have setup all the possible status code returned by
+our API, let's see how to associate them. As stated earlier, the idea is to setup a regular expression that API Gateway can use to
+test the result of our lambda function and use the HTTP Status code mapped to it.
+</p>
+<p>
+Click again on a Method in your Resource so you can go back to the <b>Method Execution</b> diagram.
+</p>
+<p>
+Click on <b>Integration Response</b> and then on <b>Add Integration Response</b>.
+</p>
+<p>In <b>Lambda Error Regex</b> you can enter a
+<a href="https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html">Java Regex Pattern</a> that API Gateway can use
+to associate to specific HTTP status code (that you can specify in the <b>Method response status</b> drop down menu, those values
+are taken from all the available status code you setup in the <b>Method Response</b> screen).
+</p>
+<p>
+Some examples that can be used in order to differentiate the status codes are:
+</p>
+<ul>
+  <li>.*client_error.*</li>
+  <li>.*server_error.*</li>
+</ul>
+<p>
+For this to work, our lambda must return the regular expression text somewhere, as an example, we can make our lambda
+return something like this:
+</p>
+<script src="https://gist.github.com/marcelog/0878b0cd998ba238c71f50de6a516d72.js"></script>
+<p>
+Of course this is a JSON object, that <b>MUST be serialiazed to a string</b> so API Gateway can actually run
+a regular expression against it. Note how we return the string <b>client_error</b> in the <b>reason field</b> and
+the actual errors that we want to send to our clients in the <b>errors field</b>.
+</p>
+<p>
+So for example, when your lambda function returns a string that has the substring <b>client_error</b> or <b>server_error</b> it will return
+the correct http status code. Neat!
+</p>
+<p>
+In the next step, we're going to setup a <a href="docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html">mapping template in API Gateway</a>
+so this string is processed and transformed into a JSON object that is compatible with our JSON schema model.
+</p>
+<h3>Creating the API Gateway Mapping Template to return a generic error message</h3>
+<p>
+API Gateway uses the <a href="http://velocity.apache.org/engine/devel/vtl-reference-guide.html">Apache Velocity Template</a>
+in order to process results from the integration and send them back to the client.
+</p>
+<p>
+In this code we are parsing the JSON string so we can get an object out of it, and then iterate through the errors returned so we can
+form the final string (a JSON object) that will be sent to our clients.
+</p>
+<script src="https://gist.github.com/marcelog/5fc2382633aaf32d0f5c68b191e49067.js"></script>
+<p>
+In the end, your error http status codes will look like this:
+</p>
+<img alt="Amazon API Gateway integration response setup with several custom http status codes and mapping template" width="580" src="integration-response.png"/>
+<p>
+That's it! From now on as long as you include a substring recognicsed with a regular expression by
+API Gateway, and that you include the "errors" field that the example mapping template uses, you will be able to return custom http status codes and errors to your clients.
+</p>
+              </div>
+            </div>
+            <div class="mod view-more">
+              <div class="inner">
+                <a href="articles.html">Read Other Articles</a>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+          <div id="sidebar" class="highlight articles-style original">
+            <div class="mod simple">
+              <span class="top"><span class="tl"></span><span class="tr"></span></span>
+              <div class="inner set-height-1">
+<p>
+If you liked this or other articles (and feel generous), you can make a donation:
+</p>
+<p>
+<a href='https://pledgie.com/campaigns/30947'><img alt='Click here to lend your support to: General and make a donation at pledgie.com !' src='https://pledgie.com/campaigns/30947.png?skin_name=chrome' border='0' ></a>
+</p>
+                <div class="google-ads">
+                    <script type="text/javascript">
+                    google_ad_client = "ca-pub-6947936742546167";
+                    /* 9 */
+                    google_ad_slot = "8617829895";
+                    google_ad_width = 250;
+                    google_ad_height = 250;
+                    //-->
+                    </script>
+                    <script type="text/javascript"
+                    src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+                    </script>
+                </div>
+                <h2>Related Articles</h2>
+                <div class="hr-1"><hr /></div>
+                <ul class="quick-list">
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
+                  <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
+                  <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
+                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
+                  <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
+                  <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
+                  <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
+                  <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
+                </ul>
+              </div>
+              <span class="bottom"><span class="bl"></span><span class="br"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="footer">
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
+  </div>
+</div>
+
+<!-- config SyntaxHighlighter -->
+<script src='../dphighlighter/shCore.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushPhp.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushXml.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushJScript.js' type='text/javascript'></script>
+<script src='../dphighlighter/shBrushCss.js' type='text/javascript'></script>
+<script language="javascript">
+    dp.SyntaxHighlighter.ClipboardSwf = '../dphighlighter/clipboard.swf';
+    dp.SyntaxHighlighter.HighlightAll('code');
+</script>
+  <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21070993-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
