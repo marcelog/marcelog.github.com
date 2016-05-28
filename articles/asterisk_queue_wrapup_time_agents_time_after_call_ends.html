@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Starting WebRTC2SIP as a service without screen or console</title>
+  <title>Giving your Call Center Agents or Queue Members some extra time after a call finishes with Asterisk Queues</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="This article explains how to start webrtc2sip as a service without using screen so it can be monitored. This is a patch to add an argument to webrtc2sip to optionally disable the console."/>
-<meta name="description" content="This article explains how to start webrtc2sip as a service without using screen so it can be monitored. This is a patch to add an argument to webrtc2sip to optionally disable the console."/>
+<meta name="Keywords" content="asterisk queue wrapuptime wrap up time after call finishes for agents or queue members seconds"/>
+<meta name="description" content="How to setup Asterisk queues so they give agents or queue members some time after a call finished to do extra work before taking new calls"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -31,19 +31,19 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Starting WebRTC2SIP as a service without screen or console</div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Giving your Call Center Agents or Queue Members some extra time after a call finishes with Asterisk Queues</div>
   </div>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
@@ -58,47 +58,22 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Starting WebRTC2SIP as a service without screen or console.</h2>
+                <h2>Giving your Call Center Agents or Queue Members some extra time after a call finishes with Asterisk Queues</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Making webrtc2sip a service</u></H3>
+<h3>Why it is useful to wait a few seconds before assigning a new call to a queue member</h3>
 <p>
-<b>NOTE</b>: If you are trying or want to get rid of webrtc2sip and use a plain asterisk installation, see <a href="webrtc_with_asterisk_without_webrtc2sip.html">"<b>WebRTC with Asterisk and Amazon AWS</b>"</a>.
+It's very common in Call Centers that agents need a few extra seconds to do some administrative tasks
+before taking new calls.
 </p>
 <p>
-<a href="http://webrtc2sip.org/"><b>Webrtc2sip</b></a> is a much needed tool created by the <a href="http://doubango.org/">Doubango</a> guys, to enable the use of
- <a href="https://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a> as the signaling protocol in a <a href="http://www.webrtc.org/"><b>webrtc</b></a>
- application, used with <a href="http://www.asterisk.org"><b>Asterisk</b></a> and/or <a href="http://www.freeswitch.org"><b>FreeSWITCH</b></a>
-mostly. If you want to know how to actually compile and install it, please refer to the article titled <a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a>.
+For example,
+let's say that the software you use in your call center (or for that matter, the workflow your employees follow) require agents to fill in some
+information after each call, so they need 15 seconds approximately to accomplish this and they can't take another call while at it.
 </p>
-<p>
-Unfortunately this handy tool can't be <b>started as a service</b> as it is, since it will always start and read from
-standard input for commands (as of today, the only command available seems to be <b>quit</b>).
+<p>In this article we are going to see how to do just that with the queues in Asterisk PBX.
 </p>
-<p>
-A lot of folks have resorted <a href="https://code.google.com/p/webrtc2sip/issues/detail?id=80#c2"><b>to use screen to start webrtc2sip as a service</b></a>. This
-solution might work for some people, but it is a kludgy way to get around this.
-</p>
-<p>
-So I've made <a href="https://gist.github.com/marcelog/47ef364b43c67f9f359d">this simple <b>patch available</b> as a gist</a> that adds a <b>new option</b> to
-<b>webrtc2sip</b> that can be used at startup: <b>--without-console</b>.
-</p>
-<p>
-To apply the patch just download the gist to your local copy of the <a href="https://webrtc2sip.googlecode.com/svn/trunk/"><b>webrtc2sip svn repo</b></a>:
-</p>
-<script src="https://gist.github.com/marcelog/d9c77395426f7f577b68d2f1df846f4f.js"></script>
-<p>
-Then continue building as usual:
-</p>
-<script src="https://gist.github.com/marcelog/71abcab8dc37bab64329e5f457cf86bf.js"></script>
-<p>
-After that you can start webrtc2sip normally with console:
-<script src="https://gist.github.com/marcelog/b011ca77262c470374486d590ae47ab9.js"></script>
-<p>
-Or (by specifying the new option), without a console, like:
-</p>
-<script
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -109,29 +84,23 @@ Or (by specifying the new option), without a console, like:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Using webrtc2sip from within daemontools</h3>
+<h3>Setting up Asterisk Queues with some wrap up time</h3>
 <p>
-If you use <a href="http://cr.yp.to/daemontools.html/">daemontools</a> (you can find how to install it
-in this article titled <a href="install_daemon_tools_centos_amazon_linux.html">"Installing DaemonTools in Amazon Linux (or CentOS like OS)"</a>), these
-sample scripts will help you run webrtc2sip when the system boots.
+The <a href="https://wiki.asterisk.org/wiki/display/AST/Building+Queues">queues in Asterisk</a> can be setup
+with <a href="http://the-asterisk-book.com/1.6/queues.conf.html#queues.conf-wrapuptime">the <b>wrapuptime</b> option in <b>queues.conf</b></a>.
 </p>
 <p>
-Create a user for it, with:
-</p>
-<script src="https://gist.github.com/marcelog/458e804614ee72b3708e13e1c88d3a60.js"></script>
-<p>
-Then create the following files with the following content for each one:
-</p>
-<h3>/etc/service/webrtc2sip/log/run (mode 0700)</h3>
-<script src="https://gist.github.com/marcelog/5b72654e2708a792b90f8410789226ad.js"></script>
-<h3>/etc/service/webrtc2sip/run (mode 0700)</h3>
-<script src="https://gist.github.com/marcelog/c8fc2c271a05174b37d999cf2d422983.js"></script>
-<h3>Create the directory /etc/service/webrtc2sip/env (mode 0700)</h3>
-<p>
-No contents needed for this one.
+This option will effectively <b>wait a specific number of seconds before assigning a new call to an agent or queue member</b> after each call. This can actually be read as a way to specify an <b>interval in seconds between calls for all agents or member queues</b> in Asterisk.
 </p>
 <p>
-Enjoy!
+The option can be used in either agents or queues, and is used like this:
+</p>
+<pre name="code" class="php">
+wrapuptime=15
+</pre>
+<p>If used inside the configuration of queues.conf for a queue, this means that all
+members of that queue will have 15 seconds after each call before they get another
+call to take.
 </p>
               </div>
             </div>
@@ -168,18 +137,18 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="asterisk_queue_wrapup_time_agents_time_after_call_ends.html">Giving your Call Center Agents or Queue Members some extra time after a call finishes with Asterisk Queues</a></li>
-                  <li><a href="monitor_sip_trunks_success_calls.html">Monitoring SIP trunks for availability by issuing test calls with SIPp</a></li>
                   <li><a href="fop2_set_dnd_status_asterisk_db_event_reload.html">Setting DND (Do Not Disturb) in FOP2 Programmatically</a></li>
-                  <li><a href="webrtc_with_asterisk_without_webrtc2sip.html">WebRTC with Asterisk and Amazon AWS</a></li>
-                  <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
-                  <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
-                  <li><a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a></li>
-                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
-                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
-                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
-                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
+                  <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
+                  <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
+                  <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
+                  <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
                 </ul>
               </div>
               <span class="bottom"><span class="bl"></span><span class="br"></span></span>
@@ -190,7 +159,7 @@ If you liked this or other articles (and feel generous), you can make a donation
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>
