@@ -59,6 +59,12 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+If you find that using <a href="https://aws.amazon.com/elastictranscoder/">AWS Elastic Transcoder</a> is too expensive, and you don't want to use an EC2 instance for transcoding, perhaps this might help you out. In the previous post we created a <a href="static_sox_transcoding_lambda_mp3.html">static SOX binary</a> that can be executed inside an
+<b><a href="https://aws.amazon.com/lambda/details/">AWS Lambda Container</a></b>. In this post we are going to use it to trigger it when
+uploading an audio file to an S3 bucket, transcode it, and upload the result to another bucket.&nbsp;<a href="aws_sqs_lambda_sound_file_transcoding.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>How to create a static SOX executable to invoke it in AWS Lambda</h2>
                 <div class="hr-1"><hr /></div>
 <p>

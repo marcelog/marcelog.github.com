@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Send HipChat Notifications with SNS and Lambda</title>
+  <title>Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription"/>
-<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications by using SNS to invoke it."/>
+<meta name="Keywords" content="aws amazon web service lambda static sox executable transcode sound files serverless"/>
+<meta name="description" content="This article shows how to transcode audio files using SOX inside a AWS Lambda Container and SQS without using Elastic Transcoder"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Send HipChat Notifications with SNS and Lambda</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,77 +58,97 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Send HipChat Notifications with SNS and Lambda</h2>
+
+                <h2>Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Communicate with your team using HipChat and Amazon AWS SNS and Lambda functions</h3>
 <p>
-<a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html">Amazon AWS Lambda</a> is a great service and really fun to use. In this article, I'm going to describe
-how we are using it for a project in combination with <a href="http://aws.amazon.com/sns/">Amazon Simple Notification Service</a> to send notifications to <a href="http://hipchat.com/">HipChat</a>.
-</p>
-<h3>Create your Amazon AWS Lambda using NodeJS</h3>
-<p>
-The code for this Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
-Amazon has made recently available for the public.
+If you find that using <a href="https://aws.amazon.com/elastictranscoder/">AWS Elastic Transcoder</a> is too expensive, and you don't want to use an EC2 instance for transcoding, perhaps this might help you out.
 </p>
 <p>
-In order for this to work, make sure your Lambda has Internet access. You can find the instructions on how to setup such a scenario in an <a href="aws_lambda_internet_vpc.html">earlier post that describes how to
-setup your VPCs and subnets so your Lambdas can have Internet access</a>.
+In the previous post we created a <a href="static_sox_transcoding_lambda_mp3.html">static SOX binary</a> that can be executed inside an
+<b><a href="https://aws.amazon.com/lambda/details/">AWS Lambda Container</a></b>. In this post we are going to use it to trigger it when
+uploading an audio file to an S3 bucket, transcode it, and upload the result to another bucket. Here's how this will work:
+</p>
+<ul>
+  <li>When a file is uploaded to a specific S3 bucket, S3 will send a message to an <a href="https://aws.amazon.com/sqs/">SQS queue</a>.</li>
+  <li>Every minute a <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html">CloudWatch event</a> will execute our Lambda.</li>
+  <li>In each execution, our Lambda will read a few messages from the SQS Queue and use the static SOX binary file to transcode the audio.</li>
+  <li>After the transcoding is done, the resulting file will be uploaded to a different S3 bucket.</li>
+</ul>
+<p>
+<b>The code is also available in <a href="https://github.com/marcelog/aws-sqs-lambda-audio-transcoding">this GitHub Repo</a></b>.
+</p>
+<h3>Setting up the S3 buckets</h3>
+<p>
+Go to your S3 console, and create two buckets:
+</p>
+<ul>
+  <li><u>The "source" bucket</u>: This is where we are going to upload the files to be transcoded.</li>
+  <li><u>The "target" bucket</u>: After the files are transcoded, our Lambda will upload the result here.</li>
+</ul>
+<p>
+We're going to setup some events for them in a bit.
+</p>
+<h3>Setting up the SQS queue</h3>
+<p>
+Let's create the SQS queue that will connect your source S3 bucket to your transcoder Lambda. The source S3 bucket
+will publish a message for every new object created and your Lambda will react to them.
 </p>
 <p>
-  The function uses the <a href="https://www.hipchat.com/docs/api">HipChat API v1</a>, which is deprecated but still available (and will be for a long time, apparently). It sends notifications through
-  a simple HTTP request. The code for this lambda is available in this gist:
-</p>
-<script src="https://gist.github.com/marcelog/3f463cd98d5ce41528eb58bfd7d7bcb5.js"></script>
-<p>
-Go to your <a href="https://us-west-2.console.aws.amazon.com/lambda/home#/functions">AWS Lambda Console</a> and create a new function by pasting the code.
-Make sure you change the variables and arguments named <b>token</b>, <b>room_id</b>,and  <b>from</b> to match your needs. Save your function and don't forget to setup your
-VPC and private subnet when configuring your function.
+In your SQS console, create a new queue, set the <b>Default Visibility Timeout</b> to
+1 second, you can leave the other values with their defaults.
 </p>
 <p>
-You can test the function with an event like this:
-</p>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- blog1 -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-6947936742546167"
-     data-ad-slot="6142121850"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<pre name="code" class="php">
-{
-  "text": "hello world",
-  "color": "green"
-}
-</pre>
-<h3>Create your Amazon AWS SNS Topic to route messages to your HipChat room</h3>
-<p>
-Head to your <a href="https://us-west-2.console.aws.amazon.com/sns/v2/home?region=us-west-2#/topics">AWS SNS Console</a>, click on <b>Create New Topic</b>, pick a name and save your new topic. Once created, locate it in
-the topics list, select it, and click on <b>Create Subscription</b>. As the protocol, choose <b>AWS Lambda</b>, and choose your newly created
-function in the <b>Endpoint</b> dropdown. Save it.
-</p>
-<h3>Test your HipChat and Amazon AWS SNS Integration</h3>
-<p>
-To test the function through SNS select your topic and click on <b>Publish To Topic</b>, use the following message that will be sent as the <b>event</b> argument of your lambda handler:
-</p>
-<pre name="code" class="php">
-{
-"default": "{\"text\": \"hello world\", \"color\": \"yellow\"}",
-"lambda": "{\"text\": \"hello world\", \"color\": \"yellow\"}"
-}
-</pre>
-<h3>Integrate your development workflow and your team with HipChat notifications through Amazon AWS SNS</h3>
-<p>
-As you can see, SNS and Lambdas are absolutely fun to use! In no time we can integrate different kind of systems (in this case we chose HipChat, but <a href="https://slack.com/">Slack</a> would work exactly the same
--although with a different API, point taken-). Hint: we are actually using this from <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> in order to
-receive notifications in our HipChat room as deploys go through their lifecycle. But I'm going to explain this in <a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">another article</a> :).
+Select your queue, and in the bottom of the screen go to the <b>Permissions</b> tab,
+and click <b>Edit Policy Document</b>.
 </p>
 <p>
-Cheers!
+You will need a policy like the one below to allow your "source" bucket to publish messages. Note that you should change some
+values to match the AWS region of your SQS, the SQS queue name, S3 bucket name (the "source" bucket name),
+ and AWS account id.
+</p>
+<script src="https://gist.github.com/marcelog/7b0224b63c90802996ab2dee7d7082e4.js"></script>
+<h3>Setup the event sources in the Source S3 Bucket</h3>
+<p>
+Now that we have the SQS queue in place, we can configure an event that will be triggered for every interesting new object uploaded to this bucket. Go to your S3 Console:
+</p>
+<ul>
+  <li>Select your "source" bucket, click "Properties", and then click on "Events".</li>
+  <li>Select "Send to SQS queue".</li>
+  <li>In the "SQS Queue" dropdown, select the SQS queue that we created in the step above.</li>
+  <li>As the suffix, you can put for example ".gsm" or ".wav", or just leave it blank and you will get an SQS message for every file regardless of its extension.</li>
+  <li>You can also specify a prefix for the files you're interested in, or just leave it blank.</li>
+  <li>In the "Events" dropdown, select "ObjectCreated" / "Put".</li>
+  <li>Write a name for this new event.</li>
+</ul>
+
+<h3>Create a Lambda function</h3>
+<p>
+This is it! Everything's ready now, so we only have to upload the right code to do the job. Go to your Lambda Console and create a new Lambda, choose NodeJS 4.3 as the runtime.
+</p>
+<p>
+You should use a role with a policy like the following, in order to allow the new Lambda to read messages from SQS
+and also read and write to the source and target buckets:
+</p>
+<script src="https://gist.github.com/marcelog/1b0ff260ff1287000c5d0b2413bf257a.js"></script>
+<p>
+Download the code from GitHub at <a href="https://github.com/marcelog/aws-sqs-lambda-audio-transcoding">https://github.com/marcelog/aws-sqs-lambda-audio-transcoding</a> and then run:
+</p>
+<script src="https://gist.github.com/marcelog/3542ad2068d47df2d2322155eb6408dc.js"></script>
+<p>
+In your Lambda Console, select your function and then select the "Code" tab and upload the .ZIP file just created.
+<h3>Setup a CloudWatch event to periodically trigger your Lambda</h3>
+<p>
+In your Lambda console select your function, and then click the "Triggers" tab. Click "Add trigger" and choose "CloudWatch Event", you can then
+select the 1 minute rate event option.
+</p>
+<h3>Testing your new AWS Lambda audio transcoder</h3>
+<p>
+After all of this, the result is that your code will be automatically executed every minute, and will wait
+a few seconds for SQS messages coming in from your source S3 bucket, will transcode your audio files and save them
+into another S3 bucket. Enjoy!
 </p>
               </div>
             </div>
@@ -165,13 +185,13 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
-                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
