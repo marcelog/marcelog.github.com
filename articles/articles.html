@@ -59,6 +59,14 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>How to create a static SOX executable to invoke it in AWS Lambda</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+<a href="http://sox.sourceforge.net/">SOX</a> is an awesome tool that can transcode audio files in many different formats.
+But if you want to <b>use SOX inside an <a href="https://aws.amazon.com/lambda/details/">AWS Lambda Container</a></b> you should generate a binary that includes all
+the code needed to run in an isolated environment, because you won't have some needed libraries preinstalled (like
+lame and libmad). This is really useful if you can't afford the <a href="https://aws.amazon.com/elastictranscoder/"><b>Amazon Elastic Transcoder</b></a> service and need a cheaper solution instead. A great application for this is to <b>transcode your <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+13+Application_Monitor">Asterisk Monitor recordings</a> to MP3</b> in a server-less way.
+&nbsp;<a href="static_sox_transcoding_lambda_mp3.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>How to use Curl and Json from the Asterisk Dialplan to control call flow</h2>
                 <div class="hr-1"><hr /></div>
 <p>

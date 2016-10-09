@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Using Comodo SSL Certificates in Amazon API Gateway</title>
+  <title>How to create a static SOX executable to invoke it in AWS Lambda</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services api gateway SSL certificate from Comodo"/>
-<meta name="description" content="This article shows how to use Comodo SSL Certificates in Amazon AWS API Gateway"/>
+<meta name="Keywords" content="aws amazon web service lambda static sox executable transcode sound files serverless"/>
+<meta name="description" content="This article shows how to create a static sox executable suitable to be used in a AWS lambda container for transcoding audio files with using the elastic transcoder"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using Comodo SSL Certificates in Amazon API Gateway</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  How to create a static SOX executable to invoke it in AWS Lambda</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -59,68 +59,72 @@
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
-                <h2>Using Comodo SSL Certificates in Amazon API Gateway</h2>
+                <h2>How to create a static SOX executable to invoke it in AWS Lambda</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>How to install Comodo SSL Certificates in Amazon API Gateway</h3>
 <p>
-If you want to <a href="https://aws.amazon.com/api-gateway/">host your REST API in <b>Amazon API Gateway</b></a> with a <a href="https://ssl.comodo.com/"><b>Comodo SSL Certificate</b></a>
-you will have to a few things in order to correctly setup the <a href="https://support.dnsimple.com/articles/what-is-ssl-certificate-chain/"><b>SSL Certificate Chain for your domain</b></a>.
+<a href="http://sox.sourceforge.net/">SOX</a> is an awesome tool that can transcode audio files in many different formats.
+But if you want to <b>use SOX inside an <a href="https://aws.amazon.com/lambda/details/">AWS Lambda Container</a></b> you should generate a binary that includes all
+the code needed to run in an isolated environment, because you won't have some needed libraries preinstalled (like
+lame and libmad).
 </p>
 <p>
-When creating the domain by clicking in <b>Custom Domain Name</b> in your API Gateway Console, you will notice these options used to
-setup SSL:
-</p>
-<ul>
-  <li><b>Certificate name</b></li>
-  <li><b>Certificate body</b></li>
-  <li><b>Certificate private key</b></li>
-  <li><b>Certificate chain</b></li>
-</ul>
-<p>
-<b>Certificate name</b> needs no further explanation, it's just a name that you can use to
-identify this specific certificate installation.
+This is really useful if you can't afford the <a href="https://aws.amazon.com/elastictranscoder/"><b>Amazon Elastic Transcoder</b></a> service and need a cheaper solution instead.
 </p>
 <p>
-<b>Certificate private key</b> is the private key you generated when creating the <a href="https://en.wikipedia.org/wiki/Certificate_signing_request">Certificate Signing Request</a>,
-so just paste your private key here, including the headers <b>-----BEGIN PRIVATE KEY-----</b> and <b>-----END PRIVATE KEY-----</b>. This is needed so Amazon can
-actually serve your API with your certificate.
+A great application for this is to <b>transcode your <a href="https://wiki.asterisk.org/wiki/display/AST/Asterisk+13+Application_Monitor">Asterisk Monitor recordings</a> to MP3</b> in a server-less way.
+</p>
+<h3>Setup a new Amazon Linux EC2 Instance</h3>
+<p>Create an <a href="https://aws.amazon.com/amazon-linux-ami/">Amazon Linux EC2</a> instance, and install some basic packages needed to compile the rest of the stuff</p>
+<script src="https://gist.github.com/marcelog/fffb1981ef34be8441a2f94d7e75d484.js"></script>
+<h3>Build a static libgsm</h3>
+<p>
+<a href="http://libgsm.sourcearchive.com/">libgsm</a> is a library used to encode and decode <a href="https://en.wikipedia.org/wiki/GSM#Voice_codecs">GSM audio files</a>.
+</p>
+<script src="https://gist.github.com/marcelog/35af18d7fdeb1ef8383131797f03dc47.js"></script>
+
+<h3>Build a static libmad</h3>
+<p>
+<a href="http://www.underbit.com/products/mad/">libmad</a> is an MP3 library to encode and decode <a href="http://www.chiariglione.org/mpeg/standards/mpeg-1/mpeg-1.htm">MPEG-1</a> and
+<a href="http://www.chiariglione.org/mpeg/standards/mpeg-2/mpeg-2.htm">MPEG-2</a> formats.
+</p>
+<script src="https://gist.github.com/marcelog/5abd67ff4d0ae8c117eabf18dd7382ab.js"></script>
+
+<h3>Build a static lame</h3>
+<p>
+<a href="http://lame.sourceforge.net/">LAME</a> is a high quality MPEG Audio Layer III (MP3) encoder.
+</p>
+<script src="https://gist.github.com/marcelog/7c8fef23c2ee17d8858fe6ffd3d6acdf.js"></script>
+<h3>Build a static SOX binary</h3>
+Once all the above libraries are installed, we can now proceed to build a static SOX binary.
+<p>
+<a href="http://lame.sourceforge.net/">LAME</a> is a high quality MPEG Audio Layer III (MP3) encoder.
+</p>
+<script src="https://gist.github.com/marcelog/86e6c71bdf61a28560f7f7ce4f93a2b8.js"></script>
+
+<h3>Invoking SOX inside a Lambda container</h3>
+<p>
+Once you have generated the binary file, create an empty directory and copy the sox binary there. Add a file like this one so you
+can try it in Lambda, name it <b>index.js</b>:
+</p>
+<script src="https://gist.github.com/marcelog/f688dede4cd9ea002c77923dd087819b.js"></script>
+<p>
+Pack everything in a zip file
+</p>
+<script src="https://gist.github.com/marcelog/ebf8a64bcad783d803d529b755c8b0b0.js"></script>
+<h3>Create your Lambda and invoke SOX</h3>
+<p>
+Go to your Lambda console and create a new Lambda, choose NodeJS 4.3 as the runtime. Use the created ZIP file as
+the source of your code and upload it.
 </p>
 <p>
-The other two options are the reason for this article and are related to the files that you get
-from Comodo once your certificate is ready. You probably got these files separately or packed altogether in
-a ZIP file:
-</p>
-<ul>
-  <li><b>STAR_domain_com.crt</b> (where domain_com is actually YOUR domain)</li>
-  <li><b>COMODORSADomainValidationSecureServerCA.crt</b></li>
-  <li><b>COMODORSAAddTrustCA.crt</b></li>
-  <li><b>AddTrustExternalCARoot.crt</b></li>
-</ul>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- blog1 -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-6947936742546167"
-     data-ad-slot="6142121850"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<p>
-  <b>Certificate body</b> can be filled with literally the contents of the STAR_domain_com.crt file, including
-  the headers <b>-----BEGIN CERTIFICATE-----</b> and <b>-----END CERTIFICATE-----</b>.
+You can now go to your Lambda function and hit the 'Test' button. In the output console you should be
+able to see the output of your SOX binary :)
 </p>
 <p>
-<b>Certificate chain</b> is the tricky one and is the result of <b>concatenating the files
-COMODORSADomainValidationSecureServerCA.crt COMODORSAAddTrustCA.crt AddTrustExternalCARoot.crt</b> in that order and
-pasting the result literally. This command can get you the full contents:
+Enjoy!
 </p>
-<script src="https://gist.github.com/marcelog/dc5c3683f737f74e5825236d808f13ff.js"></script>
-<p>
-As a result, you can paste the contents of the file <b>full.crt</b> directly into the <b>Certificate chain</b> field. Amazon API Gateway should
-be then able to pickup your brand new Comodo SSL Certificate.
               </div>
             </div>
             <div class="mod view-more">
@@ -156,9 +160,9 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
-                  <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
+                  <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
+                  <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
