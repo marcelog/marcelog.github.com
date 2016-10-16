@@ -59,6 +59,15 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Expirable user sessions with MySQL events</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+One awesome feature of <a href="http://redis.io/">Redis</a> is that you can set an <a href="http://redis.io/commands/expire">expiration time in a database key</a>, and this
+works great to handle your user session expirations.
+If a session token is used for any kind of operation you can just renew that time after completing it. If the token is
+not used for a given period of time, it will be deleted automagically and the operation will be denied, so the user will need to
+login again in order to get a new session token.
+This can also be achieved by using MySQL, through the <a href="https://dev.mysql.com/doc/refman/5.7/en/event-scheduler.html">MySQL Event Scheduler</a>, that can be used to setup a one-time or recurring event to cleanup stale or unused sessions. Let's see how!&nbsp;<a href="mysql_events_expiring_sessions.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</h2>
                 <div class="hr-1"><hr /></div>
 <p>

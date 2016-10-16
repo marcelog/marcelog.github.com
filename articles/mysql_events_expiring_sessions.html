@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</title>
+  <title>Expirable user sessions with MySQL events</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services api gateway swagger export format error MISSING_PATH_PARAMETER_DEFINITION Path parameter is declared but is not defined CORS"/>
-<meta name="description" content="This article gives a solution for the error MISSING_PATH_PARAMETER_DEFINITION in Amazon AWS API Gateway when exporting the API with CORS in Swagger format"/>
+<meta name="Keywords" content="web session token expiration mysql events scheduler"/>
+<meta name="description" content="This article is about how to use MySQL events to have expirable user sessions"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Expirable user sessions with MySQL events</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,41 +58,59 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-
-                <h2>Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</h2>
+                <h2>Expirable user sessions with MySQL events</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>A bug in AWS API Gateway after enabling CORS and exporting resources with path parameters</h3>
 <p>
-A few days ago I stumbled upon what it seems to be a bug in <a href="https://aws.amazon.com/api-gateway/"><b>AWS API Gateway</b></a>, triggered when
-exporting an API in <a href="http://swagger.io/"><b>Swagger</b></a> format.
+One awesome feature of <a href="http://redis.io/">Redis</a> is that you can set an <a href="http://redis.io/commands/expire">expiration time in a database key</a>, and this
+works great to handle your user session expirations.
 </p>
-<p>As you may know already, Swagger makes it really easy to share
-your REST API specification and also generate clients for it, so it was really important that this worked perfectly.
-</p>
-<p>
-The bug in question is that when <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/create-api-using-import-export-api.html"> exporting your Amazon AWS API Gateway specification to the Swagger format</a> an invalid format can be generated if one or more of your Resources use path parameters and you have enabled CORS for them.
+<p>If a session token is used for any kind of operation you can just renew that time after completing it. If the token is
+not used for a given period of time, it will be deleted automagically and the operation will be denied, so the user will need to
+login again in order to get a new session token.
 </p>
 <p>
-The invalid format can also be noticed in the <a href="http://editor.swagger.io/#/"><b>Online Swagger Editor</b></a>,
-that will show errors like this one:
+This can also be achieved by using MySQL, through the <a href="https://dev.mysql.com/doc/refman/5.7/en/event-scheduler.html">MySQL Event Scheduler</a>, that can be
+used to setup a one-time or recurring event to cleanup stale or unused sessions. Let's see how!
+</p>
+<h3>Turn on the MySQL Event Scheduler</h3>
+<p>
+<a href="https://dev.mysql.com/doc/refman/5.7/en/events-configuration.html">To setup the MySQL Event Scheduler, you can refer to the MySQL manual</a>, but here are the basic steps:
+</p>
+<script src="https://gist.github.com/marcelog/e0a519fa03d117b4a0c3ac34a91a1bc6.js"></script>
+<p>
+If you are using <a href="https://aws.amazon.com/rds/">Amazon RDS</a> to host your MySQL database, you will be able to find the <b>event_scheduler option</b> in the <a href="http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithParamGroups.html">Parameter Group for your database instance</a>.
 </p>
 <p>
-<b>
-  Swagger Error<br/><br/>
-Path parameter is declared but is not defined: id<br/>
-Jump to line xxx<br/>
-Details<br/>
- Object <br/>
-code:  "MISSING_PATH_PARAMETER_DEFINITION"<br/>
-message:  "Path parameter is declared but is not defined: id"<br/>
- path: Array [3]<br/>
-level: xxx<br/>
-type:  "Swagger Error"<br/>
-description:  "Path parameter is declared but is not defined: id"<br/>
-lineNumber: xxx<br/>
-</b>
+Once the event scheduler is running, you should be able to see it by doing a <a href="https://dev.mysql.com/doc/refman/5.7/en/show-processlist.html">SHOW PROCESSLIST</a> in your MySQL server.
+</p>
+<h3>Create a table to save your user sessions</h3>
+<p>
+The first needed step is to create a table to store your user sessions. This is a simple, regular table, and the
+most important column is the one named "last_activity". We're going to store a unix timestamp into this field.
+</p>
+<script src="https://gist.github.com/marcelog/8718a6d5cb8aa7f3873bf55d0d221025.js"></script>
+<p>
+For every new session that your application creates, you need to store the session token here, along with the ID of the owner and set the "last_activity" column to the
+unix timestamp of the creation time.
+</p>
+<p>
+Also, every time the session token is used, you need to "keep alive" the token by updating "last_activity" with the unix timestamp
+of the operation.
+</p>
+<h3>Create a mysql periodic event in the event scheduler to delete unused sessions</h3>
+<p>
+Here's where the magic actually happens. We are going to create a periodic (or recurring) event in the MySQL event scheduler so it runs once a minute, to delete any session that
+hasn't been used in the last 30 minutes:
+</p>
+<script src="https://gist.github.com/marcelog/672cc10c1ba574adb3afb884e64d1337.js"></script>
+<p>
+As long as your application is updating the "last_activity" field of your sessions whenever they are used, this will make sure that
+older sessions are deleted, and just keep the ones in use.
+</p>
+<p>
+Enjoy :) Until the next time!
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -104,21 +122,7 @@ lineNumber: xxx<br/>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<p>
-The bug seems to manifest itself <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html">when enabling <b>CORS</b> on an API Gateway Resource</a> (that <b>automatically generates</b> the OPTIONS method) that uses path parameters.
-</p>
-<p>The Resource in question has to
-<a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/getting-started-mappings.html#getting-started-mappings-add-methods">use path parameters</a>, for example: <b>/users/{id}</b>. It seems that when you enable CORS on resources like this one, the exportation will not take into account the arguments needed for the <b>OPTIONS</b> method.
-</p>
-<h3>Fixing the Path Parameter error when exporting Resources with CORS enabled from API Gateway in Swagger Format</h3>
-<p>
-This fix is actually a work around, the definite fix is still in the works by the Amazon AWS API Gateway team.
-</p>
-<p>
-The solution seems to be to <b>manually create the OPTIONS method</b> with a <a href="http://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-mock-integration.html">mock integration</a> and only then, enable CORS for the resource.
-</p>
-<p>If you have already enabled CORS, the solution is to delete the OPTIONS method in all the resources that use path parameters and manually recreate them, enabling CORS afterwards.
-</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -154,18 +158,22 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
                   <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
-                  <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
-                  <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
-                  <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
-                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
-                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
-                  <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
-                  <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
-                  <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
+                  <li><a href="asterisk_queue_wrapup_time_agents_time_after_call_ends.html">Giving your Call Center Agents or Queue Members some extra time after a call finishes with Asterisk Queues</a></li>
+                  <li><a href="asterisk_dial_while_incoming_call_in_queue.html">Selectively Receiving incoming calls from Asterisk Queues while dialing out</a></li>
+                  <li><a href="fop2_set_dnd_status_asterisk_db_event_reload.html">Setting DND (Do Not Disturb) in FOP2 Programmatically</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
+                  <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
+                  <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
+                  <li><a href="making_your_ivr_nodes_call_flow_with_pagi_and_php_asterisk.html">Making your ivr nodes (call) flow with PAGI</a></li>
+                  <li><a href="pagi_node_call_flow_easy_telephony_application_for_asterisk_php.html">Advanced telephony applications with PHP and PAGI using call flow nodes</a></li>
+                  <li><a href="pagi_mock_client_unit_test_ivr_application_telephony_asterisk_agi.html">Unit test your PHP IVR applications with PAGI</a></li>
+                  <li><a href="php_asterisk_agi_protocol_tutorial.html">AGI (Asterisk Gateway Interface) Protocol Tutorial And Quick Practical Approach</a></li>
+                  <li><a href="php_asterisk_manager_interface_protocol_tutorial_introduction.html">AMI (Asterisk Manager Interface) Protocol Tutorial</a></li>
+                  <li><a href="bash_asterisk_manager_interface_client_shell_script.html">Bami: A Proof of concept asterisk manager interface (AMI) client written in bash</a></li>
+                  <li><a href="pami_introduction_tutorial_how_to_install.html">Getting Started with the PAMI: PHP Asterisk Manager Interface</a></li>
+                  <li><a href="pagi_tutorial_create_voip_telephony_application_for_asterisk_with_agi_and_php.html">PAGI: Quick telephony applications using AGI and PHP</a></li>
                 </ul>
               </div>
               <span class="bottom"><span class="bl"></span><span class="br"></span></span>
