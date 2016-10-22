@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Installing DaemonTools in Amazon Linux (or CentOS like OS)</title>
+  <title>Using AWS Lambda to check if your website is online</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="This article explains how to install daemon tools from Daniel J. Bernstein in a modern Amazon Linux EC2 instance and/or any CentOS like linux distribution."/>
-<meta name="description" content="This article explains how to install daemon tools from Daniel J. Bernstein in a modern Amazon Linux EC2 instance and/or any CentOS like linux distribution."/>
+<meta name="Keywords" content="aws amazon web services lambda sns sqs sms website http https online availability ping"/>
+<meta name="description" content="This article shows how to use an AWS Lambda to check if your website is online, and send an SMS alert via SNS with a CloudWatch alarm if it's not."/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Installing DaemonTools in Amazon Linux (or CentOS like OS)</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using AWS Lambda to check if your website is online</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,91 +58,110 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Installing DaemonTools in Amazon Linux (or CentOS like OS).</h2>
+                <h2>Using AWS Lambda to check if your website is online</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Starting and supervising your services in Linux with Daemontools</u></H3>
 <p>
-<a href="http://cr.yp.to/daemontools.html/"><b>DaemonTools</b></a> is an excellent piece of software created by <a href="https://en.wikipedia.org/wiki/Daniel_J._Bernstein">Daniel J. Bernstein</a>, and composed of several tools
-used to launch and monitor processes in a unix environment. They are fast, reliable, and are my favourites whenever I get to wear the devops hat to setup a new server. Sadly, there's no default package
-available for distros like Amazon Linux or CentOS, so here are the steps involved for setting them up manually.
-</p>
-<h3>Downloading daemontools</h3>
-<script src="https://gist.github.com/marcelog/131a6ca895665c315b7e96f600d9bd26.js"></script>
-<h3>Patching for newest distributions</h3>
-<p>
-In modern operating distros, you will get the following error if you try to compile it right away:
+Services like <a href="https://www.pingdom.com/">Pingdom</a> and <a href="https://uptimerobot.com/">UptimeRobot</a> are a great way
+to check your websites for availability, but sometimes there is need for something cheaper or with better ways to customize checks and alerts.
 </p>
 <p>
-<b>
-/usr/bin/ld: errno: TLS definition in /lib64/libc.so.6 section .tbss mismatches non-TLS reference in envdir.o<br/>
-/lib64/libc.so.6: could not read symbols: Bad value<br/>
-collect2: error: ld returned 1 exit status<br/>
-make: *** [envdir] Error 1<br/>
-</b>
+In this article we are going to see how to use <a href="https://aws.amazon.com/lambda/details/">an Amazon Lambda</a> to periodically check if your
+website is online, and also use <a href="https://aws.amazon.com/cloudwatch/">CloudWatch</a> and <a href="https://aws.amazon.com/sns/">SNS</a> to <b>send SMS alerts when the
+website if offline</b>.
 </p>
+<h3>Create an AWS Lambda to check if your website is up</h3>
 <p>
-So if that's your case, apply the following patch like this:
+I've put the code in this gist:
 </p>
-<script src="https://gist.github.com/marcelog/31f82e83a4adb924f441dd1784f1838e.js"></script>
-<h3>Compiling and installing daemontools in your Centos or Amazon Linux</h3>
+<script src="https://gist.github.com/marcelog/0cff0304f83ede051bdf982da6e2dc77.js"></script>
 <p>
-After uncompressing and patching, we can start <b>compiling daemontools</b>:
-<script src="https://gist.github.com/marcelog/68afd14a92c92b108f35bbc3c34467d3.js"></script>
-<h3>Setting it up</h3>
-<p>
-Once built and installed, we need to start the <b>svscan</b> process when the
-system starts so it can monitor and start our services. This is a simple way to
-make <a href="http://upstart.ubuntu.com/">UpStart</a> start svscan on boot:
+Go to your Lambda Console:
 </p>
-<script src="https://gist.github.com/marcelog/747b4adcb05cefb8dc0aa16e2978d3c2.js"></script>
-<p>
-That's it! You can start writing your service scripts in <b>/etc/service</b>.
-</p>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- blog1 -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-6947936742546167"
-     data-ad-slot="6142121850"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<h3>Service Example: Using daemontools to start and monitor a Jenkins server in Linux</h3>
-<p>
-Let's say we want <a href="http://jenkins-ci.org"><b>Jenkins</b></a> to be started
-and monitored by daemontools. We would create a the following files and directories in a
-temporary directory (let's say <b>/tmp</b>):
 <ul>
-  <li>/tmp/jenkins/log/run (mode 0700)</li>
-  <li>/tmp/jenkins/env/JAVA_HOME (mode 0600)</li>
-  <li>/tmp/jenkins/run (mode 0700)</li>
+  <li>Click <b>Create a Lambda function</b>.</li>
+  <li>Choose NodeJS 4.3 as the Runtime, and hello-world as the blueprint.</li>
+  <li>Click "Next".</li>
+  <li>As the trigger, select a <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html">CloudWatch Event with Schedule</a>.
+    Enter a name and description of the rule, and choose an appropiate rate (5 or 15 minutes is usually enough).</li>
+  <li>Click <b>Enable Trigger</b>.</li>
+  <li>Click "Next".</li>
+  <li>Enter a name and description for your new Lamba.</li>
+  <li>Copy and Paste the code from the gist above in the <b>Lambda function code</b> section. Make sure you change the "target" variable to match your website address.</li>
+  <li>In the section <b>Lambda function handler and role</b> choose <b>Create a custom role</b> to create a special role for your Lamba. This is recommended, because it will have its own permissions and wont get mixed with other roles in your account.</li>
+  <li>In the <b>timeout</b> section set a reasonable value, like 30 seconds.</li>
+  <li>Click "Next", and then click "Create function".</li>
 </ul>
+<p>
+Your Lambda should now be up and running, and CloudWatch should be invoking it every few minutes (according to the rate you've setup). You can change
+how often your Lambda will be invoked in the <b>Triggers</b> tab.
 </p>
 <p>
-The <b>env/JAVA_HOME</b> file would contain the path to where the JVM is installed:
+Before proceeding, head to the <b>Code</b> tab and click "Test". Watch the <b>Log output</b> section and make sure everything's working as expected
+(that would be that the URL you've setup is ok and the Lambda finishes successfully).
+</p>
+<h3>Create an SNS Topic to send CloudWatch alerts through SMS when your Lambda fails</h3>
+<p>
+We are now going to <a href="http://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html">create an SNS Topic</a> to send all the alerts for our Lambda.
 </p>
 <p>
-<b>/usr/java</b>
+The idea is to set a CloudWatch alarm (see below) that when triggered, will send a message through this Topic, and to all the subscribers.
 </p>
 <p>
-The <b>log/run</b> file could look like:
+Go your SNS Console:
 </p>
-<script src="https://gist.github.com/marcelog/ffe8e87bae2e494162570b9a5f07b4b9.js"></script>
+<ul>
+  <li>Click <b>Create Topic</b>.</li>
+  <li>Enter a name and description.</li>
+  <li>Once created, click on your new Topic, and then click on <b>Create Subscription</b>.</li>
+  <li>At this point you can actually create any kind of subscription(s) needed for your use case. For this article, we are just going to <b>create
+    an SMS subscription so when your website is offline, Amazon will send you an SMS to your mobile</b> informing so. But Email and HTTP subscriptions can also be
+    added in the same topic, so more complex notifications can be sent and get more people and systems involved!</li>
+  <li>In "Protocol" choose SMS.</li>
+  <li>In "Endpoint" enter your full mobile phone number, including country and area code.</li>
+  <li>Click <b>Create Subscription</b>.</li>
+</ul>
+<h3>Setup CloudWatch Alarms to monitor your Lambda and send alerts on errors</h3>
 <p>
-And the <b>run</b> file would look like:
+CloudWatch is the glue for all what we've done in the earlier steps. It will monitor your lambda executions and act upon any malfunctions. In this case, we are going to setup 2 alarms:
 </p>
-<script src="https://gist.github.com/marcelog/e5304ca7b2eee50686cee5f3b8b2f884.js"></script>
+<ul>
+  <li>When your Lambda has any invocations ended in an error.</li>
+  <li>If your Lambda has no invocations at all in the last couple of minutes.</li>
+</ul>
 <p>
-Once we create all the files, we can just <b>mv /tmp/jenkins /etc/service</b> and Jenkins will be started instantaneously by
-daemontools without further delay.
+To <b>setup an alarm when your Lambda fails</b> (this could be because of an error in the code itself or because your website is down), go your CloudWatch Console:
+</p>
+<ul>
+  <li>Click "Alarms" at the left, and then <b>Create Alarm</b>.</li>
+  <li>Click "Lambda Metrics".</li>
+  <li>Look for your Lambda name in the listing, and click on the checkbox for the row where the metric name is "Errors". Click "Next".</li>
+  <li>Enter a name and description for this alarm.</li>
+  <li>Setup the alarm to be triggered whenever "Errors" is above 0, for 1 consecutive period(s).</li>
+  <li>Select "Sum" as the Statistic and 5 minutes (or the amount of minutes that's reasonable for your use case) in the "Period" dropdown.</li>
+  <li>In the "Notification" box, click the <b>Select a notification list</b> dropdown and select your new SNS endpoint.</li>
+  <li>Click "Create Alarm".</li>
+</ul>
+<p>
+Now create another alarm, but this time we are interested in <b>making sure that your Lambda is invoked every minute</b>:
+</p>
+<ul>
+  <li>Look for your Lambda name in the listing of metrics, and click on the checkbox for the row where the metric name is "Invocations". Click "Next".</li>
+  <li>Enter a name and description for this alarm.</li>
+  <li>Setup the alarm to be triggered whenever "Invocations" is less than 3, for 1 consecutive period(s).</li>
+  <li>Select "Sum" as the Statistic and 5 minutes (or the amount of minutes that's reasonable for your use case) in the "Period" dropdown.</li>
+  <li>In the "Notification" box, click the <b>Select a notification list</b> dropdown and select your new SNS endpoint.</li>
+  <li>Click "Create Alarm".</li>
+</ul>
+<h3>Monitor your website in ServerLess fashion and with an incredible low cost</h3>
+<p>
+That's it! Your website is now being monitored and your now being alerted by SMS in case there are errors. Note that the code can be modified in order to
+check for specific contents in the body of the response and many other complex scenarios, even to check multiple websites in the same code.
 </p>
 <p>
 Enjoy!
 </p>
-
               </div>
             </div>
             <div class="mod view-more">
@@ -178,7 +197,6 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
                   <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
                   <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
@@ -187,15 +205,11 @@ If you liked this or other articles (and feel generous), you can make a donation
                   <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
                   <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
-                  <li><a href="webrtc_with_asterisk_without_webrtc2sip.html">WebRTC with Asterisk and Amazon AWS</a></li>
-                  <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
+                  <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
+                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
-                  <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
-                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
-                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
-                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
-                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
                 </ul>
               </div>
               <span class="bottom"><span class="bl"></span><span class="br"></span></span>
