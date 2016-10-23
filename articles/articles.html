@@ -59,6 +59,14 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+<a href="https://aws.amazon.com/cloudwatch/">CloudWatch</a> is an amazing tool that Amazon has to gather logs and metrics, and also create alarms based on them.
+In this article we're going to see some useful tips to <b>create alarms and send notifications when your <a href="https://aws.amazon.com/lambda/details/">Lambda functions</a> end with error</b> or log messages with a specific pattern.
+Note that in all cases, CloudWatch with send the notifications through <a href="http://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html">an SNS Topic</a>, and you can
+create as many <a href="http://docs.aws.amazon.com/sns/latest/dg/SubscribeTopic.html">SNS topic subscriptions</a> as needed to deliver the
+notifications where you need to (SMS, HTTP, Email, etc).&nbsp;<a href="aws_cloudwatch_monitor_lambda_alerts.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Using AWS Lambda to check if your website is online</h2>
                 <div class="hr-1"><hr /></div>
 <p>

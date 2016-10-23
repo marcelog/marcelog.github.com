@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Send HipChat Notifications with SNS and Lambda</title>
+  <title>Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription"/>
-<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications by using SNS to invoke it."/>
+<meta name="Keywords" content="amazon aws lambda cloudwatch monitor alert error logs"/>
+<meta name="description" content="This article shows how to create alarms to monitor your lambda function and send notifications when they end on error or log specific patterns"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Send HipChat Notifications with SNS and Lambda</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,78 +58,110 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Send HipChat Notifications with SNS and Lambda</h2>
+
+                <h2>Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Communicate with your team using HipChat and Amazon AWS SNS and Lambda functions</h3>
 <p>
-<a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html">Amazon AWS Lambda</a> is a great service and really fun to use. In this article, I'm going to describe
-how we are using it for a project in combination with <a href="http://aws.amazon.com/sns/">Amazon Simple Notification Service</a> to send notifications to <a href="http://hipchat.com/">HipChat</a>.
-</p>
-<h3>Create your Amazon AWS Lambda using NodeJS</h3>
-<p>
-The code for this Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
-Amazon has made recently available for the public.
+<a href="https://aws.amazon.com/cloudwatch/">CloudWatch</a> is an amazing tool that Amazon has to gather logs and metrics, and also create alarms based on them.
+In this article we're going to see some useful tips to <b>create alarms and send notifications when your <a href="https://aws.amazon.com/lambda/details/">Lambda functions</a> end with error</b> or log messages with a specific pattern.
 </p>
 <p>
-In order for this to work, make sure your Lambda has Internet access. You can find the instructions on how to setup such a scenario in an <a href="aws_lambda_internet_vpc.html">earlier post that describes how to
-setup your VPCs and subnets so your Lambdas can have Internet access</a>.
+Note that in all cases, CloudWatch with send the notifications through <a href="http://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html">an SNS Topic</a>, and you can
+create as many <a href="http://docs.aws.amazon.com/sns/latest/dg/SubscribeTopic.html">SNS topic subscriptions</a> as needed to deliver the
+notifications where you need to (SMS, HTTP, Email, etc).
+</p>
+<h3>Use CloudWatch to send notifications when a Lambda function ends with error</h3>
+<p>
+I always setup this kind of notifications, because one would expect that the Lambda execution finishes successfully, so it's always a good thing to
+get notified when things go wrong.
 </p>
 <p>
-  The function uses the <a href="https://www.hipchat.com/docs/api">HipChat API v1</a>, which is deprecated but still available (and will be for a long time, apparently). It sends notifications through
-  a simple HTTP request. The code for this lambda is available in this gist:
+To <b>setup an alarm when your Lambda fails</b> (this could be because of an error in the code itself or because your website is down), go to your CloudWatch Console:
 </p>
-<script src="https://gist.github.com/marcelog/3f463cd98d5ce41528eb58bfd7d7bcb5.js"></script>
+<ul>
+  <li>Click "Alarms" at the left, and then <b>Create Alarm</b>.</li>
+  <li>Click "Lambda Metrics".</li>
+  <li>Look for your Lambda name in the listing, and click on the checkbox for the row where the metric name is "Errors". Click "Next".</li>
+  <li>Enter a name and description for this alarm.</li>
+  <li>Setup the alarm to be triggered whenever "Errors" is above 0, for 1 consecutive period(s).</li>
+  <li>Select "Sum" as the Statistic and 5 minutes (or the amount of minutes that's reasonable for your use case) in the "Period" dropdown.</li>
+  <li>In the "Notification" box, click the <b>Select a notification list</b> dropdown and select your new SNS endpoint.</li>
+  <li>Click "Create Alarm".</li>
+</ul>
 <p>
-Go to your <a href="https://us-west-2.console.aws.amazon.com/lambda/home#/functions">AWS Lambda Console</a> and create a new function by pasting the code.
-Make sure you change the variables and arguments named <b>token</b>, <b>room_id</b>,and  <b>from</b> to match your needs. Save your function and don't forget to setup your
-VPC and private subnet when configuring your function.
+That's it. And it doesn't matter if your <a href="https://aws.amazon.com/api-gateway/">Lambda is being used by an API Gateway Method</a>, or it's being
+invoked by a CloudWatch event, or a Kinesis stream. You will always know if your code reported an error when finished.
 </p>
+<h3>A CloudWatch alarm to monitor that a Lambda is executing periodically</h3>
 <p>
-You can test the function with an event like this:
-</p>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- blog1 -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-6947936742546167"
-     data-ad-slot="6142121850"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<pre name="code" class="php">
-{
-  "text": "hello world",
-  "color": "green"
-}
-</pre>
-<h3>Create your Amazon AWS SNS Topic to route messages to your HipChat room</h3>
-<p>
-Head to your <a href="https://us-west-2.console.aws.amazon.com/sns/v2/home?region=us-west-2#/topics">AWS SNS Console</a>, click on <b>Create New Topic</b>, pick a name and save your new topic. Once created, locate it in
-the topics list, select it, and click on <b>Create Subscription</b>. As the protocol, choose <b>AWS Lambda</b>, and choose your newly created
-function in the <b>Endpoint</b> dropdown. Save it.
-</p>
-<h3>Test your HipChat and Amazon AWS SNS Integration</h3>
-<p>
-To test the function through SNS select your topic and click on <b>Publish To Topic</b>, use the following message that will be sent as the <b>event</b> argument of your lambda handler:
-</p>
-<pre name="code" class="php">
-{
-"default": "{\"text\": \"hello world\", \"color\": \"yellow\"}",
-"lambda": "{\"text\": \"hello world\", \"color\": \"yellow\"}"
-}
-</pre>
-<h3>Integrate your development workflow and your team with HipChat notifications through Amazon AWS SNS</h3>
-<p>
-As you can see, SNS and Lambdas are absolutely fun to use! In no time we can integrate different kind of systems (in this case we chose HipChat, but <a href="https://slack.com/">Slack</a> would work exactly the same
--although with a different API, point taken-). Hint: we are actually using this from <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> in order to
-receive notifications in our HipChat room as deploys go through their lifecycle. But I'm going to explain this in <a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">another article</a> :).
+This one is kind of a "sanity check". If you've setup your lambda to be executed periodically by a <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html">CloudWatch Event with Schedule</a>,
+it might be good to know if (perhaps by accident), the event was disabled or removed from the list of triggers for the Lambda.
 </p>
 <p>
-Cheers!
+If you've setup the alarm for the errors in the above section, <u>it will suffice to setup a notification in the same alarm, but to be triggered when <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html">
+the alarm is in the "INSUFFICIENT DATA" state</a></u>. This means that CloudWatch does not have enough information for the metric in the expected period of time (and when we're talking about a
+Lambda that is expected to be executed periodically, this also means that the Lambda is not being executed at all).
 </p>
+<p>
+If you haven't setup the alarm for the Lambda errors (or you want to create a separate alarm for this use case anyway), go to your CloudWatch Console:
+</p>
+<ul>
+  <li>Look for your Lambda name in the listing of metrics, and click on the checkbox for the row where the metric name is "Invocations". Click "Next".</li>
+  <li>Enter a name and description for this alarm.</li>
+  <li>Setup the alarm to be triggered whenever "Invocations" is less than 3, for 1 consecutive period(s).</li>
+  <li>Select "Sum" as the Statistic and 5 minutes (or the amount of minutes that's reasonable for your use case) in the "Period" dropdown.</li>
+  <li>In the "Notification" box, click the <b>Select a notification list</b> dropdown and select your new SNS endpoint.</li>
+  <li>Click "Create Alarm".</li>
+</ul>
+</p>
+<h3>A custom CloudWatch metric to monitor your Lambda logs</h3>
+<p>
+This one is really useful, because it will allow you to monitor for specific strings in your Lambda logs and send an alert when found. Let's say your Lambda function
+logs messages like:
+</p>
+<script src="https://gist.github.com/marcelog/45da29f4c97b75c5cb1d762fc17a79c0.js"></script>
+<p>
+You can then send alerts when a log like "[ERROR]" is found by
+<a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html">filtering using patterns in your logs in CloudWatch</a> like this:
+</p>
+<ul>
+<li>Go to your CloudWatch console.</li>
+<li>Select the checkbox next to your lambda log group (something like /aws/lambda/YOUR_LAMBDA_NAME).</li>
+<li>Click "Create Metric Filter".</li>
+<li>In filter pattern enter something like "[ERROR]".</li>
+<li>Click "Assign Metric".</li>
+<li>Enter a name for this metric (this name can be later on be used to setup an alarm).</li>
+<li>Click "Create filter".</li>
+<li>Go to the "Alarms" section.</li>
+<li>Click "Create Alarm".</li>
+<li>At the bottom of the list of metrics categories, find the "Custom Metrics" dropdown, and select "Log metrics".</li>
+<li>Find and select your metric name, click "Next".</li>
+<li>Select a reasonable period of time, the default of 5 minutes is usually ok, then select "Sum" as the Statistic.</li>
+<li>Setup the alarm to be triggered when the metric is "> 0" in 1 period.</li>
+</ul>
+<h3>Monitor your JSON logs with CloudWatch</h3>
+<p>
+Now if your lambdas are logging in JSON format, like:
+</p>
+<script src="https://gist.github.com/marcelog/1b4eb0c90c1a0e45e3de6a9fa47b029e.js"></script>
+<p>
+You can use a pattern like </b>{ $.level = "ERROR" }</b> to filter what you need. There are actually quite a lot of complex
+filters you can setup, and you can find <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html">the syntax for CloudWatch log filters here</a>.
+</p>
+<h3>Conclusion</h3>
+<p>
+To sum up: these are the alerts that I like to setup almost always and every time I want to trust that a Lambda is doing it's job as it's supposed to.
+</p>
+<p>You can rest
+assure that you will know when something goes wrong (either lack of enough invocations in a given period of time), specific log message are being produces, or if
+your code ended up in error.
+</p>
+<p>
+Enjoy!
+</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -165,16 +197,16 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
+                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
                   <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
-                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
-                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
