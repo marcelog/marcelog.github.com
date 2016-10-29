@@ -59,6 +59,15 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>How to compile NGINX with external OpenSSL libraries and custom linker options</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+We are all used to the environment variables like <b>CFLAGS</b>, <b>LDFLAGS</b> that can be used when
+<a href="https://en.wikipedia.org/wiki/Configure_script">configuring a source tree</a> before building it.
+Thing is, <a href="http://nginx.org/"><b>Nginx</b></a> does this a bit different, so if you try to build it and link it
+against an OpenSSL installation that is not in the standard paths (like /usr/lib, /usr/local/lib, etc) by setting LDFLAGS
+to your OpenSSL installation, you will fail miserably.&nbsp;<a href="nginx_compile_with_external_openssl.html"><strong>Read More &raquo;</strong></a></p>
+
                 <h2>Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</h2>
                 <div class="hr-1"><hr /></div>
 <p>
