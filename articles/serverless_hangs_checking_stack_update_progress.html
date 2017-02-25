@@ -1,10 +1,10 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</title>
+<title>Serverless hangs when checking the stack update process</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web service lambda static sox executable transcode sound files serverless"/>
-<meta name="description" content="This article shows how to transcode audio files using SOX inside a AWS Lambda Container and SQS without using Elastic Transcoder"/>
+<meta name="Keywords" content="serverless framework hangs Checking Stack update progress never completes freezes"/>
+<meta name="description" content="This article is about a bug in the serverless framework that manifests itself when you are deploying your stack and your computer's clock is not updated and serverless hangs when checking the stack update process"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Serverless hangs when checking the stack update process</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,106 +58,34 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-
-                <h2>Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</h2>
+                <h2>Serverless hangs when checking the stack update process</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
 <p>
-If you find that using <a href="https://aws.amazon.com/elastictranscoder/">AWS Elastic Transcoder</a> is too expensive, and you don't want to use an EC2 instance for transcoding, perhaps this might help you out.
+If you are noticing that the <a href="https://serverless.com/">serverless framework</a> is getting stuck with
+the message "<b>Checking Stack update process</b>" when deploying, this might be helpful for you.
 </p>
 <p>
-In the previous post we created a <a href="static_sox_transcoding_lambda_mp3.html">static SOX binary</a> that can be executed inside an
-<b><a href="https://aws.amazon.com/lambda/details/">AWS Lambda Container</a></b>. In this post we are going to use it to trigger it when
-uploading an audio file to an S3 bucket, transcode it, and upload the result to another bucket. Here's how this will work:
-</p>
-<ul>
-  <li>When a file is uploaded to a specific S3 bucket, S3 will send a message to an <a href="https://aws.amazon.com/sqs/">SQS queue</a>.</li>
-  <li>Every minute a <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html">CloudWatch event</a> will execute our Lambda.</li>
-  <li>In each execution, our Lambda will read a few messages from the SQS Queue and use the static SOX binary file to transcode the audio.</li>
-  <li>After the transcoding is done, the resulting file will be uploaded to a different S3 bucket.</li>
-</ul>
-<p>
-<b>The code is also available in <a href="https://github.com/marcelog/aws-sqs-lambda-audio-transcoding">this GitHub Repo</a></b>.
-</p>
-<h3>Setting up the S3 buckets</h3>
-<p>
-Go to your S3 console, and create two buckets:
-</p>
-<ul>
-  <li><u>The "source" bucket</u>: This is where we are going to upload the files to be transcoded.</li>
-  <li><u>The "target" bucket</u>: After the files are transcoded, our Lambda will upload the result here.</li>
-</ul>
-<p>
-We're going to setup some events for them in a bit.
-</p>
-<h3>Setting up the SQS queue</h3>
-<p>
-Let's create the SQS queue that will connect your source S3 bucket to your transcoder Lambda. The source S3 bucket
-will publish a message for every new object created and your Lambda will react to them.
+Sometimes you will notice that serverless is completely stuck or hang at this point, but other times you will notice that the deploy is
+making progress (by printing a few more dots after the message). In any case, you will get no further than that and your deploy will get stalled forever.
 </p>
 <p>
-In your SQS console, create a new queue, set the <b>Default Visibility Timeout</b> to
-1 second, you can leave the other values with their defaults.
+It seems this happens when your clock is out of sync, and this was already reported with <a href="https://github.com/serverless/serverless/issues/2691">the issue #2691</a>, and the solution
+for me was simply to <a href="http://doc.ntp.org/4.1.1/ntpdate.htm">run <b>ntpdate</b></a> and update my system clock.
 </p>
-<p>
-Select your queue, and in the bottom of the screen go to the <b>Permissions</b> tab,
-and click <b>Edit Policy Document</b>.
-</p>
-<p>
-You will need a policy like the one below to allow your "source" bucket to publish messages. Note that you should change some
-values to match the AWS region of your SQS, the SQS queue name, S3 bucket name (the "source" bucket name),
- and AWS account id.
-</p>
-<script src="https://gist.github.com/marcelog/7b0224b63c90802996ab2dee7d7082e4.js"></script>
-<h3>Setup the event sources in the Source S3 Bucket</h3>
-<p>
-Now that we have the SQS queue in place, we can configure an event that will be triggered for every interesting new object uploaded to this bucket. Go to your S3 Console:
-</p>
-<ul>
-  <li>Select your "source" bucket, click "Properties", and then click on "Events".</li>
-  <li>Select "Send to SQS queue".</li>
-  <li>In the "SQS Queue" dropdown, select the SQS queue that we created in the step above.</li>
-  <li>As the suffix, you can put for example ".gsm" or ".wav", or just leave it blank and you will get an SQS message for every file regardless of its extension.</li>
-  <li>You can also specify a prefix for the files you're interested in, or just leave it blank.</li>
-  <li>In the "Events" dropdown, select "ObjectCreated" / "Put".</li>
-  <li>Write a name for this new event.</li>
-</ul>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- blog1 -->
+<!-- blog2 -->
 <ins class="adsbygoogle"
      style="display:block"
      data-ad-client="ca-pub-6947936742546167"
-     data-ad-slot="6142121850"
+     data-ad-slot="2769853059"
      data-ad-format="auto"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Create a Lambda function</h3>
 <p>
-This is it! Everything's ready now, so we only have to upload the right code to do the job. Go to your Lambda Console and create a new Lambda, choose NodeJS 4.3 as the runtime.
-</p>
-<p>
-You should use a role with a policy like the following, in order to allow the new Lambda to read messages from SQS
-and also read and write to the source and target buckets:
-</p>
-<script src="https://gist.github.com/marcelog/1b0ff260ff1287000c5d0b2413bf257a.js"></script>
-<p>
-Download the code from GitHub at <a href="https://github.com/marcelog/aws-sqs-lambda-audio-transcoding">https://github.com/marcelog/aws-sqs-lambda-audio-transcoding</a> and then run:
-</p>
-<script src="https://gist.github.com/marcelog/3542ad2068d47df2d2322155eb6408dc.js"></script>
-<p>
-In your Lambda Console, select your function and then select the "Code" tab and upload the .ZIP file just created.
-<h3>Setup a CloudWatch event to periodically trigger your Lambda</h3>
-<p>
-In your Lambda console select your function, and then click the "Triggers" tab. Click "Add trigger" and choose "CloudWatch Event", you can then
-select the 1 minute rate event option.
-</p>
-<h3>Testing your new AWS Lambda audio transcoder</h3>
-<p>
-After all of this, the result is that your code will be automatically executed every minute, and will wait
-a few seconds for SQS messages coming in from your source S3 bucket, will transcode your audio files and save them
-into another S3 bucket. Enjoy!
+I hope this works for you too!
 </p>
               </div>
             </div>
@@ -194,8 +122,8 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="serverless_hangs_checking_stack_update_progress.html">Serverless hangs when checking the stack update process</a></li>
                   <li><a href="aws_lambda_start_stop_ec2_instance.html">AWS Lambda to start and stop EC2 instances</a></li>
+                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
                   <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
                   <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
