@@ -69,12 +69,12 @@ registered users, and some of those emails go directly to the Spam folder of hot
 </p>
 <p>
 This was acceptable for the majority of the emails, but some of them were really important (like password resets, registration confirmations, and the like) so
-the site hired a payed smtp relay to be used for sending *only* those emails (the company charged by email volume, so the requirement was to
+the site hired a paid smtp relay to be used for sending *only* those emails (the company charged by email volume, so the requirement was to
 only use this service with the very important emails, and continue using their own smtp server to delivery the rest).
 </p>
 <p>
 I was told to use the <b>subject of the email</b> as the discriminator. Important emails would have some special keywords like "Reminder", or "Confirmation", those would have to be
-delivered using the <b>payed smtp relay</b>, while the others wouldn't.
+delivered using the <b>paid smtp relay</b>, while the others wouldn't.
 </p>
 <p>
 So I started fiddling with <b>the Postfix SMTP server</b>, and here's how I could do it (in an amazingly easy way).
