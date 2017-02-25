@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Using AWS Lambda to check if your website is online</title>
+  <title>AWS Lambda to start and stop EC2 instances</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services lambda sns sqs sms website http https online availability ping"/>
-<meta name="description" content="This article shows how to use an AWS Lambda to check if your website is online, and send an SMS alert via SNS with a CloudWatch alarm if it's not."/>
+<meta name="Keywords" content="amazon aws lambda ec2 start stop instance serverless"/>
+<meta name="description" content="This article shows an example aws lambda code written in nodejs that can start and stop ec2 instances"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using AWS Lambda to check if your website is online</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  AWS Lambda to start and stop EC2 instances</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,49 +58,24 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Using AWS Lambda to check if your website is online</h2>
+
+                <h2>AWS Lambda to start and stop EC2 instances</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
 <p>
-Services like <a href="https://www.pingdom.com/">Pingdom</a> and <a href="https://uptimerobot.com/">UptimeRobot</a> are a great way
-to check your websites for availability, but sometimes there is need for something cheaper or with better ways to customize checks and alerts.
+There are a variety of situations where having a <a href="https://en.wikipedia.org/wiki/Microservices">microservice</a> available that
+can start or stop EC2 instances at will can be handy. In this article we are going to see how we can use an <a href="https://aws.amazon.com/lambda/">AWS Lambda</a>
+to do such a thing on demand without using any extra servers or instances at all.
+</p>
+<h3>Create the AWS Lambda Code to start and stop EC2 instances</h3>
+<p>
+The code is pretty simple and it's available at GitHub in this repo <a href="https://github.com/marcelog/aws-lambda-start-stop-instances">https://github.com/marcelog/aws-lambda-start-stop-instances</a>.
 </p>
 <p>
-In this article we are going to see how to use <a href="https://aws.amazon.com/lambda/details/">an Amazon Lambda</a> to periodically check if your
-website is online, and also use <a href="https://aws.amazon.com/cloudwatch/">CloudWatch</a> and <a href="https://aws.amazon.com/sns/">SNS</a> to <b>send SMS alerts when the
-website if offline</b>.
+To use it, clone the repo and prepare the code like this:
 </p>
-<h3>Create an AWS Lambda to check if your website is up</h3>
-<p>
-I've put the code in this gist:
-</p>
-<script src="https://gist.github.com/marcelog/0cff0304f83ede051bdf982da6e2dc77.js"></script>
-<p>
-Go to your Lambda Console:
-</p>
-<ul>
-  <li>Click <b>Create a Lambda function</b>.</li>
-  <li>Choose NodeJS 4.3 as the Runtime, and hello-world as the blueprint.</li>
-  <li>Click "Next".</li>
-  <li>As the trigger, select a <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html">CloudWatch Event with Schedule</a>.
-    Enter a name and description of the rule, and choose an appropiate rate (5 or 15 minutes is usually enough).</li>
-  <li>Click <b>Enable Trigger</b>.</li>
-  <li>Click "Next".</li>
-  <li>Enter a name and description for your new Lamba.</li>
-  <li>Copy and Paste the code from the gist above in the <b>Lambda function code</b> section. Make sure you change the "target" variable to match your website address.</li>
-  <li>In the section <b>Lambda function handler and role</b> choose <b>Create a custom role</b> to create a special role for your Lamba. This is recommended, because it will have its own permissions and wont get mixed with other roles in your account.</li>
-  <li>In the <b>timeout</b> section set a reasonable value, like 30 seconds.</li>
-  <li>Click "Next", and then click "Create function".</li>
-</ul>
-<p>
-Your Lambda should now be up and running, and CloudWatch should be invoking it every few minutes (according to the rate you've setup). You can change
-how often your Lambda will be invoked in the <b>Triggers</b> tab.
-</p>
-<p>
-Before proceeding, head to the <b>Code</b> tab and click "Test". Watch the <b>Log output</b> section and make sure everything's working as expected
-(that would be that the URL you've setup is ok and the Lambda finishes successfully).
-</p>
+<script src="https://gist.github.com/marcelog/ee69b5482b87660503a91abce517f76c.js"></script>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -111,74 +86,26 @@ Before proceeding, head to the <b>Code</b> tab and click "Test". Watch the <b>Lo
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Create an SNS Topic to send CloudWatch alerts through SMS when your Lambda fails</h3>
 <p>
-We are now going to <a href="http://docs.aws.amazon.com/sns/latest/dg/CreateTopic.html">create an SNS Topic</a> to send all the alerts for our Lambda.
+Now go to your AWS Lambda console and create a NodeJS 4.3 lambda function and then select the "Code" tab and upload the .ZIP file just created.
 </p>
+<h3>AWS Role and Policy Needed to Start and Stop Instances from Lambda</h3>
 <p>
-The idea is to set a CloudWatch alarm (see below) that when triggered, will send a message through this Topic, and to all the subscribers.
+What follows is the needed policy that your Lambda needs in its role so it can start and stop EC2 instances. Note that we are
+also including the <b>ec2:DescribeInstances</b> and <b>ec2:DescribeInstanceStatus</b>, because in our code we output a debug message
+that clearly shows some information about the target instance, but this is not needed per se in order to start it or stop it.
 </p>
+<script src="https://gist.github.com/marcelog/0ffe391e8edd7049e32e0570e66cbc38.js"></script>
+<h3>Testing and Using your Lambda</h3>
 <p>
-Go to your SNS Console:
+The code expects to receive events like this:
 </p>
-<ul>
-  <li>Click <b>Create Topic</b>.</li>
-  <li>Enter a name and description.</li>
-  <li>Once created, click on your new Topic, and then click on <b>Create Subscription</b>.</li>
-  <li>At this point you can actually create any kind of subscription(s) needed for your use case. For this article, we are just going to <b>create
-    an SMS subscription so when your website is offline, Amazon will send you an SMS to your mobile</b> informing so. But Email and HTTP subscriptions can also be
-    added in the same topic, so more complex notifications can be sent and get more people and systems involved!</li>
-  <li>In "Protocol" choose SMS.</li>
-  <li>In "Endpoint" enter your full mobile phone number, including country and area code.</li>
-  <li>Click <b>Create Subscription</b>.</li>
-</ul>
-<h3>Setup CloudWatch Alarms to monitor your Lambda and send alerts on errors</h3>
+<script src="https://gist.github.com/marcelog/d66d9677fb08ec56d1a947bc16de3fc8.js"></script>
 <p>
-In this article you can <a href="aws_cloudwatch_monitor_lambda_alerts.html">read more about how to monitor your Lambda logs and invocations with CloudWatch</a>, but here's a quick summary:
+And you can use <b>stop</b> as the action if you want to stop a specific instance. To test the code, go to your
+new lambda function and click "Test", then paste the example event.
 </p>
-<p>
-CloudWatch is the glue for all what we've done in the earlier steps. It will monitor your lambda executions and act upon any malfunctions. In this case, we are going to setup 2 alarms:
-</p>
-<ul>
-  <li>When your Lambda has any invocations ended in an error.</li>
-  <li>If your Lambda has no invocations at all in the last couple of minutes.</li>
-</ul>
-<p>
-To <b>setup an alarm when your Lambda fails</b> (this could be because of an error in the code itself or because your website is down), go to your CloudWatch Console:
-</p>
-<ul>
-  <li>Click "Alarms" at the left, and then <b>Create Alarm</b>.</li>
-  <li>Click "Lambda Metrics".</li>
-  <li>Look for your Lambda name in the listing, and click on the checkbox for the row where the metric name is "Errors". Click "Next".</li>
-  <li>Enter a name and description for this alarm.</li>
-  <li>Setup the alarm to be triggered whenever "Errors" is above 0, for 1 consecutive period(s).</li>
-  <li>Select "Sum" as the Statistic and 5 minutes (or the amount of minutes that's reasonable for your use case) in the "Period" dropdown.</li>
-  <li>In the "Notification" box, click the <b>Select a notification list</b> dropdown and select your new SNS endpoint.</li>
-  <li>Click "Create Alarm".</li>
-</ul>
-<p>
-<b>NOTE</b>: The following can also be donde by adding a notification to the alarm above when in the <b>INSUFFICIENT</b> state, because we actually expect
-the lambda to be invoked every few minutes periodically.
-</p>
-<p>
-Now create another alarm, but this time we are interested in <b>making sure that your Lambda is invoked every minute</b>:
-</p>
-<ul>
-  <li>Look for your Lambda name in the listing of metrics, and click on the checkbox for the row where the metric name is "Invocations". Click "Next".</li>
-  <li>Enter a name and description for this alarm.</li>
-  <li>Setup the alarm to be triggered whenever "Invocations" is less than 3, for 1 consecutive period(s).</li>
-  <li>Select "Sum" as the Statistic and 5 minutes (or the amount of minutes that's reasonable for your use case) in the "Period" dropdown.</li>
-  <li>In the "Notification" box, click the <b>Select a notification list</b> dropdown and select your new SNS endpoint.</li>
-  <li>Click "Create Alarm".</li>
-</ul>
-<h3>Monitor your website in ServerLess fashion and with an incredible low cost</h3>
-<p>
-That's it! Your website is now being monitored and your now being alerted by SMS in case there are errors. Note that the code can be modified in order to
-check for specific contents in the body of the response and many other complex scenarios, even to check multiple websites in the same code.
-</p>
-<p>
-Enjoy!
-</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -214,18 +141,18 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_lambda_start_stop_ec2_instance.html">AWS Lambda to start and stop EC2 instances</a></li>
                   <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
-                  <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
                   <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
+                  <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
+                  <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
-                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
+                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
-                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
