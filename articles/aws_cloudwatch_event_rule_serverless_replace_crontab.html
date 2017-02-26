@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>HipChat Notifications from AWS CodeDeploy</title>
+  <title>Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription codedeploy lifecycle"/>
-<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications from CodeDeploy during the lifecycle of a deploy by using SNS to invoke it."/>
+<meta name="Keywords" content="amazon aws lambda ec2 start stop instance serverless cloudwatch event replace cron job"/>
+<meta name="description" content="This article shows how to replace a cron job with aws lambda functions and cloudwatch events triggered at specific intervals or days of the week for example to start and stop an ec2 instance"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  HipChat Notifications from AWS CodeDeploy</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,24 +58,29 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>HipChat Notifications from AWS CodeDeploy</h2>
+
+                <h2>Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Using Amazon AWS CodeDeploy and HipChat for your development team and software projects?</h3>
 <p>
-In a previous article I described <a href="aws_sns_hipchat_integration_notifications_with_lambda.html">how you can create a Lambda function and use it through SNS to send HipChat notifications</a>. In this article we're going to take
-this one step further and integrate another awesome Amazon service, <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> so we can receive HipChat notifications
-during the lifecycle of a deploy, and keep the whole team updated about the deploy status.
+It's really common to have <a href="https://en.wikipedia.org/wiki/Cron">different jobs setup in cron</a> for our
+applications. These are always needed in order to perform different tasks, either for cleaning up
+stuff, run reports, gather metrics, send alerts, and other types of periodic tasks.
 </p>
-<h3>Create your Amazon AWS Lambda with NodeJS</h3>
 <p>
-As in the previous article, our Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
-Amazon has made recently available for the public. Also, the code is almost the same, except for a slight difference in the handler function, that is adapted to handle the <a href="https://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-notify-json-format.html">CodeDeploy JSON payload</a>:
+The downside is that you need a server to run cron, and the associated cost of hosting and maintaining it. In this article
+we are going to see how we can <b>replace cron jobs with AWS Lambda functions and CloudWatch</b>.
 </p>
-<script src="https://gist.github.com/marcelog/b96bd8ce87de0d13a5f869c106b8f604.js"></script>
+<h3>CloudWatch events</h3>
 <p>
-I recommend you to read the <a href="aws_sns_hipchat_integration_notifications_with_lambda.html">previous article</a> so you know about some considerations (where to put your token, and how to setup your SNS Topic and your Lambda function properly so it can access the Internet).
+<a href="https://aws.amazon.com/cloudwatch/">CloudWatch</a> is a monitoring service built in the AWS cloud. But it also offers
+a great tool, called <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html">CloudWatch Events</a>. The cool thing
+is that these events can also be scheduled either to be triggered periodically at a given rate, or on specific days or hours of a week, or month, etc.
+</p>
+<p>
+To trigger an event periodically, one can use the <b><a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#RateExpressions">rate syntax</a></b>, for example <b>rate(5 minutes)</b>, and to
+specify exact hours, minutes, days, or months, the <b><a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions">cron-like syntax</a></b> can be used, like: <b>cron(0 6 * * ? *)</b>
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -87,17 +92,41 @@ I recommend you to read the <a href="aws_sns_hipchat_integration_notifications_w
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Setup your Amazon AWS CodeDeploy Application and Software Project</h3>
+<h3>Starting and Stopping EC2 instances with Lambda and CloudWatch Scheduled Events</h3>
 <p>
-Head to your <a href="https://us-west-2.console.aws.amazon.com/codedeploy/home">AWS CodeDeploy Console</a>, select your application, a deployment group, and edit it. Under <b>Triggers</b> click on <b>Create Trigger</b>
-pick a name, and choose all the events. In the SNS topic choose the SNS topic with the subscription that points to your Lambda function and then save it.
+As an example, we can use the <a href="aws_lambda_start_stop_ec2_instance.html">lambda created in another article that can be used to start and
+stop EC2 instances</a>.
 </p>
 <p>
-That's it!
+To set this up, go to your CloudWatch console, and click on "<b>Event</b>" and then on "<b>Create Rule</b>". Then choose "<b>Schedule</b>".
 </p>
-<h3>Easy deploy your software projects with Amazon AWS CodeDeploy and receive updated status with HipChat</h3>
 <p>
-Now you can have notifications in your HipChat room whenever a deploy is created, finished, and in the middle as it goes through all your EC2 instances. Cool, uh?
+At this point you can choose a fixed rate for execution (let's say, every 5 minutes), or enter a <a href="https://en.wikipedia.org/wiki/Cron#CRON_expression">cron-like expression</a>
+where you can specify for example specific hours (e.g: wednesdays, at 10am UTC).
+</p>
+<p>
+You can find the syntax for both of these options at <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html">official Amazon documentation for Schedule Expressions for Rules</a>
+</p>
+<p>
+Then in the <b>Targets</b> section select "<b>Lambda Function</b>" and then in the drop down your lambda function. In this particular example, you can
+choose "Constant (JSON text)" in the "Configure Input" section, and enter something like
+</p>
+<script src="https://gist.github.com/marcelog/d66d9677fb08ec56d1a947bc16de3fc8.js"></script>
+<p>
+The JSON payload will be recogniced by the Lambda function and will start or stop the given instance.
+</p>
+<p>
+Note that CloudWatch will need permissions to invoke your function, so your Lambda will need a <a href="http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html">Trust Policy</a>
+like this one in its role, that allows execution to the <b>events.amazonaws.com</b>, like explained in <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CWE_Troubleshooting.html#LAMfunctionNotInvoked">Troubleshooting CloudWatch Events</a>:
+</p>
+<script src="https://gist.github.com/marcelog/2fdb2e982907e12b202a4c8baae97e72.js"></script>
+<p>
+You can also <a href="aws_cloudwatch_monitor_lambda_alerts.html">setup CloudWatch alarms for your Lambda</a> so you can monitor its
+activity.
+</p>
+<p>
+That's it! Now your Lambda function can be executed by a scheduled CloudWatch event, and you can start thinking about
+replacing those cron jobs :)
 </p>
               </div>
             </div>
@@ -134,19 +163,18 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="aws_cloudwatch_event_rule_serverless_replace_crontab.html">Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</a></li>
                   <li><a href="serverless_hangs_checking_stack_update_progress.html">Serverless hangs when checking the stack update process</a></li>
-                  <li><a href="aws_lambda_start_stop_ec2_instance.html">AWS Lambda to start and stop EC2 instances</a></li>
                   <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
+                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
                   <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
-                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
-                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
-                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
+                  <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>

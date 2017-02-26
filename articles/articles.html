@@ -59,6 +59,12 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</h2>
+                <div class="hr-1"><hr /></div>
+<p>It's really common to have <a href="https://en.wikipedia.org/wiki/Cron">different jobs setup in cron</a> for our
+applications. These are always needed in order to perform different tasks, either for cleaning up
+stuff, run reports, gather metrics, send alerts, and other types of periodic tasks. The downside is that you need a server to run cron, and the associated cost of hosting and maintaining it. In this article
+we are going to see how we can <b>replace cron jobs with AWS Lambda functions and CloudWatch</b>.&nbsp;<a href="aws_cloudwatch_event_rule_serverless_replace_crontab.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Serverless hangs when checking the stack update process</h2>
                 <div class="hr-1"><hr /></div>
 <p>If you are noticing that the <a href="https://serverless.com/">serverless framework</a> is getting stuck with
