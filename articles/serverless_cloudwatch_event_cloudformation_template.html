@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Send HipChat Notifications with SNS and Lambda</title>
+  <title>Configuring CloudWatch Scheduled Events in the Serverless Framework</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="aws amazon web services sns hipchat notifications lambda topic subscription"/>
-<meta name="description" content="This article shows how to create a simple Lambda function in AWS to send HipChat notifications by using SNS to invoke it."/>
+<meta name="Keywords" content="amazon aws lambda ec2 start stop instance serverless cloudwatch event replace cron job"/>
+<meta name="description" content="This article shows how to replace a cron job with aws lambda functions and cloudwatch events triggered at specific intervals or days of the week for example to start and stop an ec2 instance"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Send HipChat Notifications with SNS and Lambda</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Configuring CloudWatch Scheduled Events in the Serverless Framework</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,36 +58,35 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Send HipChat Notifications with SNS and Lambda</h2>
+
+                <h2>Configuring CloudWatch Scheduled Events in the Serverless Framework</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Communicate with your team using HipChat and Amazon AWS SNS and Lambda functions</h3>
 <p>
-<a href="http://docs.aws.amazon.com/lambda/latest/dg/welcome.html">Amazon AWS Lambda</a> is a great service and really fun to use. In this article, I'm going to describe
-how we are using it for a project in combination with <a href="http://aws.amazon.com/sns/">Amazon Simple Notification Service</a> to send notifications to <a href="http://hipchat.com/">HipChat</a>.
-</p>
-<h3>Create your Amazon AWS Lambda using NodeJS</h3>
-<p>
-The code for this Lambda function is written in nodejs, it uses the <a href="https://aws.amazon.com/about-aws/whats-new/2016/04/aws-lambda-supports-node-js-4-3/">NodeJS 4.3 Runtime</a> that
-Amazon has made recently available for the public.
+In the last article we saw <a href="aws_cloudwatch_event_rule_serverless_replace_crontab.html">how to execute a AWS Lambda with a scheduled CloudWatch event</a>.
+Today, we are going to see how to set this up in the <b>serverless.yml</b> file of our services when using <b><a href="https://serverless.com/">the serverless framework</a></b>.
 </p>
 <p>
-In order for this to work, make sure your Lambda has Internet access. You can find the instructions on how to setup such a scenario in an <a href="aws_lambda_internet_vpc.html">earlier post that describes how to
-setup your VPCs and subnets so your Lambdas can have Internet access</a>.
+In the following snippet, you will find our lambda declared in the <b>functions section</b>. Then, the <b>resources section</b> contains
+the lambda role with its associated policy, and the CloudWatch event with its scheduled defined. Let's see each one of them in detail.
+</p>
+<script src="https://gist.github.com/marcelog/a4c92062ac8e6eddd8aec02bde5f032c.js"></script>
+<p>
+The <b>functions section</b> defines our lambda, and <a href="https://serverless.com/framework/docs/providers/aws/guide/iam/">specifies a custom role for our serverless function</a>.
 </p>
 <p>
-  The function uses the <a href="https://www.hipchat.com/docs/api">HipChat API v1</a>, which is deprecated but still available (and will be for a long time, apparently). It sends notifications through
-  a simple HTTP request. The code for this lambda is available in this gist:
+The role can be seen in the <b><a href="https://serverless.com/framework/docs/providers/aws/guide/resources/">resources section for our service</a></b>.
+It has a custom policy that allows this lambda to create cloudwatch log groups and streams so we can see its output, and the role allows
+for <b>the services Lambda (lambda.amazonaws.com) and CloudWatch (events.amazonaws.com) to assume this role and execute the function</b>.
 </p>
-<script src="https://gist.github.com/marcelog/3f463cd98d5ce41528eb58bfd7d7bcb5.js"></script>
+<h3>Define a custom Scheduled CloudWatch Event as a Resource in Serverless</h3>
 <p>
-Go to your <a href="https://us-west-2.console.aws.amazon.com/lambda/home#/functions">AWS Lambda Console</a> and create a new function by pasting the code.
-Make sure you change the variables and arguments named <b>token</b>, <b>room_id</b>,and  <b>from</b> to match your needs. Save your function and don't forget to setup your
-VPC and private subnet when configuring your function.
+Then, in the <b>resources section</b> you will find our <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html">CloudWatch Scheduled Event</a>. The syntax
+is defined in the <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-events-rule.html">CloudFormation documentation for Resource Events Rules</a>.
 </p>
 <p>
-You can test the function with an event like this:
+The interesting parts of the event definition are <b>ScheduleExpression</b>, <b>RoleArn</b>, and <b>Targets</b>.
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -99,36 +98,21 @@ You can test the function with an event like this:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<pre name="code" class="php">
-{
-  "text": "hello world",
-  "color": "green"
-}
-</pre>
-<h3>Create your Amazon AWS SNS Topic to route messages to your HipChat room</h3>
 <p>
-Head to your <a href="https://us-west-2.console.aws.amazon.com/sns/v2/home?region=us-west-2#/topics">AWS SNS Console</a>, click on <b>Create New Topic</b>, pick a name and save your new topic. Once created, locate it in
-the topics list, select it, and click on <b>Create Subscription</b>. As the protocol, choose <b>AWS Lambda</b>, and choose your newly created
-function in the <b>Endpoint</b> dropdown. Save it.
-</p>
-<h3>Test your HipChat and Amazon AWS SNS Integration</h3>
-<p>
-To test the function through SNS select your topic and click on <b>Publish To Topic</b>, use the following message that will be sent as the <b>event</b> argument of your lambda handler:
-</p>
-<pre name="code" class="php">
-{
-"default": "{\"text\": \"hello world\", \"color\": \"yellow\"}",
-"lambda": "{\"text\": \"hello world\", \"color\": \"yellow\"}"
-}
-</pre>
-<h3>Integrate your development workflow and your team with HipChat notifications through Amazon AWS SNS</h3>
-<p>
-As you can see, SNS and Lambdas are absolutely fun to use! In no time we can integrate different kind of systems (in this case we chose HipChat, but <a href="https://slack.com/">Slack</a> would work exactly the same
--although with a different API, point taken-). Hint: we are actually using this from <a href="https://aws.amazon.com/documentation/codedeploy/">AWS CodeDeploy</a> in order to
-receive notifications in our HipChat room as deploys go through their lifecycle. But I'm going to explain this in <a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">another article</a> :).
+<b>ScheduleExpression</b> is a string that defines when your custom event will be triggered. <b>RoleArn</b> is the role
+that AWS will use when invoking any targets. The role configured is the Lambda role described earlier, that allows CloudWatch to
+invoke this function via a <a href="http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_manage_modify.html">trust policy</a>.
 </p>
 <p>
-Cheers!
+<b>Targets</b> include the ARN of your function (<a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html">discovered via the use of Fn::GetAtt::</a>),
+and the <b>Input</b> field is a JSON payload that will be sent to your Lambda when the event is triggered.
+</p>
+<p>
+And that's how you can define custom CloudWatch events in the serverless framework by using the resources section
+and the <a href="https://aws.amazon.com/about-aws/whats-new/2016/09/aws-cloudformation-introduces-yaml-template-support-and-cross-stack-references/">YAML syntax of CloudFormation templates</a>.
+</p>
+<p>
+Enjoy!
 </p>
               </div>
             </div>
@@ -165,20 +149,19 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="serverless_cloudwatch_event_cloudformation_template.html">Configuring CloudWatch Scheduled Events in the Serverless Framework</a></li>
                   <li><a href="aws_cloudwatch_event_rule_serverless_replace_crontab.html">Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</a></li>
                   <li><a href="serverless_hangs_checking_stack_update_progress.html">Serverless hangs when checking the stack update process</a></li>
-                  <li><a href="aws_lambda_start_stop_ec2_instance.html">AWS Lambda to start and stop EC2 instances</a></li>
                   <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
+                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
                   <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
-                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
-                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
                   <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
