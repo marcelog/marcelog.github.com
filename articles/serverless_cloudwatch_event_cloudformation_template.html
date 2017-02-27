@@ -112,6 +112,14 @@ And that's how you can define custom CloudWatch events in the serverless framewo
 and the <a href="https://aws.amazon.com/about-aws/whats-new/2016/09/aws-cloudformation-introduces-yaml-template-support-and-cross-stack-references/">YAML syntax of CloudFormation templates</a>.
 </p>
 <p>
+<b>NOTE</b>: Since I wrote this article, I found out the <i>right</i> way to do this for serverless:
+</p>
+<script src="https://gist.github.com/marcelog/8b235f44fc4844b9723aa94167172e1c.js"></script>
+<p>
+By just adding the right <b>events section</b> to your lambda configuration this can be achieved in a much more simple way. It's interesting to have
+this to know how it's written backstage, though :)
+</p>
+<p>
 Enjoy!
 </p>
               </div>
