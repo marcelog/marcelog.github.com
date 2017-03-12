@@ -59,6 +59,13 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Convert MAC EOL to Unix</h2>
+                <div class="hr-1"><hr /></div>
+<p>I have been bitten by this one several times. In MAC, newlines are saved with the
+<a href="https://en.wikipedia.org/wiki/Carriage_return">Carriage Return character</a> only, which
+is the ASCII 13 (or 0xd in hexadecimal), while UNIX uses the character Line Feed only
+(ASCII 10, or 0xa in hexadecimal). In MS-DOS compatible systems, the new line is saved with both
+characters (0xd then 0xa).&nbsp;<a href="mac_newline_to_unix_eol.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Configuring CloudWatch Scheduled Events in the Serverless Framework</h2>
                 <div class="hr-1"><hr /></div>
 <p>In the last article we saw <a href="aws_cloudwatch_event_rule_serverless_replace_crontab.html">how to execute a AWS Lambda with a scheduled CloudWatch event</a>.
