@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Different SMTP relays in postfix based on regular expressions</title>
+<title>Solution for "ERROR: 32-bit Linux Android emulator binaries are DEPRECATED"</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="Configuring postfix to forward email to different relays based on regular expressions for body content and headers"/>
-<meta name="description" content="This article will show how to setup postfix so it will forward incoming email to different smtp gateway using regular expressions in the body content and headers to route email to different relays"/>
+<meta name="Keywords" content="Solution ERROR: 32-bit Linux Android emulator binaries are DEPRECATED Set ANDROID_EMULATOR_FORCE_32BIT to 'true' in your environment"/>
+<meta name="description" content="How to solve the error in android emulator that states that your 64bit linux is a 32 bit linux"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -31,19 +31,19 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Different SMTP relays in postfix based on regular expressions</div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Solution for "ERROR: 32-bit Linux Android emulator binaries are DEPRECATED"</div>
   </div>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
@@ -58,38 +58,26 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Different SMTP relays in postfix based on regular expressions</h2>
+                <h2>Solution for "ERROR: 32-bit Linux Android emulator binaries are DEPRECATED"</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-  <H3><u>Use Case: Choosing SMTP routes based on the email subject</u></H3>
-  <p>
-So I had this particular situation where a site sends lots of emails to its
-registered users, and some of those emails go directly to the Spam folder of hotmail, yahoo, or gmail, for various reasons.
-</p>
 <p>
-This was acceptable for the majority of the emails, but some of them were really important (like password resets, registration confirmations, and the like) so
-the site hired a paid smtp relay to be used for sending *only* those emails (the company charged by email volume, so the requirement was to
-only use this service with the very important emails, and continue using their own smtp server to delivery the rest).
-</p>
+It may happen that when trying to run the Android Emulator from command line
+(perhaps by using something like <a href="/articles/android_emulator_daemontools.html">daemontools to start the emulator</a>)
+you stumble upon the following error, even when you're indeed running a 64bit system:
+<pre>
+  ERROR: 32-bit Linux Android emulator binaries are DEPRECATED, to use them
+       you will have to do at least one of the following:
+       - Use the '-force-32bit' option when invoking 'emulator'.
+       - Set ANDROID_EMULATOR_FORCE_32BIT to 'true' in your environment.
+       Either one will allow you to use the 32-bit binaries, but please be
+       aware that these will disappear in a future Android SDK release.
+       Consider moving to a 64-bit Linux system before that happens.
+</pre>
 <p>
-I was told to use the <b>subject of the email</b> as the discriminator. Important emails would have some special keywords like "Reminder", or "Confirmation", those would have to be
-delivered using the <b>paid smtp relay</b>, while the others wouldn't.
-</p>
-<p>
-So I started fiddling with <b>the Postfix SMTP server</b>, and here's how I could do it (in an amazingly easy way).
-</p>
-<H3><u>Setting up Postfix to check Email headers</u></H3>
-<p>
-In your <a href="http://www.postfix.org/postconf.5.html">main.cf</a> file (usually /etc/postfix/main.cf or /usr/local/etc/postfix/main.cf), specify your header_checks:
-</p>
-<script src="https://gist.github.com/marcelog/03b8319a7789822f340831e28ed2ba0c.js"></script>
-<p>
-And in your <a href="http://www.postfix.org/header_checks.5.html">header_checks</a> file (usually /etc/postfix/header_checks or /usr/local/etc/postfix/header_checks), specify
-your regular expressions and rules. This file accepts lots of possible configurations, so I encourage you to read the <a href="http://www.postfix.org/header_checks.5.html">manual page</a>.
-</p>
-<p>
-In my particular case, I've specified the following rules:
+To fix this, you have to run the emulator with the <b>SHELL environment variable</b>, which is
+traditionally set by the <a href="https://linux.die.net/man/1/login">login command</a>.
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -101,21 +89,21 @@ In my particular case, I've specified the following rules:
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<script src="https://gist.github.com/marcelog/e4846851608abf5c7be893a089c27b94.js"></script>
 <p>
-Those lines will make postfix apply a transport filter based on the regular expression (that is applied to the whole mail content) and will let you
-choose a different transport (relay) based on those rules exactly.
-</p>
-<p>This will match with lines starting with "subject:" and having the words Reminder or Confirmation
-in it. Of course it is possible to match not only the header, but a text line inside the very same body of the mail, so use these kind of rules with care when you
-cant trust the origin of the email.
+The Android Emulator uses this variable in order to determine if your system is
+a 32bit or 64bit and then display the message accordingly.
 </p>
 <p>
-Then invoke postmap to regenerate the transports db, and reload postfix:
+The solution then is to run the emulator by first setting SHELL=/bin/bash, this
+should fix the issue, and you will be able to run your android emulator instances as
+system services without first having to login to the system.
 </p>
-<script src="https://gist.github.com/marcelog/798920f2a5c03661f7f7c5ed08944a05.js"></script>
 <p>
-That's it. Hey don't you just love postfix?
+Another option is to run the emulator directly by using the
+<a href="https://developer.android.com/ndk/guides/x86-64.html">emulator64-x86</a> command.
+</p>
+<p>
+Enjoy!
 </p>
               </div>
             </div>
@@ -149,22 +137,31 @@ If you liked this or other articles (and feel generous), you can make a donation
                     src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                     </script>
                 </div>
-              	<h2>Related Articles</h2>
+                <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="android_emulator_32bit_error_in_64bit_system.html">Solution for "ERROR: 32-bit Linux Android emulator binaries are DEPRECATED"</a></li>
                   <li><a href="android_emulator_daemontools.html">Running the Android Emulator as System Services with Daemontools</a></li>
                   <li><a href="mac_newline_to_unix_eol.html">Convert MAC EOL to Unix</a></li>
                   <li><a href="nginx_compile_with_external_openssl.html">How to compile NGINX with external OpenSSL libraries and custom linker options</a></li>
+                  <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
+                  <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
+                  <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
+                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
+                  <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
+                  <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
+                  <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
+                  <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="webrtc_with_asterisk_without_webrtc2sip.html">WebRTC with Asterisk and Amazon AWS</a></li>
                   <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
-                  <li><a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a></li>
                   <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
                   <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
                   <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
-                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
                 </ul>
               </div>
               <span class="bottom"><span class="bl"></span><span class="br"></span></span>
@@ -175,7 +172,7 @@ If you liked this or other articles (and feel generous), you can make a donation
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>
