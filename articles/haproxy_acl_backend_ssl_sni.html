@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Dealing with a failed configure when building a php extension</title>
+<title>Setup multiple backends in HaProxy with ACL, one SSL certificate, and SNI</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="gentoo phpize configure make failed problem error libtool autoconf"/>
-<meta name="description" content="This is a short note about how to deal with a failed configure when trying to build a php pecl extension that wont compile due to a libtool or autoconf error"/>
+<meta name="Keywords" content="This article explains how to setup haproxy with tcp mode and an acl rule based on ip address to restrict access to specific ip addresses"/>
+<meta name="description" content="This article explains how to setup haproxy with tcp mode and an acl rule based on ip address to restrict access to specific ip addresses"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -31,19 +31,19 @@
     </ul>
   </div>
   <div class="header">
-  	<div class="line">
+    <div class="line">
       <h1>Articles</h1>
       <div class="social-network">
        <a href="mailto:marcelog@gmail.com" class="icon-email" title="Email">Email</a>
        <g:plusone></g:plusone>
       </div>
-   	</div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Dealing with a failed configure when building a php extension</div>
+     </div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Setup multiple backends in HaProxy with ACL, one SSL certificate, and SNI</div>
   </div>
   <div class="main-outer">
-  	<div class="main-inner">
-    	<div class="main">
-      	<div class="line">
+    <div class="main-inner">
+      <div class="main">
+        <div class="line">
           <div id="content">
             <div class="mod simple article-detail-style">
               <span class="top"><span class="tl"></span><span class="tr"></span></span>
@@ -58,32 +58,47 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Dealing with a failed configure when building a php extension</h2>
+                <h2>Setup multiple backends in HaProxy with ACL, one SSL certificate, and SNI</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
 <p>
-If you happen to get stuck when compiling a php pecl extension with a libtool error like this:
-<pre name="code" class="php">
-libtool: line 467: CDPATH: command not found
-libtool: line 1145: func_opt_split: command not found
-libtool: Version mismatch error.  This is libtool 2.2.6b, but the
-libtool: definition of this LT_INIT comes from an older release.
-libtool: You should recreate aclocal.m4 with macros from libtool 2.2.6b
-libtool: and run autoconf again.
-</pre>
-<p>
-Try issuing the following commands:
+In a previous article, we saw how to <a href="restrict_block_acl_ip_address_haproxy_tcp.html">use ACL by IP Address in HaProxy TCP Mode</a>.
 </p>
-<pre name="code" class="php">
-aclocal
-libtoolize --force
-autoheader
-autoconf
-</pre>
 <p>
-Finally, try again to run <b>configure</b> and <b>make</b>.
+Today we are going to see how serve <b>different subdomains with haproxy by using just 1
+SSL certificate</b> (usually a wildcard certificate) and choose the right backend by using SNI.
 </p>
+<h3>What is SNI</h3>
+<p>
+<a href="https://en.wikipedia.org/wiki/Server_Name_Indication">SNI</a> is an extension of
+<a href="https://en.wikipedia.org/wiki/Transport_Layer_Security">TLS</a> that allows the client to
+specify the hostname where it wants to connect to before starting the TLS handshake.
+</p>
+<p>
+This allows one to <b>serve different SSL domains with the same IP address</b>.
+</p>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- blog1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6947936742546167"
+     data-ad-slot="6142121850"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<h3>SNI in HaProxy</h3>
+<p>
+<a href="https://www.haproxy.org/">HaProxy</a> supports SNI by using the
+<a href="https://cbonte.github.io/haproxy-dconv/1.7/configuration.html#7.3.4-ssl_fc_sni"><b>ssl_fc_sni directive</b>
+that can be used <a href="https://cbonte.github.io/haproxy-dconv/1.7/configuration.html#7">with ACLs</a> in the following way:
+</p>
+<script src="https://gist.github.com/marcelog/881ce93fc28c6f34bb15a283af75f22c.js"></script>
+<p>
+In this example, we're choosing different backends based on the domain captured with the directive ssl_fc_sni in different ACLs.
+</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -116,14 +131,28 @@ If you liked this or other articles (and feel generous), you can make a donation
                     src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                     </script>
                 </div>
-              	<h2>Related Articles</h2>
+                <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="haproxy_acl_backend_ssl_sni.html">Setup multiple backends in HaProxy with ACL, one SSL certificate, and SNI</a></li>
+                  <li><a href="restrict_block_acl_ip_address_haproxy_tcp.html">Using ACL by IP Address in HaProxy TCP Mode</a></li>
                   <li><a href="android_emulator_linux_virtual_webcam_video_device.html">Virtual webcam as phone camera in Android Emulator in Linux</a></li>
                   <li><a href="android_emulator_32bit_error_in_64bit_system.html">Solution for "ERROR: 32-bit Linux Android emulator binaries are DEPRECATED"</a></li>
                   <li><a href="android_emulator_daemontools.html">Running the Android Emulator as System Services with Daemontools</a></li>
-                  <li><a href="mac_osx_python_pip_install_operation_not_permitted.html">PIP Install on Mac: Operation Not Permitted</a></li>
+                  <li><a href="mac_newline_to_unix_eol.html">Convert MAC EOL to Unix</a></li>
+                  <li><a href="nginx_compile_with_external_openssl.html">How to compile NGINX with external OpenSSL libraries and custom linker options</a></li>
+                  <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
+                  <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
+                  <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
+                  <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
+                  <li><a href="webrtc_with_asterisk_without_webrtc2sip.html">WebRTC with Asterisk and Amazon AWS</a></li>
+                  <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
+                  <li><a href="starting_webrtc2sip_as_service.html">Starting WebRTC2SIP as a service without screen or console</a></li>
+                  <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
+                  <li><a href="install_daemon_tools_centos_amazon_linux.html">Installing DaemonTools in Amazon Linux (or CentOS like OS)</a></li>
+                  <li><a href="cross_freebsd_compiler_in_linux.html">Generating A Cross Compiler For Freebsd In Linux</a></li>
+                  <li><a href="configure_nginx_php_5.3_5.2_fastcgi.html">How to setup nginx to work with FastCGI and PHP 5.2 and PHP 5.3</a></li>
+                  <li><a href="configure_postfix_forward_all_email_smtp_gateway.html">Configuring postfix to forward all email to a smtp gateway</a></li>
+                  <li><a href="configure_postfix_forward_email_regex_subject_transport_relay.html">Different relays in postfix based on regular expressions</a></li>
                 </ul>
               </div>
               <span class="bottom"><span class="bl"></span><span class="br"></span></span>
@@ -134,7 +163,7 @@ If you liked this or other articles (and feel generous), you can make a donation
     </div>
   </div>
   <div id="footer">
-  	<!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
+    <!-- <p>&copy; 2010 Marcelo G. All Rights Reserved. Website design by <a href="http://Digitallabs.tv" target="_blank">Digitallabs.tv</a></p> -->
     <address>Email: <a href="mailto:marcelog@gmail.com">marcelog@gmail.com</a></address>
   </div>
 </div>
