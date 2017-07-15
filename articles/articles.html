@@ -59,6 +59,18 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Validate client SSL certificates in your application with HaProxy</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+It's really useful to be able to validate the clients that connect to your app by issuing
+SSL certificates for them.
+  This comes as a possible 2-step procedure. On one hand, only
+clients that present a valid (i.e: not expired, signed by a trusted CA, etc) will be able
+to connect to/use your services.
+But on the other hand you can use additional checks
+in your application to authorize that a <b>specific certificate can be used for different actions, but
+not others</b>.
+&nbsp;<a href="haproxy_validate_ssl_client_certificates_in_application.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>Setup multiple backends in HaProxy with ACL, one SSL certificate, and SNI</h2>
                 <div class="hr-1"><hr /></div>
 <p>
