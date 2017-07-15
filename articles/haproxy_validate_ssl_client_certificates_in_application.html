@@ -92,6 +92,16 @@ allowed to access the API without any specific SSL certificates at all.
 When you get a certificate from VeriSign, GoDaddy, Comodo, or any other provider, you will
 get a certificate <i>signed by them</i>.
 </p>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- blog1 -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-6947936742546167"
+     data-ad-slot="6142121850"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
 <p>That means that others will trust your
 certificate (for example when presented by your web server) because these specific
 entities signed your certificate, they are the
@@ -143,16 +153,6 @@ API keys (or permissions) to.
 The next step is to setup HaProxy to so <a href="https://f5.com/glossary/ssl-offloading">SSL offloading</a>, that means
 that HaProxy "will talk" SSL with your clients, and forward the requests in plain HTTP to your API/Web servers.
 <script src="https://gist.github.com/marcelog/f5083d135fd1ae3532d953fc7a5c6939.js"></script>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- blog1 -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-6947936742546167"
-     data-ad-slot="6142121850"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
 <p>
 Note how we use the <b>crt</b> directive to tell HaProxy which certificate it should present to
 our clients.
