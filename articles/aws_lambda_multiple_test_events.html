@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-  <title>Continuous Delivery and Continous Integration with Serverless, AWS CodeBuild, AWS CodePipeline and API Gateway</title>
+  <title>AWS Lambda Console now allows up to 10 test events!</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="amazon aws lambda serverless codebuild codecommit api gateway continuous delivery continuous integration ci cd"/>
-<meta name="description" content="Implement automatic continuous delivery and continuous integration with the serverless framework by using aws codecommit, aws codebuild, aws codepipeline, and api gateway"/>
+<meta name="Keywords" content="aws amazon web services lambda test event configure multiple"/>
+<meta name="description" content="This article discusses a new feature in the AWS Lambda Console that allows to create and edit up to 10 different test events"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Continuous Delivery and Continous Integration with Serverless, AWS CodeBuild, AWS CodePipeline and API Gateway</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Using AWS Lambda to check if your website is online</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,32 +58,22 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-
-                <h2>Continuous Delivery and Continous Integration with Serverless, AWS CodeBuild, AWS CodePipeline and API Gateway</h2>
+                <h2>AWS Lambda Console now allows up to 10 test events!</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
 <p>
-One of the things I like the most when coding, is to have the chance to just <b>fire and forget</b> (i.e:
-write tests/code, commit, push, and have automatic build and deployment to a staging environment
-for QA, grab some more coffee and then loop).
+Amazon recently <a href="https://aws.amazon.com/about-aws/whats-new/2017/10/announcing-enhancements-to-the-aws-lambda-console/">announced</a>
+ that we will be able to setup up to 10 test events for each Lambda function through the Lambda console.
 </p>
 <p>
-Up to now, I mostly used the <a href="https://jenkins.io/index.html">Jenkins Continuous Integration Server</a>, but
-a downside is that you have to setup, configure, and keep updated an operating system, its libraries and dependencies, and
-of course the CI server yourself. And boy, believe me I've been doing this for quite a few years now, and I'd really like to
-stop bothering about these details.
+This is great, because until now one could only setup 1 test event and then change it over and over again
+to accomodate it for new tests, but now we can create and edit enough test events.
 </p>
 <p>
-Also, I've been working a lot with <a href="https://aws.amazon.com/api-gateway/">Amazon API Gateway</a> and
-<a href="https://aws.amazon.com/lambda/">Amazon Lambda</a> lately, technologies that allows you to go
-completely <a href="https://martinfowler.com/articles/serverless.html">serverless</a>, so why not try
-to do the same for the development, build, and deploy phases?
-</p>
-<p>
-In this article we're going to see how to use the <a href="https://serverless.com/">serverless framework</a> and
-<a href="https://aws.amazon.com/codepipeline/">AWS CodePipeline</a> to implement continuous integration and
-delivery without using any servers at all and completely in the cloud.
+To create and edit your test events, just go to the Lambda console, and at the left
+of the "Test" button, click the dropdown and choose "Configure test events".
+<a href="aws_lambda_console_test_events.png"><img width="580" src="aws_lambda_console_test_events.png"/></a>
 </p>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
@@ -95,103 +85,20 @@ delivery without using any servers at all and completely in the cloud.
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Upload your code to the cloud</h3>
 <p>
-For this to work, you have to put your code either in <a href="https://github.com/">GitHub</a>,
-<a href="https://aws.amazon.com/s3/">Amazon S3</a>, or <a href="https://aws.amazon.com/codecommit/">Amazon CodeCommit</a>
-(the Amazon Git based Source Control Service).
+Afterwards you will be able to edit existing test events or create new ones, up to
+10 different ones in the following screen:
+</p>
+<a href="aws_setup_multiple_test_events.png"><img width="580" src="aws_setup_multiple_test_events.png"/></a>
+<p>
+  Your events can be manually customized and you can also still choose from a lot of
+  different templates that are really helpful to test your Lambda when it interacts with
+  other services like SNS, SQS, Kinesis, and the like.
 </p>
 <p>
-Most of the time I use GitHub, but <a href="https://aws.amazon.com/codecommit/">Amazon CodeCommit</a>
-is great if you need private repositories and don't have a paid GitHub account for them. Plus, CodeCommit is a bit
-cheaper than GitHub for small teams.
+Way to go AWS, keep'em coming :)
 </p>
-<h3>Prepare your code for different "stages"</h3>
-<p>
-Ideally, you will have different "stages" so you can try new code before putting
-it in production. So create different branches, one per stage. For example, a branch
-for "staging", and another one for "production". The idea is to have continuous integration
-and continuous delivery for each one of those stages as soon as you commit new code to
-the corresponding branch.
-</p>
-<h3>Setup CodeBuild so you can build your job</h3>
-<p>
-Once you have your code setup in GitHub, AWS S3, or AWS CodeCommit, create a
-project in <a href="https://aws.amazon.com/codebuild/">AWS CodeBuild</a> (the
-Amazon Continuous Integration and Delivery service).
-</p>
-<p>
-Add a <a href="http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html">buildspec.yml file</a>
-to the root directory of your project. This is where you will specify how to run your tests, build your
-code, generate output artifacts, and deploy your code.
-</p>
-<p>
-Here's a very simple file to build a NodeJS project by using npm:
-</p>
-<script src="https://gist.github.com/marcelog/f044da2935bb7d32d0fe6442647a75cd.js"></script>
-<p>
-The interesting (and customized, project-dependant) parts are the commands in the sections
-<b>build</b> and <b>post_build</b>.
-</p>
-<p>
-In the <b>build</b> section you should run any commands that will run your tests, generate
-coverage information, output artifacts, generate documentation and things like that. In this
-example, there's a "build" command setup in the <b>package.json</b> file of the project that
-does all of this.
-</p>
-<p>
-The <b>post-build</b> section packages the code (once it has been built successfully), then
-installs the <a href="https://serverless.com/">ServerLess Framework</a>, and then
-<a href="https://serverless.com/framework/docs/providers/aws/guide/deploying/">deploys the code to the corresponding stage
-  with the <b>deploy command</b></a>.
-</p>
-<p>
-You got that right. We are going to run the serverless cli right from the build to
-deploy our code, and for that to work, you have to configure your AWS credentials in
-the build job in the "Environment Variables" section inside "Advanced Settings", like this:
-</p>
-<img width="580" src="codebuild_environment_variables.png"/>
-<p>
-If you look closely at the deploy command, you will notice that the stage name is taken from the <b>CODEBUILD_INITIATOR</b> environment variable that will be
-populated by <a href="https://aws.amazon.com/codepipeline/">Amazon CodePipeline</a> every time
-it triggers the build when detecting a new commit (more on this in the next section).
-</p>
-<p>
-There are <a href="http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref.html#build-env-ref-env-vars">
-many environment variables that CodeBuild will populate</a> and you can use them in your build
-stage.
-</p>
-<p>
-In this case, the variable <b>CODEBUILD_INITIATOR</b> will contain a value like
-<b>codepipeline/pipeline_name_staging</b> when the build is triggered by AWS CodePipeline, and
-that's why we have to transform the value of CODEBUILD_INITIATOR with commands like
-<a href="https://en.wikipedia.org/wiki/Tr_(Unix)"><b>tr</b></a> and
-<a href="https://en.wikipedia.org/wiki/Cut_(Unix)"><b>cut</b></a>.
-</p>
-<h3>Setup CodePipeline for Staging and Production environments</h3>
-<p>
-We are now almost ready. What's left is to <a href="http://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html">create
-a pipeline in AWS CodePipeline for every stage</a> where you want to deploy your code.
-</p>
-<p>
-The name of your pipeline must include the stage, for example <b>my_project_staging</b> (as we stated above, that name is taken from
-the CODEBUILD_INITIATOR environment variable and used to know the target stage name). And
-when setting up the source you must specify the corresponding branch for that stage.
-</p>
-<p>
-The build provider is the job you created in AWS CodeBuild. No deployment should be
-setup for these pipelines because AWS don't support yet deployment to API Gateway and
-things like this (you could deploy via a <a href="https://aws.amazon.com/cloudformation/aws-cloudformation-templates/">
-CloudFormation template</a> though, although that's not what this article is about). We are
-going to deploy ourselves by running a serverless cli command.
-</p>
-<h3>That's it!</h3>
-<p>
-Congratulations! Now if you commit to a branch where AWS CodePipeline "is listening",
-your build will be automatically triggered and if successful, your code will be deployed
-automagically to the corresponding stage. This is great when working with Lambdas being run
-by <b>API Gateway, CloudWatch, Kinesis</b>, and all of these amazing AWS services. Enjoy :)
-</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -228,22 +135,22 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
                   <li><a href="aws_lambda_multiple_test_events.html">AWS Lambda Console now allows up to 10 test events!</a></li>
-                  <li><a href="aws_lambda_start_stop_ec2_instance.html">AWS Lambda to start and stop EC2 instances</a></li>
+                  <li><a href="aws_serverless_codebuild_api_gateway_continuous_delivery_integration.html">Continuous Delivery and Continous Integration with Serverless, AWS CodeBuild, AWS CodePipeline and API Gateway</a></li>
                   <li><a href="serverless_cloudwatch_event_cloudformation_template.html">Configuring CloudWatch Scheduled Events in the Serverless Framework</a></li>
                   <li><a href="aws_cloudwatch_event_rule_serverless_replace_crontab.html">Serverless and Crontabless: Welcome CloudWatch Events and Lambdas</a></li>
                   <li><a href="serverless_hangs_checking_stack_update_progress.html">Serverless hangs when checking the stack update process</a></li>
+                  <li><a href="aws_lambda_start_stop_ec2_instance.html">AWS Lambda to start and stop EC2 instances</a></li>
                   <li><a href="aws_cloudwatch_monitor_lambda_alerts.html">Using CloudWatch to Monitor your AWS Lambda and send Alerts on Errors</a></li>
-                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
-                  <li><a href="aws_lambda_check_website_http_online.html">Using AWS Lambda to check if your website is online</a></li>
                   <li><a href="mysql_events_expiring_sessions.html">Expirable user sessions with MySQL events</a></li>
+                  <li><a href="aws_sqs_lambda_sound_file_transcoding.html">Transcoding Audio Files with AWS Lambda and SQS without Elastic Transcoder</a></li>
                   <li><a href="static_sox_transcoding_lambda_mp3.html">How to create a static SOX executable to invoke it in AWS Lambda</a></li>
-                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_api_gateway_return_custom_http_status_codes.html">How to Return Custom HTTP Status codes from a Lambda function in Amazon API Gateway</a></li>
                   <li><a href="api_gateway_ssl_certificate_comodo.html">Using Comodo SSL Certificates in Amazon API Gateway</a></li>
+                  <li><a href="aws_api_gateway_swagger_export_error_path_argument.html">Solving MISSING_PATH_PARAMETER_DEFINITION when exporting from AWS API Gateway in Swagger Format</a></li>
                   <li><a href="aws_hipchat_notifications_from_codedeploy_lambda_sns.html">HipChat Notifications from AWS CodeDeploy</a></li>
-                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="aws_sns_hipchat_integration_notifications_with_lambda.html">Send HipChat Notifications with SNS and Lambda</a></li>
                   <li><a href="get_aws_instance_id_ec2_read_metadata.html">Getting the AWS instance ID from within the EC2 instance</a></li>
+                  <li><a href="aws_get_tags_from_inside_instance_ec2.html">Get your AWS instance tags from your EC2 instance</a></li>
                   <li><a href="aws_lambda_internet_vpc.html">Accessing the Internet and other AWS Resources in your VPC from AWS Lambda</a></li>
                   <li><a href="simple_daily_mysql_backup_to_s3.html">Automatized daily mysql backups to S3 buckets</a></li>
                   <li><a href="installing_webrtc2sip_in_amazon_linux_in_aws.html">Compiling and Installing WebRTC2SIP</a></li>
