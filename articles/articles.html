@@ -59,6 +59,15 @@
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
               <div class="inner set-height-1">
+                <h2>Call FastCGI applications from Erlang</h2>
+                <div class="hr-1"><hr /></div>
+<p>
+FastCGI is like <a href="https://en.wikipedia.org/wiki/Common_Gateway_Interface">CGI</a> with a (not) minor
+difference: it allows you to avoid fork()ing new processes for each request, and you can also
+put all your (Fast)CGI related computation behind a load balancer and away from affecting the
+computing power of your web servers (i.e: decouple!). Also, it can be useful to call <a href="https://web.archive.org/web/20160119141816/http://www.fastcgi.com/drupal/node/6?q=node%2F22">FastCGI</a> applications
+directly from your Erlang code, so in this article we're going to see how to use <a href="https://github.com/marcelog/erl_fastcgi">erl_fastcgi</a>
+to do such thing in a quick and easy way!.&nbsp;<a href="erlang_fastcgi_client.html"><strong>Read More &raquo;</strong></a></p>
                 <h2>AWS Lambda Console now allows up to 10 test events!</h2>
                 <div class="hr-1"><hr /></div>
 <p>

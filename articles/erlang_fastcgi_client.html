@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Common Test: Generating JUnit style xml reports for Jenkins</title>
+<title>Call FastCGI applications from Erlang</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="junit surefire format erlang common test ct common_test jenkins publish test  report"/>
-<meta name="description" content="How to easily add junit/surefire style reports to your erlang projects, by using common test and how to publish them with jenkins, generating nice reports with the common test hook cth_surefire."/>
+<meta name="Keywords" content="erlang php fastcgi cgi webserver applications"/>
+<meta name="description" content="This article shows how to use erl_fastcgi to call fastcgi applications from erlang, you could use this to call php applications directly from your erlang web application"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Common Test: Generating JUnit style xml reports for Jenkins</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Call FastCGI applications from Erlang</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,34 +58,22 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Common Test: Generating JUnit style xml reports for Jenkins</h2>
+                <h2>Call FastCGI applications from Erlang</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Publishing surefire reports for your Common Test code</h3>
+<h3>What is FastCGI</h3>
 <p>
-<b>UPDATE</b>: There's an example <a href="https://github.com/marcelog/jenkins_erlang_rebar_example">at github</a> with a template for a complete otp/rebar application, being builded <a href="http://ci.marcelog.name/job/jenkins_erlang_rebar_example/">at this jenkins</a>.
-</p>
-  <p>
-JUnit/Surefire -style reports are very useful, because you can make <a href="http://jenkins-ci.org/">Jenkins</a> use them to display
-nice reports for <b>erlang projects</b>. Fortunately, since <a href="https://github.com/erlang/otp/commit/11908525cfd1f048296ef3718a367d7c34e7cdb4">Mar 20th</a>, the default common test distribution comes with a <a href="https://github.com/erlang/otp/blob/maint/lib/common_test/src/cth_surefire.erl">cth_surefire</a> hook (see more about <a href="http://www.erlang.org/doc/apps/common_test/ct_hooks_chapter.html">common test hooks</a>) that will generate what we need.
-</p>
-<h3>Configuring the surefire output format for your Erlang code in your rebar project</h3>
-<p>
-To enable it, we just need to specify the <b>-ct_hooks cth_surefire</b> option when running ct. If you're using rebar, add something like this to your rebar.config file:
+FastCGI is like <a href="https://en.wikipedia.org/wiki/Common_Gateway_Interface">CGI</a> with a (not) minor
+difference: it allows you to avoid fork()ing new processes for each request, and you can also
+put all your (Fast)CGI related computation behind a load balancer and away from affecting the
+computing power of your web servers (i.e: decouple!).
 </p>
 <p>
-<b>{ct_extra_params, "-ct_hooks cth_surefire -logdir logs/ct"}.</b>
+Also, it can be useful to call <a href="https://web.archive.org/web/20160119141816/http://www.fastcgi.com/drupal/node/6?q=node%2F22">FastCGI</a> applications
+directly from your Erlang code, so in this article we're going to see how to use <a href="https://github.com/marcelog/erl_fastcgi">erl_fastcgi</a>
+to do such thing in a quick and easy way!
 </p>
-<p>
-After the tests are run, you should see a <b>junit_report.xml</b> file, inside your
-logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
-</p>
-<h3>Publishing the results of your Common Test tests in Jenkins</h3>
-<p>
-  Just add a <b>Post build action</b>, the <b>Publish JUnit test result report</b>:
-</p>
-<a href="publish_common_test_junit_report_jenkins.png"><img width="580" src="publish_common_test_junit_report_jenkins.png"/></a>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -96,11 +84,40 @@ logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Sample JUnit report after running your Common Test tests</h3>
+<h3>What is erl_fastcgi</h3>
 <p>
-<b>NOTE</b>: Test suite names are intentionally obfuscated.
+erl_fastcgi is an Erlang/OTP library packaged as a rebar3 project and you can find it
+at the GitHub repo at: <a href="https://github.com/marcelog/erl_fastcgi">https://github.com/marcelog/erl_fastcgi</a>
 </p>
-<a href="cth_surefire_example.png"><img width="580" src="cth_surefire_example.png"/></a>
+<h3>Installing erl_fastcgi</h3>
+<p>
+To use it in your <a href="http://www.rebar3.org">Rebar application</a> just add this to your <a href="http://www.rebar3.org/docs/configuration">rebar.config</a> file:
+</p>
+<script src="https://gist.github.com/marcelog/300db7b4f957c0d5cdf008d8fa3569db.js"></script>
+<h3>Using erl_fastcgi</h3>
+<p>
+Let's see a quick example:
+</p>
+<script src="https://gist.github.com/marcelog/287bc17d9f1bc8c59862083bf0de6f60.js"></script>
+<p>
+In this example we're calling <a href="https://php-fpm.org/">php-fpm</a> to process
+a simple request. Php-fpm will need some of the FastCGI parameters that you see
+in the example in order to find and run the right PHP script (some of these were taken from
+<a href="https://www.nginx.com/resources/wiki/start/topics/examples/phpfcgi/">this nginx example
+for php-fpm</a>).
+</p>
+<p>
+After calling <b>erl_fastcgi:run/4</b> your process will start receiving messages like:
+</p>
+<script src="https://gist.github.com/marcelog/f626c8a87a27a525772cac58ce587ed6.js"></script>
+<h3>FastCGI + Erlang + erl_fastcgi: A real winner!</h3>
+<p>
+Now you are able to easily call a lot of different applications in different
+languages directly from your Erlang code, for example to extend your
+<a href="https://github.com/ninenines/cowboy">cowboy application</a>. How cool
+is that?
+</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -136,10 +153,10 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <h2>Related Articles</h2>
                 <div class="hr-1"><hr /></div>
                 <ul class="quick-list">
-                  <li><a href="erlang_fastcgi_client.html">Call FastCGI applications from Erlang</a></li>
+                  <li><a href="erlang_cobertura_coverage_report_from_common_test_jenkins.html">Common Test: Cobertura Coverage report for Jenkins using covertool</a></li>
                   <li><a href="erlang_tutorial_for_php_developers.html">Erlang tutorial for PHP developers</a></li>
                   <li><a href="abnf_grammars_in_elixir.html">ABNF Grammars in Elixir</a></li>
-                  <li><a href="erlang_cobertura_coverage_report_from_common_test_jenkins.html">Common Test: Cobertura Coverage report for Jenkins using covertool</a></li>
+                  <li><a href="erlang_test_report_in_junit_format_common_test_publish_jenkins.html">Common Test: Generating JUnit style xml reports for Jenkins</a></li>
                   <li><a href="erlang_epers_persist_entities_domain_events.html">Epers, Erlang, and Domain Events when persisting your entities</a></li>
                   <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
                   <li><a href="erlang_persistence_entities.html">Persisting your entities in Erlang</a></li>
