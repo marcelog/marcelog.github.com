@@ -1,10 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Common Test: Generating JUnit style xml reports for Jenkins</title>
+<title>Serve PHP applications with Erlang and Cowboy using FastCGI</title>
 <meta name="Author" content="Marcelo Gornstein"/>
-<meta name="Keywords" content="junit surefire format erlang common test ct common_test jenkins publish test  report"/>
-<meta name="description" content="How to easily add junit/surefire style reports to your erlang projects, by using common test and how to publish them with jenkins, generating nice reports with the common test hook cth_surefire."/>
+<meta name="Keywords" content="erlang php fastcgi cgi webserver applications"/>
+<meta name="description" content="This article shows how to use erl_fastcgi to call fastcgi applications from erlang, you could use this to call php applications directly from your erlang web application"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="shortcut icon" href="../images/favicon.ico" title="favicon" />
 <link rel="stylesheet" href="../css/main.css" type="text/css" media="all" />
@@ -38,7 +38,7 @@
        <g:plusone></g:plusone>
       </div>
      </div>
-    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Common Test: Generating JUnit style xml reports for Jenkins</div>
+    <div class="breadcrumb">You are here &nbsp;&raquo;&nbsp; <a href="../index.html">Home Page</a>  &nbsp;&raquo;&nbsp;  <a href="articles.html">Articles</a>  &nbsp;&raquo;&nbsp;  Serve PHP applications with Erlang and Cowboy using FastCGI</div>
   </div>
   <div class="main-outer">
     <div class="main-inner">
@@ -58,34 +58,25 @@
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-                <h2>Common Test: Generating JUnit style xml reports for Jenkins</h2>
+                <h2>Serve PHP applications with Erlang and Cowboy using FastCGI</h2>
 <a href="https://twitter.com/share" class="twitter-share-button" data-via="mgornstein" data-size="large" data-related="mgornstein">Tweet</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
                 <div class="hr-1"><hr /></div>
-<h3>Publishing surefire reports for your Common Test code</h3>
+<h3>Introduction</h3>
 <p>
-<b>UPDATE</b>: There's an example <a href="https://github.com/marcelog/jenkins_erlang_rebar_example">at github</a> with a template for a complete otp/rebar application, being builded <a href="http://ci.marcelog.name/job/jenkins_erlang_rebar_example/">at this jenkins</a>.
+In the last article, we discussed how to <a href="erlang_fastcgi_client.html">use erl_fastcgi to call
+FastCGI applications from Erlang</a>, and today we're going to see how we can do this
+from a <a href="https://github.com/ninenines/cowboy">Cowboy</a> application in order to <b>serve PHP pages from Erlang</b>.
 </p>
-  <p>
-JUnit/Surefire -style reports are very useful, because you can make <a href="http://jenkins-ci.org/">Jenkins</a> use them to display
-nice reports for <b>erlang projects</b>. Fortunately, since <a href="https://github.com/erlang/otp/commit/11908525cfd1f048296ef3718a367d7c34e7cdb4">Mar 20th</a>, the default common test distribution comes with a <a href="https://github.com/erlang/otp/blob/maint/lib/common_test/src/cth_surefire.erl">cth_surefire</a> hook (see more about <a href="http://www.erlang.org/doc/apps/common_test/ct_hooks_chapter.html">common test hooks</a>) that will generate what we need.
-</p>
-<h3>Configuring the surefire output format for your Erlang code in your rebar project</h3>
+<h3>Requirements</h3>
 <p>
-To enable it, we just need to specify the <b>-ct_hooks cth_surefire</b> option when running ct. If you're using rebar, add something like this to your rebar.config file:
-</p>
+You will need <a href="http://php.net/manual/en/install.php">PHP</a> installed and a wokring
+<a href="http://php.net/manual/en/install.fpm.php">php-fpm installation</a>.
+<h3>The code</h3>
 <p>
-<b>{ct_extra_params, "-ct_hooks cth_surefire -logdir logs/ct"}.</b>
+The code for this example is available at GitHub at <a href="https://github.com/marcelog/cowboy_fastcgi">https://github.com/marcelog/cowboy_fastcgi</a> and
+it's actually a very small and simple Erlang/OTP application. It has the following files:
 </p>
-<p>
-After the tests are run, you should see a <b>junit_report.xml</b> file, inside your
-logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
-</p>
-<h3>Publishing the results of your Common Test tests in Jenkins</h3>
-<p>
-  Just add a <b>Post build action</b>, the <b>Publish JUnit test result report</b>:
-</p>
-<a href="publish_common_test_junit_report_jenkins.png"><img width="580" src="publish_common_test_junit_report_jenkins.png"/></a>
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- blog1 -->
 <ins class="adsbygoogle"
@@ -96,11 +87,63 @@ logs directory (e.g: logs/ct/ct_run.mynode\@local.local.2013-06-29_19.13.24).
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
-<h3>Sample JUnit report after running your Common Test tests</h3>
+<ul>
+  <li><a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_app.erl">cowboy_fastcgi_app.erl</a>: The application itself, will start the main supervisor.
+  <li><a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_sup.erl">cowboy_fastcgi_sup.erl</a>: The main supervisor will setup the <a href="https://ninenines.eu/docs/en/cowboy/1.0/guide/routing/">cowboy routes</a> and also create a pool of erl_fastcgi workers using <a href="https://github.com/devinus/poolboy">poolboy</a>.
+    <li><a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_cfg.erl">cowboy_fastcgi_cfg.erl</a>: Just a helper module used to get different configuration options.
+  <li><a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_handler.erl">cowboy_fastcgi_handler.erl</a>: The interesting stuff goes here, and we'll take a closer look now. This is the endpoint handler in charge of using <b>erl_fastcgi</b> to call the php-fpm server.
+</ul>
+<h3>Handling the request and serving the FastCGI result from php-fpm</h3>
 <p>
-<b>NOTE</b>: Test suite names are intentionally obfuscated.
+As you can see in the <b>init/2</b> function in <b>cowboy_fastcgi_handler.erl</b> file, the first thing we do
+is to gather some standard information from the request and create the set of <a href="http://www.mit.edu/~yandros/doc/specs/fcgi-spec.html#S5.2">FastCGI Parameters</a> that
+php-fpm needs in order to serve the request (and also makes them available to our PHP scripts through different <a href="http://php.net/manual/en/reserved.variables.request.php">global variables</a>). This is done
+<a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_handler.erl#L61">here</a>.
 </p>
-<a href="cth_surefire_example.png"><img width="580" src="cth_surefire_example.png"/></a>
+<p>
+Then, the FastCGI request is done and we have to wait for the incoming messages with different
+signaling information from erl_fastcgi, we do this <a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_handler.erl#L79">here</a>. As
+you can see, several messages are handled:
+<ul>
+  <li><b>fast_cgi_stdout</b>: This is basically the most important message. The stdout of the script will
+  include the HTTP status, headers, and body to be returned.</li>
+  <li><b>fast_cgi_stderr</b>: There was an error processing the request, so we log the stderr output of the
+  script and wait for more messages that can be sent to the browser.</li>
+  <li><b>fast_cgi_request_done</b>: The request was aborted, so we return a status 500 and some error message.</li>
+  <li><b>fast_cgi_done</b>: The request finished successfully, so we have nothing else to do but
+  finish the http request in turn.</li>
+</ul>
+</p>
+<h3>Parsing the FastCGI status, headers and body</h3>
+<p>
+Each fast_cgi_stdout message will contain up to 65535 bytes of data, this means
+that status, headers, and body may be in the same line or split into many, so
+we have to parse them and return them accordingly to the browser. This is done
+<a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_handler.erl#L88">here</a>
+</p>
+<p>
+Here's an example of php-fpm returning a 404 due to an invalid script name:
+</p>
+<script src="https://gist.github.com/marcelog/1a9dea3ae608a7022a57de3c18577693.js"></script>
+<p>
+And here's an example of a successful run:
+</p>
+<script src="https://gist.github.com/marcelog/682de2229ba3772f53e0e54ce00c544f.js"></script>
+
+<p>
+First we split the line looking for the <b>\r\n\r\n</b> that separates the headers
+from the body. Once that's done, the headers are split by <b>\r\n</b> and then each
+one of those split by <b>:</b>. Once we have all the headers, we look for the
+<b>status</b> header (it's not a header actually but it has the same format) and then
+everything is returned to the client <a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_handler.erl#L92">here</a> and
+<a href="https://github.com/marcelog/cowboy_fastcgi/blob/master/apps/cowboy_fastcgi/src/cowboy_fastcgi_handler.erl#L85"> by using
+  <a href="https://ninenines.eu/docs/en/cowboy/2.0/manual/cowboy_req.stream_reply/">cowboy_req:stream_reply and coboy_req:stream_body</a>.
+</p>
+<p>
+And voilà, we're now ready to extend our Erlang/OTP web application with PHP scripts and
+include other devs in our proyect :)
+</p>
+
               </div>
             </div>
             <div class="mod view-more">
@@ -138,9 +181,10 @@ If you liked this or other articles (and feel generous), you can make a donation
                 <ul class="quick-list">
                   <li><a href="erlang_cowboy_php_fastcgi.html">Serve PHP applications with Erlang and Cowboy using FastCGI</a></li>
                   <li><a href="erlang_fastcgi_client.html">Call FastCGI applications from Erlang</a></li>
+                  <li><a href="erlang_cobertura_coverage_report_from_common_test_jenkins.html">Common Test: Cobertura Coverage report for Jenkins using covertool</a></li>
                   <li><a href="erlang_tutorial_for_php_developers.html">Erlang tutorial for PHP developers</a></li>
                   <li><a href="abnf_grammars_in_elixir.html">ABNF Grammars in Elixir</a></li>
-                  <li><a href="erlang_cobertura_coverage_report_from_common_test_jenkins.html">Common Test: Cobertura Coverage report for Jenkins using covertool</a></li>
+                  <li><a href="erlang_test_report_in_junit_format_common_test_publish_jenkins.html">Common Test: Generating JUnit style xml reports for Jenkins</a></li>
                   <li><a href="erlang_epers_persist_entities_domain_events.html">Epers, Erlang, and Domain Events when persisting your entities</a></li>
                   <li><a href="erlang_link_vs_monitor_difference.html">Link and Monitor differences</a></li>
                   <li><a href="erlang_persistence_entities.html">Persisting your entities in Erlang</a></li>
